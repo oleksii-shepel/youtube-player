@@ -3,7 +3,7 @@
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 export const environment = {
-  production: false,
+  production: true,
   youtube: {
     apiKey: 'AIzaSyCphKwS_UEyA9HjFSKnfkN9DCa3nOiqyEc',
     clientId: '486768354725-rv3rbt4gdma0dv3ob6er4b3f4fhlkfoe.apps.googleusercontent.com',
@@ -21,4 +21,3 @@ export const environment = {
     appId: "1:486768354725:web:6fd97a03a0fba3262c744c"
   }
 };
-
