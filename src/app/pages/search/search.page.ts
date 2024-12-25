@@ -2,9 +2,10 @@ import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-youtube-search',
+  selector: 'app-search',
   template: `
     <ion-header>
       <ion-toolbar>
@@ -47,7 +48,7 @@ import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
   standalone: false
 })
 export class SearchPage {
-  apiKey: string = 'YOUR_YOUTUBE_API_KEY';
+  apiKey: string = environment.youtube.apiKey;
   searchQuery: string = '';
   searchType: string = 'video';
   searchResults: any[] = [];
