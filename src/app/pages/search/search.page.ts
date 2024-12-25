@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.service';
 
 @Component({
   selector: 'app-search',
@@ -54,7 +55,7 @@ export class SearchPage {
   searchResults: any[] = [];
   suggestions: string[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private googleSuggestionsService: GoogleSuggestionsService) {}
 
   onSearchQueryChange(event: any) {
     const query = event.target.value;
@@ -68,12 +69,11 @@ export class SearchPage {
   }
 
   fetchSuggestions(query: string): Observable<string[]> {
-    const url = `https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(query)}`;
-    return this.http.get(url, { responseType: 'text' }).pipe(
+    return this.googleSuggestionsService.getSuggestions(query).pipe(
       debounceTime(300),
       distinctUntilChanged(),
       switchMap((response: any) => {
-        const suggestions = JSON.parse(response)[1];
+        const suggestions = response;
         return new Observable<string[]>((observer) => {
           observer.next(suggestions);
           observer.complete();
