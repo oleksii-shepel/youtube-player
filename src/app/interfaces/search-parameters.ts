@@ -1,5 +1,5 @@
 export type YouTubeVideoDuration = 'any' | 'long' | 'short' | 'medium';
-export type YouTubeVideoDefinition = 'any' | 'high';
+export type YouTubeVideoDefinition = 'standard' | 'high';
 export type YouTubeEventType = '' | 'live' | 'upcoming' | 'completed';
 export type YouTubeQueryType = 'video' | 'channel' | 'playlist';
 export type YouTubePlaylistType = 'all' | 'favorites' | 'recent';

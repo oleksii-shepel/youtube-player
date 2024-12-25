@@ -3,7 +3,7 @@ export const environment = {
   youtube: {
     apiKey: 'AIzaSyCphKwS_UEyA9HjFSKnfkN9DCa3nOiqyEc',
     clientId: '486768354725-rv3rbt4gdma0dv3ob6er4b3f4fhlkfoe.apps.googleusercontent.com',
-    totalApiResults: '20'
+    maxResults: '20'
   },
   pixabay: {
     apiKey: "45940050-99ae52330212333c7ae132ad2"
