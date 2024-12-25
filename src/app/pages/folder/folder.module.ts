@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { FolderPageRoutingModule } from './folder-routing.module';
 
 import { FolderPage } from './folder.page';
-import { YoutubePlayerComponent } from "../youtube-player/youtube-player.component";
+import { YoutubePlayerComponent } from "../../components/youtube-player/youtube-player.component";
 
 @NgModule({
   imports: [
