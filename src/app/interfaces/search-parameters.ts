@@ -142,6 +142,28 @@ export interface IYoutubeQueryParams {
   topics?: string[]; // List of channel topics
 }
 
+export const YoutubeTopics = [
+  { id: '/m/04rlf', name: 'Music' },
+  { id: '/m/0bzvm2', name: 'Gaming' },
+  { id: '/m/06ntj', name: 'Sports' },
+  { id: '/m/02jjt', name: 'Entertainment' },
+  { id: '/m/019_rr', name: 'Lifestyle' },
+  { id: '/m/098wr', name: 'Society' },
+  { id: '/m/01k8wb', name: 'Knowledge' },
+  { id: '/m/03glg', name: 'Technology' },
+  { id: '/m/07c1v', name: 'Film & Animation' },
+  { id: '/m/0f2f9', name: 'Food & Drink' },
+  { id: '/m/027x7n', name: 'Travel & Events' },
+  { id: '/m/02vxn', name: 'Autos & Vehicles' },
+  { id: '/m/01h7lh', name: 'Education' },
+  { id: '/m/05qt0', name: 'Science & Engineering' },
+  { id: '/m/01jnbd', name: 'News & Politics' },
+  { id: '/m/02wbm', name: 'Comedy' },
+  { id: '/m/09s1f', name: 'Nonprofits & Activism' },
+  { id: '/m/032tl', name: 'Pets & Animals' },
+  { id: '/m/0kt51', name: 'Health & Fitness' }
+];
+
 export interface SearchResults {
   items: any[];
   pageToken: string;
