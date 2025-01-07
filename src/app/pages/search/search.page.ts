@@ -46,7 +46,12 @@ import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.se
       </ion-item>
 
       <ion-list>
-      <app-youtube-video *ngFor="let video of searchResults" [videoData]="video" [isCompact]="false"></app-youtube-video>
+        <ion-item *ngFor="let result of searchResults">
+          <ion-label>
+            <h2>{{ result.title }}</h2>
+            <p>{{ result.description }}</p>
+          </ion-label>
+        </ion-item>
       </ion-list>
     </ion-content>
   `,
