@@ -24,8 +24,18 @@ import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.se
       </ion-item>
 
       <ion-item>
-        <ion-input [(ngModel)]="searchQuery" placeholder="Enter search query" (ionInput)="onSearchQueryChange($event)"></ion-input>
+        <ion-input
+          [(ngModel)]="searchQuery"
+          placeholder="Enter search query"
+          (ionInput)="onSearchQueryChange($event)"
+        ></ion-input>
       </ion-item>
+
+      <!-- Filters Section -->
+      <app-filter
+        [searchType]="searchType"
+        (filtersChanged)="onFiltersChanged($event)">
+      </app-filter>
 
       <ion-chip *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
         {{ suggestion }}
@@ -55,6 +65,57 @@ export class SearchPage {
   searchResults: any[] = [];
   suggestions: string[] = [];
 
+  // Filters and active selections
+  videoFilters = {
+    durations: [
+      { label: 'Short (< 4 mins)', value: 'short' },
+      { label: 'Medium (4-20 mins)', value: 'medium' },
+      { label: 'Long (> 20 mins)', value: 'long' },
+    ],
+    resolutions: [
+      { label: 'HD', value: 'hd' },
+      { label: 'SD', value: 'sd' },
+    ],
+    liveStatuses: [
+      { label: 'Live', value: 'live' },
+      { label: 'Upcoming', value: 'upcoming' },
+      { label: 'Archived', value: 'archived' },
+    ],
+  };
+
+  playlistFilters = {
+    types: [
+      { label: 'All', value: 'all' },
+      { label: 'Favorites', value: 'favorites' },
+      { label: 'Custom', value: 'custom' },
+      { label: 'Public', value: 'public' },
+      { label: 'Private', value: 'private' },
+      { label: 'Upcoming', value: 'upcoming' },
+    ],
+  };
+
+  channelFilters = {
+    topics: [
+      { label: 'Music', value: '/m/04rlf' },
+      { label: 'Gaming', value: '/m/0bzvm2' },
+      { label: 'Sports', value: '/m/06ntj' },
+      { label: 'Education', value: '/m/02jjt' },
+      { label: 'News', value: '/m/0k4d' },
+      { label: 'Technology', value: '/m/0k4d' },
+      { label: 'Movies', value: '/m/01mjl' },
+      { label: 'Comedies', value: '/m/02kz58' },
+      { label: 'Lifestyle', value: '/m/019_rr' },
+    ],
+  };
+
+  activeFilters: any = {
+    duration: '',
+    resolution: '',
+    live: '',
+    playlistType: '',
+    topic: [],
+  };
+
   constructor(private http: HttpClient, private googleSuggestionsService: GoogleSuggestionsService) {}
 
   onSearchQueryChange(event: any) {
@@ -66,6 +127,10 @@ export class SearchPage {
     } else {
       this.suggestions = [];
     }
+  }
+
+  onFiltersChanged(filters: any) {
+    console.log('Filters changed:', filters);
   }
 
   fetchSuggestions(query: string): Observable<string[]> {
@@ -88,6 +153,19 @@ export class SearchPage {
     this.performSearch();
   }
 
+  toggleFilter(filterKey: string, value: any) {
+    if (filterKey === 'topic') {
+      const index = this.activeFilters[filterKey].indexOf(value);
+      if (index === -1) {
+        this.activeFilters[filterKey].push(value);
+      } else {
+        this.activeFilters[filterKey].splice(index, 1);
+      }
+    } else {
+      this.activeFilters[filterKey] = this.activeFilters[filterKey] === value ? '' : value;
+    }
+  }
+
   performSearch() {
     const url = this.buildSearchUrl();
     this.http.get(url).subscribe((response: any) => {
@@ -97,26 +175,35 @@ export class SearchPage {
 
   buildSearchUrl(): string {
     const baseUrl = 'https://www.googleapis.com/youtube/v3/search';
-    const commonParams = `part=snippet&maxResults=10&q=${encodeURIComponent(this.searchQuery)}&key=${this.apiKey}`;
+    let commonParams = `part=snippet&maxResults=10&q=${encodeURIComponent(this.searchQuery)}&key=${this.apiKey}&type=${this.searchType}`;
 
-    switch (this.searchType) {
-      case 'video':
-        return `${baseUrl}?${commonParams}&type=video`;
-      case 'playlist':
-        return `${baseUrl}?${commonParams}&type=playlist`;
-      case 'channel':
-        return `${baseUrl}?${commonParams}&type=channel`;
-      default:
-        return `${baseUrl}?${commonParams}&type=video`;
+    if (this.searchType === 'video') {
+      if (this.activeFilters.duration) {
+        commonParams += `&videoDuration=${this.activeFilters.duration}`;
+      }
+      if (this.activeFilters.resolution) {
+        commonParams += `&videoDefinition=${this.activeFilters.resolution}`;
+      }
+      if (this.activeFilters.live) {
+        commonParams += `&eventType=${this.activeFilters.live}`;
+      }
+    } else if (this.searchType === 'playlist') {
+      if (this.activeFilters.playlistType) {
+        commonParams += `&playlistType=${this.activeFilters.playlistType}`;
+      }
+    } else if (this.searchType === 'channel') {
+      if (this.activeFilters.topic.length) {
+        commonParams += `&topicId=${this.activeFilters.topic.join(',')}`;
+      }
     }
+
+    return `${baseUrl}?${commonParams}`;
   }
 
   mapResults(response: any): any[] {
-    return response.items.map((item: any) => {
-      return {
-        title: item.snippet.title,
-        description: item.snippet.description
-      };
-    });
+    return response.items.map((item: any) => ({
+      title: item.snippet.title,
+      description: item.snippet.description,
+    }));
   }
 }

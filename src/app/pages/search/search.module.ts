@@ -8,6 +8,7 @@ import { YoutubePlayerComponent } from "../../components/youtube-player/youtube-
 import { SearchPage } from './search.page';
 import { SearchPageRoutingModule } from './search-routing.module';
 import { HttpClient } from '@angular/common/http';
+import { FilterComponent } from 'src/app/components/filter/filter.component';
 
 @NgModule({
   imports: [
@@ -15,7 +16,8 @@ import { HttpClient } from '@angular/common/http';
     FormsModule,
     IonicModule,
     SearchPageRoutingModule,
-    YoutubePlayerComponent
+    YoutubePlayerComponent,
+    FilterComponent
 ],
   declarations: [SearchPage]
 })

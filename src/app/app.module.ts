@@ -6,7 +6,6 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppComponent } from './components/app/app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { YoutubePlayerComponent } from './components/youtube-player/youtube-player.component';
 import { provideHttpClient, withInterceptorsFromDi, withJsonpSupport } from '@angular/common/http';
 
 @NgModule({

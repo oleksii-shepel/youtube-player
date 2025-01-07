@@ -1,0 +1,38 @@
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.chip-group-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+  padding: 10px;
+  gap: 10px;
+}
+
+.chip-group {
+  display: flex;
+  background-color: #f5f5f5;
+  border-radius: 16px;
+  padding: 6px;
+  align-items: center;
+}
+
+.chip-group ion-chip {
+  margin: 0 4px;
+  font-size: 14px;
+}
+
+.chip-group ion-chip[color="primary"] {
+  background-color: #3880ff;
+  color: white;
+}
+
+.chip-group ion-chip[color="light"] {
+  background-color: #f4f5f8;
+}
