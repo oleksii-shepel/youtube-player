@@ -9,6 +9,9 @@ import { SearchPage } from './search.page';
 import { SearchPageRoutingModule } from './search-routing.module';
 import { HttpClient } from '@angular/common/http';
 import { FilterComponent } from 'src/app/components/filter/filter.component';
+import { YoutubeVideoComponent } from 'src/app/components/youtube-video/youtube-video.component';
+import { YoutubePlaylistComponent } from 'src/app/components/youtube-playlist/youtube-playlist.component';
+import { YoutubeChannelComponent } from 'src/app/components/youtube-channel/youtube-channel.component';
 
 @NgModule({
   imports: [
@@ -17,6 +20,9 @@ import { FilterComponent } from 'src/app/components/filter/filter.component';
     IonicModule,
     SearchPageRoutingModule,
     YoutubePlayerComponent,
+    YoutubeVideoComponent,
+    YoutubePlaylistComponent,
+    YoutubeChannelComponent,
     FilterComponent
 ],
   declarations: [SearchPage]

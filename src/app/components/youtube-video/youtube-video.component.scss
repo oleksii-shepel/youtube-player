@@ -1,0 +1,86 @@
+.video-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    background-color: #fff;
+    overflow: hidden;
+    font-size: 1.3rem;
+    min-height: 22.5rem;
+    height: 100%;
+  }
+  
+  .video-card.compact {
+    flex-direction: row;
+    min-width: 200px;
+    min-height: unset;
+    width: 100%;
+  }
+  
+  .video-card:not(.compact) {
+    flex-direction: column;
+  }
+  
+  .video-image-container {
+    flex: 0 0 auto;
+    height: auto;
+    width: 100%;
+  }
+  
+  .video-image {
+    width: 100%;
+    border-radius: 0.5rem;
+  }
+
+  .compact .video-image {
+    max-width: 100px;
+    height: auto;
+    border-radius: 5px;
+  }
+
+  .video-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .video-info.compact-info {
+    justify-content: center;
+  }
+  
+  /* Additional styling for full mode */
+  .video-title {
+    font-size: 1.3rem;
+    margin: 0;
+    line-height: 1.5rem; /* Adjust line height */
+    height: 3rem; /* Reserve space for exactly two lines (line-height * 2) */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Show ellipsis if the text overflows */
+    display: -webkit-box; /* Required for line clamping */
+    -webkit-line-clamp: 2; /* Limit to two lines */
+    -webkit-box-orient: vertical; /* Required for line clamping */
+  }
+  
+  .video-description {
+    font-size: 1rem;
+    color: #666;
+  }
+  
+  .video-stats {
+    font-size: 1rem;
+    color: #888;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .video-duration {
+    font-size: 1rem;
+    color: #666;
+  }
+  
