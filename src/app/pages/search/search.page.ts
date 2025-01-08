@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { environment } from 'src/environments/environment';
 import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.service';
+import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // Import YoutubeDataService
 
 @Component({
   selector: 'app-search',
@@ -17,9 +16,9 @@ import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.se
     <ion-content>
       <ion-item>
         <ion-segment [(ngModel)]="searchType">
-          <ion-segment-button value="video">Videos</ion-segment-button>
-          <ion-segment-button value="playlist">Playlists</ion-segment-button>
-          <ion-segment-button value="channel">Channels</ion-segment-button>
+          <ion-segment-button value="videos">Videos</ion-segment-button>
+          <ion-segment-button value="playlists">Playlists</ion-segment-button>
+          <ion-segment-button value="channels">Channels</ion-segment-button>
         </ion-segment>
       </ion-item>
 
@@ -46,12 +45,15 @@ import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.se
       </ion-item>
 
       <ion-list>
-        <ion-item *ngFor="let result of searchResults">
-          <ion-label>
-            <h2>{{ result.title }}</h2>
-            <p>{{ result.description }}</p>
-          </ion-label>
-        </ion-item>
+      <ng-container *ngIf="searchType === 'videos'">
+          <app-youtube-video *ngFor="let video of searchResults" [videoData]="video" [isCompact]="false"></app-youtube-video>
+        </ng-container>
+        <ng-container *ngIf="searchType === 'playlists'">
+          <app-youtube-playlist *ngFor="let playlist of searchResults" [playlistData]="playlist"></app-youtube-playlist>
+        </ng-container>
+        <ng-container *ngIf="searchType === 'channels'">
+          <app-youtube-channel *ngFor="let channel of searchResults" [channelData]="channel"></app-youtube-channel>
+        </ng-container>
       </ion-list>
     </ion-content>
   `,
@@ -59,64 +61,16 @@ import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.se
   standalone: false
 })
 export class SearchPage {
-  apiKey: string = environment.youtube.apiKey;
   searchQuery: string = '';
-  searchType: string = 'video';
+  searchType: string = 'videos'; // Default to video
   searchResults: any[] = [];
   suggestions: string[] = [];
+  pageToken: string = '';
 
-  // Filters and active selections
-  videoFilters = {
-    durations: [
-      { label: 'Short (< 4 mins)', value: 'short' },
-      { label: 'Medium (4-20 mins)', value: 'medium' },
-      { label: 'Long (> 20 mins)', value: 'long' },
-    ],
-    resolutions: [
-      { label: 'HD', value: 'hd' },
-      { label: 'SD', value: 'sd' },
-    ],
-    liveStatuses: [
-      { label: 'Live', value: 'live' },
-      { label: 'Upcoming', value: 'upcoming' },
-      { label: 'Archived', value: 'archived' },
-    ],
-  };
-
-  playlistFilters = {
-    types: [
-      { label: 'All', value: 'all' },
-      { label: 'Favorites', value: 'favorites' },
-      { label: 'Custom', value: 'custom' },
-      { label: 'Public', value: 'public' },
-      { label: 'Private', value: 'private' },
-      { label: 'Upcoming', value: 'upcoming' },
-    ],
-  };
-
-  channelFilters = {
-    topics: [
-      { label: 'Music', value: '/m/04rlf' },
-      { label: 'Gaming', value: '/m/0bzvm2' },
-      { label: 'Sports', value: '/m/06ntj' },
-      { label: 'Education', value: '/m/02jjt' },
-      { label: 'News', value: '/m/0k4d' },
-      { label: 'Technology', value: '/m/0k4d' },
-      { label: 'Movies', value: '/m/01mjl' },
-      { label: 'Comedies', value: '/m/02kz58' },
-      { label: 'Lifestyle', value: '/m/019_rr' },
-    ],
-  };
-
-  activeFilters: any = {
-    duration: '',
-    resolution: '',
-    live: '',
-    playlistType: '',
-    topic: [],
-  };
-
-  constructor(private http: HttpClient, private googleSuggestionsService: GoogleSuggestionsService) {}
+  constructor(
+    private googleSuggestionsService: GoogleSuggestionsService,
+    private youtubeDataService: YoutubeDataService // Inject YoutubeDataService
+  ) {}
 
   onSearchQueryChange(event: any) {
     const query = event.target.value;
@@ -137,13 +91,10 @@ export class SearchPage {
     return this.googleSuggestionsService.getSuggestions(query).pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap((response: any) => {
-        const suggestions = response;
-        return new Observable<string[]>((observer) => {
-          observer.next(suggestions);
-          observer.complete();
-        });
-      })
+      switchMap((response: any) => new Observable<string[]>((observer) => {
+        observer.next(response);
+        observer.complete();
+      }))
     );
   }
 
@@ -153,57 +104,82 @@ export class SearchPage {
     this.performSearch();
   }
 
-  toggleFilter(filterKey: string, value: any) {
-    if (filterKey === 'topic') {
-      const index = this.activeFilters[filterKey].indexOf(value);
-      if (index === -1) {
-        this.activeFilters[filterKey].push(value);
-      } else {
-        this.activeFilters[filterKey].splice(index, 1);
-      }
-    } else {
-      this.activeFilters[filterKey] = this.activeFilters[filterKey] === value ? '' : value;
-    }
-  }
-
   performSearch() {
-    const url = this.buildSearchUrl();
-    this.http.get(url).subscribe((response: any) => {
-      this.searchResults = this.mapResults(response);
+    // Build parameters for the search
+    const params = this.buildSearchParams();
+
+    // Perform search with type and params
+    this.youtubeDataService.search('search', params).pipe(
+      switchMap((response: any) => {
+        // Step 1: Map search results to extract IDs
+        const results = this.mapResults(response);
+        let detailedResults$: Observable<any>;
+
+        // Step 2: Based on search type, fetch detailed information using the IDs
+        if (this.searchType === 'videos') {
+          const videoIds = results.map(item => item.id);  // Extract video IDs
+          detailedResults$ = this.youtubeDataService.fetchVideos(videoIds);  // Fetch detailed video info
+        } else if (this.searchType === 'playlists') {
+          const playlistIds = results.map(item => item.id);  // Extract playlist IDs
+          detailedResults$ = this.youtubeDataService.fetchPlaylists(playlistIds);  // Fetch detailed playlist info
+        } else if (this.searchType === 'channels') {
+          const channelIds = results.map(item => item.id);  // Extract channel IDs
+          detailedResults$ = this.youtubeDataService.fetchChannels(channelIds);  // Fetch detailed channel info
+        } else {
+          throw new Error('Unknown search type.');
+        }
+
+        // Step 3: Combine the basic and detailed results
+        return detailedResults$.pipe(
+          switchMap((detailedItems: any) => {
+            return new Observable<any[]>((observer) => {
+              const mergedResults = results.map(result => {
+                const detailedItem = detailedItems.items.find((item: any) => item.id === result.id);
+                return {
+                  ...result,
+                  ...detailedItem,
+                };
+              });
+              observer.next(mergedResults);  // Emit combined results
+              observer.complete();
+            });
+          })
+        );
+      })
+    ).subscribe((finalResults: any[]) => {
+      this.searchResults = finalResults;  // Update the search results with detailed info
     });
   }
 
-  buildSearchUrl(): string {
-    const baseUrl = 'https://www.googleapis.com/youtube/v3/search';
-    let commonParams = `part=snippet&maxResults=10&q=${encodeURIComponent(this.searchQuery)}&key=${this.apiKey}&type=${this.searchType}`;
+  buildSearchParams() {
+    const params: any = {
+      q: this.searchQuery,
+      maxResults: 10,
+      pageToken: this.pageToken,
+    };
 
-    if (this.searchType === 'video') {
-      if (this.activeFilters.duration) {
-        commonParams += `&videoDuration=${this.activeFilters.duration}`;
-      }
-      if (this.activeFilters.resolution) {
-        commonParams += `&videoDefinition=${this.activeFilters.resolution}`;
-      }
-      if (this.activeFilters.live) {
-        commonParams += `&eventType=${this.activeFilters.live}`;
-      }
-    } else if (this.searchType === 'playlist') {
-      if (this.activeFilters.playlistType) {
-        commonParams += `&playlistType=${this.activeFilters.playlistType}`;
-      }
-    } else if (this.searchType === 'channel') {
-      if (this.activeFilters.topic.length) {
-        commonParams += `&topicId=${this.activeFilters.topic.join(',')}`;
-      }
+    if (!this.pageToken || this.pageToken === '') {
+      delete params.pageToken;
     }
 
-    return `${baseUrl}?${commonParams}`;
+    if (this.searchType === 'videos') {
+      params.type = 'video';  // Specify search for videos
+      // Optionally, if there’s a filter needed, such as 'chart' for top videos
+      params.chart = 'mostPopular';  // Example filter for most popular videos
+    } else if (this.searchType === 'playlists') {
+      params.type = 'playlist';  // Specify search for playlists
+    } else if (this.searchType === 'channels') {
+      params.type = 'channel';  // Specify search for channels
+      // Optionally add filters for channels (e.g., 'id', 'myRating')
+      params.myRating = 'like';  // Example filter for channels rated by user
+    }
+
+    return params;
   }
 
   mapResults(response: any): any[] {
     return response.items.map((item: any) => ({
-      title: item.snippet.title,
-      description: item.snippet.description,
+      id: item.id.videoId || item.id.playlistId || item.id.channelId, // Assuming the id field varies based on search type
     }));
   }
 }

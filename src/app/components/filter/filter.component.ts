@@ -8,7 +8,7 @@ import { IonicModule } from '@ionic/angular';
   template: `
     <div class="chip-group-container">
       <!-- Duration Group -->
-      <div class="chip-group" *ngIf="searchType === 'video'">
+      <div class="chip-group" *ngIf="searchType === 'videos'">
         <ion-chip [color]="selectedFilters.duration === 'Short' ? 'primary' : 'light'" (click)="selectFilter('duration', 'Short')">
           <ion-label>Short</ion-label>
         </ion-chip>
@@ -21,7 +21,7 @@ import { IonicModule } from '@ionic/angular';
       </div>
 
       <!-- HD/SD Group -->
-      <div class="chip-group" *ngIf="searchType === 'video'">
+      <div class="chip-group" *ngIf="searchType === 'videos'">
         <ion-chip [color]="selectedFilters.quality === 'HD' ? 'primary' : 'light'" (click)="selectFilter('quality', 'HD')">
           <ion-label>HD</ion-label>
         </ion-chip>
@@ -31,7 +31,7 @@ import { IonicModule } from '@ionic/angular';
       </div>
 
       <!-- Live/Upcoming/Archived Group -->
-      <div class="chip-group" *ngIf="searchType === 'video'">
+      <div class="chip-group" *ngIf="searchType === 'videos'">
         <ion-chip [color]="selectedFilters.status === 'Live' ? 'primary' : 'light'" (click)="selectFilter('status', 'Live')">
           <ion-label>Live</ion-label>
         </ion-chip>
@@ -44,7 +44,7 @@ import { IonicModule } from '@ionic/angular';
       </div>
 
       <!-- Playlists Group -->
-      <div class="chip-group" *ngIf="searchType === 'playlist'">
+      <div class="chip-group" *ngIf="searchType === 'playlists'">
         <ion-chip
           *ngFor="let playlist of playlists"
           [color]="selectedFilters.playlist === playlist.value ? 'primary' : 'light'"
@@ -55,7 +55,7 @@ import { IonicModule } from '@ionic/angular';
       </div>
 
       <!-- Topics Group -->
-      <div class="chip-group" *ngIf="searchType === 'channel'">
+      <div class="chip-group" *ngIf="searchType === 'channels'">
         <ion-chip
           *ngFor="let topic of topics"
           [color]="selectedFilters.topics.includes(topic.value) ? 'primary' : 'light'"
@@ -118,7 +118,7 @@ export class FilterComponent {
     playlist: null
   } as any;
 
-  @Input() searchType: string = 'video'; // Change to 'channel' or 'video' to test dynamic filters
+  @Input() searchType: string = 'videos'; // Change to 'channel' or 'video' to test dynamic filters
   @Input() channelFilters: any = [];
   @Input() playlistFilters: any = [];
   @Input() videoFilters: any = [];
