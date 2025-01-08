@@ -15,6 +15,8 @@
   "dependencies": {
     "@actionstack/angular": "^2.0.8",
     "@actionstack/epics": "^2.0.8",
+    "@actionstack/sagas": "^2.0.8",
+    "@actionstack/store": "^2.0.8",
     "@actionstack/tools": "^2.0.8",
     "@angular/animations": "^19.0.0",
     "@angular/common": "^19.0.0",

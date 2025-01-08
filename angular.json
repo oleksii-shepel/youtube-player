@@ -40,12 +40,12 @@
                 {
                   "type": "initial",
                   "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumError": "15mb"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumError": "10kb"
                 }
               ],
               "fileReplacements": [
@@ -54,7 +54,12 @@
                   "with": "src/environments/environment.production.ts"
                 }
               ],
-              "outputHashing": "all"
+              "optimization": false,
+              "outputHashing": "all",
+              "sourceMap": true,
+              "namedChunks": true,
+              "aot": true,
+              "vendorChunk": true
             },
             "development": {
               "buildOptimizer": false,

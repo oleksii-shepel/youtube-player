@@ -45,7 +45,7 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
       </ion-item>
 
       <ion-list>
-      <ng-container *ngIf="searchType === 'videos'">
+        <ng-container *ngIf="searchType === 'videos'">
           <app-youtube-video *ngFor="let video of searchResults" [videoData]="video" [isCompact]="false"></app-youtube-video>
         </ng-container>
         <ng-container *ngIf="searchType === 'playlists'">
