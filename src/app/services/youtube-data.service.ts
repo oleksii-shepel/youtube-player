@@ -40,7 +40,7 @@ export class YoutubeDataService {
   fetchVideos(ids: string[]): Observable<any> {
     return this.search('videos', {
       id: ids.join(','),
-      part: 'snippet,contentDetails,statistics',
+      part: 'snippet,contentDetails,statistics'
     } as IYoutubeQueryParams & { id: string });
   }
 
@@ -50,7 +50,7 @@ export class YoutubeDataService {
   fetchChannels(ids: string[]): Observable<any> {
     return this.search('channels', {
       id: ids.join(','),
-      part: 'snippet,contentDetails,statistics',
+      part: 'snippet,contentDetails,statistics'
     } as IYoutubeQueryParams & { id: string });
   }
 
@@ -60,7 +60,7 @@ export class YoutubeDataService {
   fetchPlaylists(ids: string[]): Observable<any> {
     return this.search('playlists', {
       id: ids.join(','),
-      part: 'snippet,contentDetails',
+      part: 'snippet,contentDetails'
     } as IYoutubeQueryParams & { id: string });
   }
 
