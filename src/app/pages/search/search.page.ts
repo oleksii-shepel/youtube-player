@@ -44,17 +44,28 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
         <ion-button (click)="performSearch()">Search</ion-button>
       </ion-item>
 
-      <ion-list>
+      <!-- Adaptive Grid -->
+      <div class="adaptive-grid">
         <ng-container *ngIf="searchType === 'videos'">
-          <app-youtube-video *ngFor="let video of searchResults" [videoData]="video" [isCompact]="false"></app-youtube-video>
+          <app-youtube-video
+            *ngFor="let video of searchResults"
+            [videoData]="video"
+            [isCompact]="false">
+          </app-youtube-video>
         </ng-container>
         <ng-container *ngIf="searchType === 'playlists'">
-          <app-youtube-playlist *ngFor="let playlist of searchResults" [playlistData]="playlist"></app-youtube-playlist>
+          <app-youtube-playlist
+            *ngFor="let playlist of searchResults"
+            [playlistData]="playlist">
+          </app-youtube-playlist>
         </ng-container>
         <ng-container *ngIf="searchType === 'channels'">
-          <app-youtube-channel *ngFor="let channel of searchResults" [channelData]="channel"></app-youtube-channel>
+          <app-youtube-channel
+            *ngFor="let channel of searchResults"
+            [channelData]="channel">
+          </app-youtube-channel>
         </ng-container>
-      </ion-list>
+      </div>
     </ion-content>
   `,
   styleUrls: ['./search.page.scss'],
