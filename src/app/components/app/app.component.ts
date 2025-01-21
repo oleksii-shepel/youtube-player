@@ -6,14 +6,17 @@ import { Component } from '@angular/core';
   standalone: false,
 })
 export class AppComponent {
-  public appPages = [
-    { title: 'Inbox', url: '/folder/inbox', icon: 'mail' },
-    { title: 'Outbox', url: '/folder/outbox', icon: 'paper-plane' },
-    { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
-    { title: 'Archived', url: '/folder/archived', icon: 'archive' },
-    { title: 'Trash', url: '/folder/trash', icon: 'trash' },
-    { title: 'Spam', url: '/folder/spam', icon: 'warning' },
+  playlist = [
+    { title: 'Track 1', id: 'qDuKsiwS5xw' },
+    { title: 'Track 2', id: 'dQw4w9WgXcQ' },
+    { title: 'Track 3', id: '3JZ_D3ELwOQ' },
   ];
-  public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
+
+  selectedVideoId = this.playlist[0].id;
+
   constructor() {}
+
+  selectTrack(trackId: string) {
+    this.selectedVideoId = trackId;
+  }
 }

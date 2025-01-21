@@ -8,10 +8,12 @@ import { AppComponent } from './components/app/app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { provideHttpClient, withInterceptorsFromDi, withJsonpSupport } from '@angular/common/http';
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from './pipes';
+import { YoutubePlayerComponent } from './components/youtube-player/youtube-player.component';
+import { PlaylistTrackComponent } from './components/playlist-track/playlist-track.component';
 
 @NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, ShrinkNumberPipe, ToFriendlyDurationPipe],
+  declarations: [AppComponent, PlaylistTrackComponent],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, ShrinkNumberPipe, ToFriendlyDurationPipe, YoutubePlayerComponent],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())],
   bootstrap: [AppComponent],
 })
