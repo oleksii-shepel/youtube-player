@@ -98,6 +98,10 @@ export class YoutubePlayerService {
       events: {
         onReady: (ev: YT.PlayerEvent) => {
           this.zone.run(() => outputs.ready && outputs.ready.next(ev.target));
+          debugger;
+          if(videoId) {
+            ev.target.playVideo();
+          }
         },
         onStateChange: (ev: YT.PlayerEvent) => {
           this.zone.run(() => outputs.change && outputs.change.next(ev));

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.service';
+import { PlaylistService } from 'src/app/services/playlist.service';
 import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // Import YoutubeDataService
 
 @Component({
@@ -50,7 +51,8 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
           <app-youtube-video
             *ngFor="let video of searchResults['videos']"
             [videoData]="video"
-            [isCompact]="false">
+            [isCompact]="false"
+            (addTrackToPlaylist)="addTrackToPlaylist($event)">
           </app-youtube-video>
         </ng-container>
         <ng-container *ngIf="searchType === 'playlists'">
@@ -94,9 +96,12 @@ export class SearchPage {
   };
   filters: any = {}; // New filter object to hold the filter criteria
 
+  @Output() addToPlaylist = new EventEmitter<any>();
+
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
-    private youtubeDataService: YoutubeDataService // Inject YoutubeDataService
+    private youtubeDataService: YoutubeDataService,
+    private playlistService: PlaylistService
   ) {}
 
   onSearchQueryChange(event: any) {
@@ -275,5 +280,9 @@ export class SearchPage {
     return response.items.map((item: any) => ({
       id: item.id.videoId || item.id.playlistId || item.id.channelId,
     }));
+  }
+
+  addTrackToPlaylist(video: any) {
+    this.playlistService.addToPlaylist(video);
   }
 }

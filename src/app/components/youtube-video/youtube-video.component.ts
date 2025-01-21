@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnInit, ElementRef, Renderer2 } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, ElementRef, Renderer2, EventEmitter, Output } from '@angular/core';
 
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
 
@@ -20,7 +20,7 @@ import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
             <span>{{ video.snippet.publishedAt | date }}</span>
             </p>
             <div class="action-buttons">
-            <a [href]="getVideoUrl()" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">Watch Video</a>
+            <button (click)="addToPlaylist(video)">Add to Playlist</button>
             <button class="btn btn-secondary btn-sm" (click)="addToFavorites()">Add to Favorites</button>
             </div>
         </div>
@@ -40,6 +40,8 @@ import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
 export class YoutubeVideoComponent implements OnInit {
   @Input('videoData') video: any;
   @Input() isCompact: boolean = false;
+
+  @Output() addTrackToPlaylist = new EventEmitter<any>();
 
   thumbnailUrl: string = '';
 
@@ -74,5 +76,9 @@ export class YoutubeVideoComponent implements OnInit {
   addToFavorites(): void {
     // Logic to add the video to favorites (placeholder)
     alert('Added to favorites!');
+  }
+
+  addToPlaylist(video: any): void {
+    this.addTrackToPlaylist.emit(video);
   }
 }

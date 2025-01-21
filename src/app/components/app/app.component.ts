@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { PlaylistService } from 'src/app/services/playlist.service';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -6,17 +7,20 @@ import { Component } from '@angular/core';
   standalone: false,
 })
 export class AppComponent {
-  playlist = [
-    { title: 'Track 1', id: 'qDuKsiwS5xw' },
-    { title: 'Track 2', id: 'dQw4w9WgXcQ' },
-    { title: 'Track 3', id: '3JZ_D3ELwOQ' },
-  ];
+  playlist: any[] = [];
 
-  selectedVideoId = this.playlist[0].id;
+  selectedVideoId: any = undefined;
 
-  constructor() {}
+  constructor(private playlistService: PlaylistService) {}
 
-  selectTrack(trackId: string) {
-    this.selectedVideoId = trackId;
+  ngOnInit(): void {
+    // Subscribe to the playlist observable
+    this.playlistService.playlist$.subscribe((playlist) => {
+      this.playlist = playlist;
+    });
+  }
+
+  selectTrack(track: any) {
+    this.selectedVideoId = track.id;
   }
 }
