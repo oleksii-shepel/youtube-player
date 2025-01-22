@@ -3,7 +3,7 @@
     <ion-menu contentId="main-content" type="overlay">
       <div class="content">
         <app-playlist (trackSelected)="selectTrack($event)" class="expandable-list"></app-playlist>
-        <youtube-player [videoId]="selectedVideoId"></youtube-player>
+        <youtube-player [videoId]="selectedVideoId" class="player" [width]="400"></youtube-player>
       </div>
     </ion-menu>
     <ion-router-outlet id="main-content"></ion-router-outlet>
