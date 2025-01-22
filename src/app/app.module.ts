@@ -1,3 +1,4 @@
+import { PlaylistComponent } from './components/playlist/playlist.component';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
@@ -12,7 +13,7 @@ import { YoutubePlayerComponent } from './components/youtube-player/youtube-play
 import { PlaylistTrackComponent } from './components/playlist-track/playlist-track.component';
 
 @NgModule({
-  declarations: [AppComponent, PlaylistTrackComponent],
+  declarations: [AppComponent, PlaylistComponent, PlaylistTrackComponent],
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, ShrinkNumberPipe, ToFriendlyDurationPipe, YoutubePlayerComponent],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())],
   bootstrap: [AppComponent],

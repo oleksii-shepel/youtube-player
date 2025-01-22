@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { PlaylistService } from 'src/app/services/playlist.service';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -11,14 +10,7 @@ export class AppComponent {
 
   selectedVideoId: any = undefined;
 
-  constructor(private playlistService: PlaylistService) {}
-
-  ngOnInit(): void {
-    // Subscribe to the playlist observable
-    this.playlistService.playlist$.subscribe((playlist) => {
-      this.playlist = playlist;
-    });
-  }
+  constructor() {}
 
   selectTrack(track: any) {
     this.selectedVideoId = track.id;
