@@ -5,36 +5,74 @@ import { PlaylistService } from 'src/app/services/playlist.service';
   selector: 'app-playlist',
   template: `
     <ion-list class="playlist-container">
-      <ion-list-header>Playlist</ion-list-header>
+      <div class="list-header">
+        <div>Playlist</div>
+
+        <!-- Shuffle and Repeat Buttons in Header -->
+        <div class="controls">
+          <button (click)="toggleShuffle()">
+            <i class="la la-random"></i> Shuffle
+          </button>
+          <button (click)="toggleRepeat()">
+            <i class="la la-sync-alt"></i> Repeat
+          </button>
+        </div>
+      </div>
+
       <div id="playlist">
         <div>
           <app-playlist-track
             *ngFor="let track of playlist"
             [track]="track"
-            (trackSelected)="selectTrack($event)"
+            (trackSelected)="selectTrack(track)"
+            [isSelected]="track === selectedTrack"
           ></app-playlist-track>
         </div>
       </div>
     </ion-list>
   `,
   styleUrls: ['playlist.component.scss'],
-  standalone: false
+  standalone: false,
 })
 export class PlaylistComponent {
   @Input() playlist: any[] = [];
-  @Output() trackSelected = new EventEmitter<any>();
+  @Output() trackSelected = new EventEmitter<any>(); // Emit selected track to parent
 
-  constructor(private playlistService: PlaylistService) {
-  }
+  isShuffled: boolean = false;
+  isRepeating: boolean = false;
+  selectedTrack: any = null; // Track selected by user
+
+  constructor(private playlistService: PlaylistService) {}
 
   ngOnInit(): void {
     // Subscribe to the playlist observable
     this.playlistService.playlist$.subscribe((playlist) => {
       this.playlist = playlist;
     });
+
+    // Subscribe to the current track index observable to get the currently playing track
+    this.playlistService.currentTrackIndex$.subscribe((index) => {
+      this.selectedTrack = this.playlist[index];
+    });
   }
 
   selectTrack(track: any): void {
-    this.trackSelected.emit(track); // Emit the selected track to the parent component
+    this.selectedTrack = track;
+    // Update current track in the PlaylistService
+    const trackIndex = this.playlist.indexOf(track);
+    this.playlistService.setCurrentTrackIndex(trackIndex);
+    this.trackSelected.emit(track); // Emit track to parent component
+  }
+
+  toggleShuffle(): void {
+    this.isShuffled = !this.isShuffled;
+    if (this.isShuffled) {
+      this.playlistService.shufflePlaylist(); // Shuffle the playlist
+    }
+  }
+
+  toggleRepeat(): void {
+    this.isRepeating = !this.isRepeating;
+    // Handle repeat logic here (can be added to PlaylistService if needed)
   }
 }

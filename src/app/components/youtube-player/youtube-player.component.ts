@@ -15,6 +15,7 @@ import {
   YoutubePlayerService,
   defaultSizes
 } from './youtube-player.service';
+import { IPlayerOutputs } from './types'; // Import the IPlayerOutputs interface
 
 @Component({
   standalone: true,
@@ -32,13 +33,15 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   @Input() protocol: string = this.getProtocol();
   @Input() playerVars: YT.PlayerVars = {};
 
-  @Output() ready = new EventEmitter<YT.Player>();
-  @Output() change = new EventEmitter<YT.PlayerEvent>();
+  @Output() ready = new EventEmitter<YT.Player>(); // Emits when the player is ready
+  @Output() change = new EventEmitter<YT.PlayerEvent>(); // Emits when the player's state changes
+  @Output() videoEnded = new EventEmitter<void>(); // Emits when the video ends
 
   @ViewChild('playerContainer', { static: true }) playerContainer!: ElementRef;
 
   private player: YT.Player | null = null;
   private playerId: string = '';
+  private hasEnded = false;
 
   constructor(
     public playerService: YoutubePlayerService,
@@ -76,12 +79,15 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
       protocol: this.protocol
     });
 
+    // Define the outputs object
+    const outputs: IPlayerOutputs = {
+      ready: this.ready,
+      change: this.change,
+    };
+
     this.playerService.setupPlayer(
       this.playerId,
-      {
-        change: this.change,
-        ready: this.ready
-      },
+      outputs, // Pass the outputs object
       playerSize,
       this.videoId,
       this.playerVars
@@ -91,6 +97,20 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
     this.ready.subscribe((player: YT.Player) => {
       this.player = player;
     });
+
+    // Subscribe to the change event to handle video end
+    this.change.subscribe((event: YT.PlayerEvent) => {
+      this.handlePlayerStateChange(event);
+    });
+  }
+
+  private handlePlayerStateChange(event: any): void {
+    if (event.data === YT.PlayerState.ENDED && !this.hasEnded) {
+      this.hasEnded = true; // Mark the video as ended
+      this.videoEnded.emit(); // Emit the videoEnded event
+    } else if (event.data !== YT.PlayerState.ENDED) {
+      this.hasEnded = false; // Reset the ended flag if the video is not in the ENDED state
+    }
   }
 
   private getProtocol() {

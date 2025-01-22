@@ -4,7 +4,10 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 @Component({
   selector: 'app-playlist-track',
   template: `
-    <ion-item (click)="selectTrack()">
+    <ion-item (click)="selectTrack()" class="track" [ngClass]="{
+      'track-hover': !isSelected,
+      'track-selected': isSelected
+      }">
       <ion-thumbnail slot="start">
         <img [src]="getThumbnail()" alt="Thumbnail">
       </ion-thumbnail>
@@ -20,6 +23,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 export class PlaylistTrackComponent {
   @Input() track!: any; // This represents the track passed as input
   @Output() trackSelected = new EventEmitter<any>();
+  @Input() isSelected: boolean = false;
 
   // Get the thumbnail URL from the track object
   getThumbnail(): string {

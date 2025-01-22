@@ -6,12 +6,23 @@
 }
 
 ion-list-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   flex: 0 0 auto; /* Fixed height for the header */
   font-size: 16px;
   font-weight: bold;
   padding: 12px;
   background-color: #f4f4f4;
   border-bottom: 1px solid #ccc;
+}
+
+.list-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 12px;
 }
 
 #playlist {
@@ -24,4 +35,25 @@ ion-list-header {
   display: flex;
   flex-direction: column;
   gap: 8px; /* Add spacing between tracks */
+}
+
+.controls {
+  display: flex;
+  gap: 15px; /* Adds space between buttons */
+}
+
+button {
+  background-color: transparent;
+  border: none;
+  color: #007aff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:focus {
+  outline: none;
+}
+
+button i {
+  margin-right: 5px; /* Adjust space between icon and text */
 }
