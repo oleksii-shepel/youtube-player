@@ -10,11 +10,11 @@ import { PlaylistService } from 'src/app/services/playlist.service';
 
         <!-- Shuffle and Repeat Buttons in Header -->
         <div class="controls">
-          <button (click)="toggleShuffle()">
-            <i class="la la-random"></i> Shuffle
+          <button (click)="toggleShuffle()" [class.active]="isShuffled">
+            <i [class]="isShuffled ? 'la la-check' : 'la la-random'"></i> Shuffle
           </button>
-          <button (click)="toggleRepeat()">
-            <i class="la la-sync-alt"></i> Repeat
+          <button (click)="toggleRepeat()" [class.active]="isRepeating">
+            <i [class]="isRepeating ? 'la la-check' : 'la la-sync-alt'"></i> Repeat
           </button>
         </div>
       </div>
