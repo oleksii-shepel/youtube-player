@@ -2,8 +2,7 @@
   <ion-split-pane contentId="main-content">
     <ion-menu contentId="main-content" type="overlay">
       <div class="content">
-        <app-playlist class="expandable-list" (trackSelected)="selectTrack($event)"></app-playlist>
-
+        <app-playlist (trackSelected)="selectTrack($event)" class="expandable-list"></app-playlist>
         <youtube-player [videoId]="selectedVideoId"></youtube-player>
       </div>
     </ion-menu>

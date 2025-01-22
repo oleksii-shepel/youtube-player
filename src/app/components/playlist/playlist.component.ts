@@ -4,14 +4,17 @@ import { PlaylistService } from 'src/app/services/playlist.service';
 @Component({
   selector: 'app-playlist',
   template: `
-    <ion-list id="playlist">
+    <ion-list class="playlist-container">
       <ion-list-header>Playlist</ion-list-header>
-
-      <app-playlist-track
-        *ngFor="let track of playlist"
-        [track]="track"
-        (trackSelected)="selectTrack($event)"
-      ></app-playlist-track>
+      <div id="playlist">
+        <div>
+          <app-playlist-track
+            *ngFor="let track of playlist"
+            [track]="track"
+            (trackSelected)="selectTrack($event)"
+          ></app-playlist-track>
+        </div>
+      </div>
     </ion-list>
   `,
   styleUrls: ['playlist.component.scss'],
