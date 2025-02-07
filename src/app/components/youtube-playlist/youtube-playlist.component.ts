@@ -4,8 +4,8 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
 
 @Component({
-  selector: 'app-youtube-playlist',
-  template: `
+    selector: 'app-youtube-playlist',
+    template: `
     <div class="card playlist-card" [class.expanded]="showVideosList">
       <div class="card-content">
         <!-- Flex container for image and header -->
@@ -42,10 +42,9 @@ import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component'
       </div>
     </div>
   `,
-  styleUrls: ['./youtube-playlist.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [CommonModule, YoutubeVideoComponent],
+    styleUrls: ['./youtube-playlist.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [CommonModule, YoutubeVideoComponent]
 })
 export class YoutubePlaylistComponent {
   @Input('playlistData') playlist: any;

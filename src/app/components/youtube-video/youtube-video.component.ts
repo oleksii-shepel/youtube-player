@@ -4,8 +4,8 @@ import { ChangeDetectionStrategy, Component, Input, OnInit, ElementRef, Renderer
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
 
 @Component({
-  selector: 'app-youtube-video',
-  template: `
+    selector: 'app-youtube-video',
+    template: `
     <div [ngClass]="{ 'video-card': true, 'compact': isCompact }">
         <!-- Video Image Container -->
         <div class="video-image-container">
@@ -32,10 +32,9 @@ import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
         </div>
     </div>
   `,
-  styleUrls: ['./youtube-video.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [CommonModule, ToFriendlyDurationPipe, ShrinkNumberPipe],
+    styleUrls: ['./youtube-video.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [CommonModule, ToFriendlyDurationPipe, ShrinkNumberPipe]
 })
 export class YoutubeVideoComponent implements OnInit {
   @Input('videoData') video: any;

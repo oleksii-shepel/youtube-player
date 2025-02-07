@@ -7,8 +7,8 @@ import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component'
 import { YoutubeDataService } from 'src/app/services/youtube-data.service';
 
 @Component({
-  selector: 'app-youtube-channel',
-  template: `
+    selector: 'app-youtube-channel',
+    template: `
     <div class="card channel-card" [class.expanded]="showUploadsList">
       <div class="card-content">
         <h5 class="channel-title">{{ channel.snippet.title }}
@@ -38,10 +38,9 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';
       </div>
     </div>
   `,
-  styleUrls: ['./youtube-channel.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [CommonModule, ShrinkNumberPipe, YoutubeVideoComponent]
+    styleUrls: ['./youtube-channel.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [CommonModule, ShrinkNumberPipe, YoutubeVideoComponent]
 })
 export class YoutubeChannelComponent {
   @Input('channelData') channel: any;
