@@ -22,14 +22,12 @@ import { IPlayerOutputs } from './types'; // Import the IPlayerOutputs interface
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'youtube-player',
   template: `
-    <div #playerContainer></div>
+    <div #playerContainer style="width: 100%; height: 100%; min-height: 270px;"></div>
   `,
   providers: [YoutubePlayerService],
 })
 export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   @Input() videoId = '';
-  @Input() height = defaultSizes.height;
-  @Input() width = defaultSizes.width;
   @Input() protocol: string = this.getProtocol();
   @Input() playerVars: YT.PlayerVars = {};
 
@@ -70,7 +68,11 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
     }
 
     this.playerId = this.playerService.generateUniqueId();
-    const playerSize = { height: this.height, width: this.width };
+    const container = this.playerContainer.nativeElement;
+    const playerSize = {
+      width: container.offsetWidth, // Set to 100% width of the container
+      height: Math.min(defaultSizes.height, container.offsetHeight), // Maintain the provided height
+    };
 
     // Set the ID of the player container dynamically
     this.renderer.setAttribute(this.playerContainer.nativeElement, 'id', this.playerId);

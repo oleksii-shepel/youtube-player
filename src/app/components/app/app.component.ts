@@ -17,7 +17,6 @@ import { YoutubePlayerComponent } from '../youtube-player/youtube-player.compone
               #youtubePlayer
               [videoId]="selectedVideoId"
               class="player"
-
               (videoEnded)="onPlayerStateChange($event)"
             ></youtube-player>
           </div>
