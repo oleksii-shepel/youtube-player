@@ -22,12 +22,11 @@ export class YoutubeDataService {
    * Perform a generic search for the specified endpoint.
    */
   search(endpoint: string, queryParams: IYoutubeQueryParams): Stream<any> {
+
     const params = this.buildHttpParams(queryParams);
 
     // Ensure the correct URL and parameters are being used
     let url = `${this.baseUrl}/${endpoint}`;
-
-    params['part'] = 'snippet,id';
 
     return this.http.get(url, { params }).pipe(
       map((response: any) => ({
@@ -70,8 +69,10 @@ export class YoutubeDataService {
 
   private buildHttpParams(queryParams: IYoutubeQueryParams): Record<string, string> {
     // Initialize the parameters with the API key
+
     const params: Record<string, string> = {
       key: this.apiKey,
+      part: 'snippet,id'
     };
 
     // Iterate over the queryParams and add each parameter to the params object
