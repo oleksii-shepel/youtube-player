@@ -2,6 +2,15 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "paths": {
+      "angular": [
+        "./dist/angular"
+      ],
+      "@streamix/angular": [
+        "./projects/streamix/src/public-api.ts",
+        "./dist/angular/index.d.ts"
+      ]
+    },
     "types": ["gapi.client", "gapi.client.youtube"],
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",

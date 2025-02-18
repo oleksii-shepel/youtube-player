@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { Stream, switchMap } from '@actioncrew/streamix';
+import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.service';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // Import YoutubeDataService
@@ -121,14 +121,10 @@ export class SearchPage {
     this.performSearch();  // Re-run the search when filters are updated
   }
 
-  fetchSuggestions(query: string): Observable<string[]> {
+  fetchSuggestions(query: string): Stream<string[]> {
     return this.googleSuggestionsService.getSuggestions(query).pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((response: any) => new Observable<string[]>((observer) => {
-        observer.next(response);
-        observer.complete();
-      }))
+      debounce(300),
+      distinctUntilChanged()
     );
   }
 
@@ -145,7 +141,7 @@ export class SearchPage {
       switchMap((response: any) => {
         const results = this.mapResults(response);
 
-        let detailedResults$: Observable<any>;
+        let detailedResults$: Stream<any>;
 
         // Fetch detailed data based on the search type
         if (this.searchType === 'videos') {
@@ -164,17 +160,14 @@ export class SearchPage {
 
         // Combine basic and detailed results
         return detailedResults$.pipe(
-          switchMap((detailedItems: any) => {
+          map((detailedItems: any) => {
             this.updatePageToken(response);  // Update the correct page token
 
             const mergedResults = results.map(result => {
               const detailedItem = detailedItems.items.find((item: any) => item.id === result.id);
               return { ...result, ...detailedItem };
             });
-            return new Observable<any[]>((observer) => {
-              observer.next(mergedResults);
-              observer.complete();
-            });
+            return mergedResults;
           })
         );
       })
@@ -189,7 +182,7 @@ export class SearchPage {
     this.youtubeDataService.search('search', params).pipe(
       switchMap((response: any) => {
         const results = this.mapResults(response);
-        let detailedResults$: Observable<any>;
+        let detailedResults$: Stream<any>;
 
         if (this.searchType === 'videos') {
           const videoIds = results.map(item => item.id);
@@ -205,24 +198,18 @@ export class SearchPage {
         }
 
         return detailedResults$.pipe(
-          switchMap((detailedItems: any) => {
+          map((detailedItems: any) => {
             this.updatePageToken(response);  // Update the correct page token
             const mergedResults = results.map(result => {
               const detailedItem = detailedItems.items.find((item: any) => item.id === result.id);
               return { ...result, ...detailedItem };
             });
-            return new Observable<any[]>((observer) => {
-              observer.next(mergedResults);
-              observer.complete();
-            });
+            return mergedResults;
           }),
           // Handle the correct page token for pagination
-          switchMap((finalResults: any[]) => {
+          map((finalResults: any[]) => {
             this.searchResults[this.searchType] = [...this.searchResults[this.searchType], ...finalResults];
-            return new Observable<void>((observer) => {
-              observer.next();
-              observer.complete();
-            });
+            return this.searchResults[this.searchType];
           })
         );
       })

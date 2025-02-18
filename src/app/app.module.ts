@@ -1,5 +1,5 @@
 import { PlaylistComponent } from './components/playlist/playlist.component';
-import { NgModule } from '@angular/core';
+import { InjectionToken, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 
@@ -7,15 +7,21 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppComponent } from './components/app/app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { provideHttpClient, withInterceptorsFromDi, withJsonpSupport } from '@angular/common/http';
+import { createHttpClient } from '@actioncrew/streamix';
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from './pipes';
 import { YoutubePlayerComponent } from './components/youtube-player/youtube-player.component';
 import { PlaylistTrackComponent } from './components/playlist-track/playlist-track.component';
 
+export const HTTP_CLIENT = new InjectionToken('HttpClient');
+
 @NgModule({
   declarations: [AppComponent, PlaylistComponent, PlaylistTrackComponent],
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, ShrinkNumberPipe, ToFriendlyDurationPipe, YoutubePlayerComponent],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())],
+  providers: [
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    { provide: HTTP_CLIENT, useFactory: () => createHttpClient() },
+    // provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

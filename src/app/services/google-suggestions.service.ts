@@ -1,19 +1,19 @@
 // google-suggestions.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map, catchError, of, tap } from 'rxjs';
+import { map, Stream } from '@actioncrew/streamix';
+import { jsonp } from '@actioncrew/streamix';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GoogleSuggestionsService {
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
-  getSuggestions(query: string): Observable<string[]> {
+  getSuggestions(query: string): Stream<string[]> {
     // Using a CORS proxy to handle the request
     const url = `https://suggestqueries.google.com/complete/search?client=firefox&hl=en&q=${encodeURIComponent(query)}`;
 
-    return this.http.jsonp(url, 'callback').pipe(
+    return jsonp(url, 'callback').pipe(
       map((response: any) => response[1] || [])
     );
   }

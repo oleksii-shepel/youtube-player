@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { createBehaviorSubject } from '@actioncrew/streamix';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlaylistService {
-  private playlist = new BehaviorSubject<any[]>([]);
-  playlist$ = this.playlist.asObservable();
+  private playlist = createBehaviorSubject<any[]>([]);
+  playlist$ = this.playlist;
 
-  private currentTrackIndex = new BehaviorSubject<number>(0);
-  currentTrackIndex$ = this.currentTrackIndex.asObservable();
+  private currentTrackIndex = createBehaviorSubject<number>(0);
+  currentTrackIndex$ = this.currentTrackIndex;
 
   // Add a video to the playlist
   addToPlaylist(video: any): void {
-    const currentPlaylist = this.playlist.getValue();
+    const currentPlaylist = this.playlist.value()!;
     if (!currentPlaylist.includes(video)) {
       this.playlist.next([...currentPlaylist, video]);
     }
@@ -21,7 +21,7 @@ export class PlaylistService {
 
   // Get the current playlist
   getPlaylist(): any[] {
-    return this.playlist.getValue();
+    return this.playlist.value()!;
   }
 
   // Set the current track index
@@ -31,7 +31,7 @@ export class PlaylistService {
 
   // Get the current track index
   getCurrentTrackIndex(): number {
-    return this.currentTrackIndex.getValue();
+    return this.currentTrackIndex.value()!;
   }
 
   // Get the next track index
