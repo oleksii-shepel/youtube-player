@@ -7,7 +7,8 @@ import { YoutubePlayerComponent } from '../youtube-player/youtube-player.compone
   template: `
     <ion-app>
       <ion-split-pane contentId="main-content">
-        <ion-menu contentId="main-content" type="overlay">
+        <!-- Menu -->
+        <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
           <div class="content">
             <app-playlist (trackSelected)="onTrackSelected($event)" class="expandable-list"></app-playlist>
 
@@ -16,12 +17,16 @@ import { YoutubePlayerComponent } from '../youtube-player/youtube-player.compone
               #youtubePlayer
               [videoId]="selectedVideoId"
               class="player"
-              [width]="400"
+
               (videoEnded)="onPlayerStateChange($event)"
             ></youtube-player>
           </div>
         </ion-menu>
-        <ion-router-outlet id="main-content"></ion-router-outlet>
+
+        <!-- Main Content -->
+        <div id="main-content">
+          <ion-router-outlet></ion-router-outlet>
+        </div>
       </ion-split-pane>
     </ion-app>
   `,

@@ -13,7 +13,7 @@ export class PlaylistService {
 
   // Add a video to the playlist
   addToPlaylist(video: any): void {
-    const currentPlaylist = this.playlist.value()!;
+    const currentPlaylist = this.playlist.value!;
     if (!currentPlaylist.includes(video)) {
       this.playlist.next([...currentPlaylist, video]);
     }
@@ -21,7 +21,7 @@ export class PlaylistService {
 
   // Get the current playlist
   getPlaylist(): any[] {
-    return this.playlist.value()!;
+    return this.playlist.value!;
   }
 
   // Set the current track index
@@ -31,7 +31,7 @@ export class PlaylistService {
 
   // Get the current track index
   getCurrentTrackIndex(): number {
-    return this.currentTrackIndex.value()!;
+    return this.currentTrackIndex.value!;
   }
 
   // Get the next track index
