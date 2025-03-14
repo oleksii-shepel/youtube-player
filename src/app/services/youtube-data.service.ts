@@ -1,4 +1,6 @@
-import { HttpClient, Stream } from '@actioncrew/streamix';
+import { Stream } from '@actioncrew/streamix';
+import { HttpClient, readJson } from '@actioncrew/streamix/http';
+
 import { IYoutubeQueryParams } from './../interfaces/search-parameters';
 import { inject, Injectable } from '@angular/core';
 import { map } from '@actioncrew/streamix';
@@ -28,7 +30,7 @@ export class YoutubeDataService {
     // Ensure the correct URL and parameters are being used
     let url = `${this.baseUrl}/${endpoint}`;
 
-    return this.http.get(url, { params }).pipe(
+    return this.http.get(url, readJson, { params }).pipe(
       map((response: any) => ({
         ...response,
         nextPageToken: response.nextPageToken,

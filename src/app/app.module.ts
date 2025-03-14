@@ -7,7 +7,7 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppComponent } from './components/app/app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { createHttpClient } from '@actioncrew/streamix';
+import { createHttpClient } from '@actioncrew/streamix/http';
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from './pipes';
 import { YoutubePlayerComponent } from './components/youtube-player/youtube-player.component';
 import { PlaylistTrackComponent } from './components/playlist-track/playlist-track.component';

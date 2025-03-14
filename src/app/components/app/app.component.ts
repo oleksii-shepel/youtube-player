@@ -1,6 +1,7 @@
-import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { YoutubePlayerComponent } from '../youtube-player/youtube-player.component';
+import { createHttpClient, readJson } from '@actioncrew/streamix/http';
 
 @Component({
   selector: 'app-root',
@@ -40,7 +41,12 @@ export class AppComponent implements AfterViewInit {
   constructor(private playlistService: PlaylistService) {}
 
   ngAfterViewInit(): void {
+    const API_URL = "https://jsonplaceholder.typicode.com/posts/1";
+    const client = createHttpClient();
 
+    client.get(API_URL, readJson).subscribe((value) =>
+      console.log(value)
+    );
   }
 
   // Handle the track selection from the playlist
