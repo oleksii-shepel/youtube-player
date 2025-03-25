@@ -5,15 +5,21 @@ import { createBehaviorSubject } from '@actioncrew/streamix';
   providedIn: 'root',
 })
 export class PlaylistService {
-  private playlist = createBehaviorSubject<any[]>([]);
-  playlist$ = this.playlist;
+  public playlist = createBehaviorSubject<any[]>([]);
+  private playlistValue = [] as any[];
 
-  private currentTrackIndex = createBehaviorSubject<number>(0);
-  currentTrackIndex$ = this.currentTrackIndex;
+  public currentTrackIndex = createBehaviorSubject<number>(0);
+  private currentTrackIndexValue = 0;
+
+  ngOnInit() {
+    this.playlist.subscribe(value => this.playlistValue = value);
+    this.currentTrackIndex.subscribe(value => this.currentTrackIndexValue = value);
+
+  }
 
   // Add a video to the playlist
   addToPlaylist(video: any): void {
-    const currentPlaylist = this.playlist.value!;
+    const currentPlaylist = this.playlistValue!;
     if (!currentPlaylist.includes(video)) {
       this.playlist.next([...currentPlaylist, video]);
     }
@@ -21,7 +27,7 @@ export class PlaylistService {
 
   // Get the current playlist
   getPlaylist(): any[] {
-    return this.playlist.value!;
+    return this.playlistValue!;
   }
 
   // Set the current track index
@@ -31,7 +37,7 @@ export class PlaylistService {
 
   // Get the current track index
   getCurrentTrackIndex(): number {
-    return this.currentTrackIndex.value!;
+    return this.currentTrackIndexValue!;
   }
 
   // Get the next track index

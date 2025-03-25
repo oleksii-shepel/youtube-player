@@ -46,12 +46,12 @@ export class PlaylistComponent {
 
   ngOnInit(): void {
     // Subscribe to the playlist observable
-    this.playlistService.playlist$.subscribe((playlist) => {
+    this.playlistService.playlist.subscribe((playlist) => {
       this.playlist = playlist;
     });
 
     // Subscribe to the current track index observable to get the currently playing track
-    this.playlistService.currentTrackIndex$.subscribe((index) => {
+    this.playlistService.currentTrackIndex.subscribe((index) => {
       this.selectedTrack = this.playlist[index];
     });
   }
