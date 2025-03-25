@@ -41,12 +41,6 @@ export class AppComponent implements AfterViewInit {
   constructor(private playlistService: PlaylistService) {}
 
   ngAfterViewInit(): void {
-    const API_URL = "https://jsonplaceholder.typicode.com/posts/1";
-    const client = createHttpClient();
-
-    client.get(API_URL, readJson).subscribe((value) =>
-      console.log(value)
-    );
   }
 
   // Handle the track selection from the playlist
