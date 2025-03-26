@@ -19,9 +19,10 @@ export class PlaylistService {
 
   // Add a video to the playlist
   addToPlaylist(video: any): void {
-    const currentPlaylist = this.playlistValue!;
+    const currentPlaylist = this.playlistValue || [];
     if (!currentPlaylist.includes(video)) {
-      this.playlist.next([...currentPlaylist, video]);
+      this.playlistValue = [...currentPlaylist, video]
+      this.playlist.next(this.playlistValue);
     }
   }
 

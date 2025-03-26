@@ -5,28 +5,38 @@ import { tap } from 'rxjs/operators';
 import { ShrinkNumberPipe } from '../../pipes/shrink-number.pipe';
 import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
 import { YoutubeDataService } from 'src/app/services/youtube-data.service';
+import { IonicModule } from '@ionic/angular'; // Import IonicModule
 
 @Component({
   selector: 'app-youtube-channel',
   template: `
     <div class="card channel-card" [class.expanded]="showUploadsList">
+      <div class="channel-image-wrapper">
+        <img [src]="channel.snippet.thumbnails.medium.url" alt="{{ channel.snippet.title }} thumbnail" class="channel-image">
+        <div class="channel-info-overlay">
+          <h5 class="channel-title-overlay">{{ channel.snippet.title }}
+            <span class="badge bg-primary country-badge" [style.visibility]="channel.snippet.country ? 'visible': 'hidden'">{{ channel.snippet.country || 'N/A' }}</span>
+          </h5>
+          <div class="channel-stats-overlay">
+            <span class="published-date"><small>Published: {{ channel.snippet.publishedAt | date }}</small></span>
+            <span class="subscriber-count">{{ channel.statistics.subscriberCount | shrink }} Subscribers</span>
+            <span class="video-count">{{ channel.statistics.videoCount }} Videos</span>
+          </div>
+        </div>
+      </div>
       <div class="card-content">
-        <h5 class="channel-title">{{ channel.snippet.title }}
-          <span class="badge bg-primary country-badge" [style.visibility]="channel.snippet.country ? 'visible': 'hidden'">{{ channel.snippet.country || 'N/A' }}</span>
-        </h5>
-        <p><img [src]="channel.snippet.thumbnails.medium.url" alt="{{ channel.snippet.title }} thumbnail" class="channel-image">
-          <span class="card-text"><small class="text-muted">Published: {{ channel.snippet.publishedAt | date }}</small></span>
-          <span class="badges">
-            <span class="badge bg-info text-dark">{{ channel.statistics.subscriberCount | shrink }} Subscribers</span>
-            <span class="badge bg-secondary">{{ channel.statistics.videoCount }} Videos</span>
-          </span>
-          <span class="card-description">{{ channel.snippet.description }}</span>
-        </p>
+        <p class="card-description">{{ channel.snippet.description | slice: 0:150 }}</p>
       </div>
       <div class="action-buttons">
-        <a [href]="getChannelUrl()" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">Visit Channel</a>
-        <button class="btn btn-danger btn-sm" (click)="subscribeToChannel()">Subscribe</button>
-        <button class="btn btn-secondary btn-sm" (click)="toggleUploads()">Uploads</button>
+        <ion-button [href]="getChannelUrl()" target="_blank" rel="noopener noreferrer" size="small" color="primary" outline>
+          Visit Channel
+        </ion-button>
+        <ion-button (click)="subscribeToChannel()" size="small" color="danger" outline>
+          Subscribe
+        </ion-button>
+        <ion-button (click)="toggleUploads()" size="small" color="secondary" outline>
+          {{ showUploadsList ? 'Hide Uploads' : 'Uploads' }}
+        </ion-button>
       </div>
       <div class="video-list" *ngIf="showUploadsList">
         <h4 class="video-list-header">Uploads</h4>
@@ -41,7 +51,7 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';
   styleUrls: ['./youtube-channel.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, ShrinkNumberPipe, YoutubeVideoComponent]
+  imports: [CommonModule, ShrinkNumberPipe, YoutubeVideoComponent, IonicModule]
 })
 export class YoutubeChannelComponent {
   @Input('channelData') channel: any;
@@ -67,7 +77,7 @@ export class YoutubeChannelComponent {
     this.showUploadsList = !this.showUploadsList;
     this.toggle.emit(this.showUploadsList);
 
-    if (this.showUploadsList && this.videosResponse && this.videosResponse.items.length === 0) {
+    if (this.showUploadsList && !this.videosResponse?.items?.length) {
       this.getVideos$();
     }
   }
