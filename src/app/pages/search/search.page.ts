@@ -16,7 +16,7 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
 
     <ion-content>
       <ion-item>
-        <ion-segment [(ngModel)]="searchType">
+        <ion-segment [(ngModel)]="searchType" (ionChange)="onSearchTypeChange()">
           <ion-segment-button value="videos">Videos</ion-segment-button>
           <ion-segment-button value="playlists">Playlists</ion-segment-button>
           <ion-segment-button value="channels">Channels</ion-segment-button>
@@ -28,6 +28,7 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
           [(ngModel)]="searchQuery"
           placeholder="Enter search query"
           (ionInput)="onSearchQueryChange($event)"
+          (keydown)="onKeydown($event)"
         ></ion-input>
       </ion-item>
 
@@ -96,6 +97,8 @@ export class SearchPage {
   };
   filters: any = {}; // New filter object to hold the filter criteria
 
+  enterPressed = false;
+
   @Output() addToPlaylist = new EventEmitter<any>();
 
   constructor(
@@ -103,6 +106,22 @@ export class SearchPage {
     private youtubeDataService: YoutubeDataService,
     private playlistService: PlaylistService
   ) {}
+
+  onKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.enterPressed = true;
+      this.performSearch();
+    } else {
+      this.enterPressed = false; // Reset flag on other key presses
+    }
+  }
+
+  onSearchTypeChange() {
+    if (this.enterPressed && this.searchQuery.trim()) {
+      this.performSearch();
+    }
+  }
+
 
   onSearchQueryChange(event: any) {
     const query = event.target.value;
