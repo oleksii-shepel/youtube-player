@@ -97,7 +97,9 @@ export class SearchPage {
   };
   filters: any = {}; // New filter object to hold the filter criteria
 
-  enterPressed = false;
+  searchRequested = false;
+  lastSearchQuery = '';
+  lastSearchType = '';
 
   @Output() addToPlaylist = new EventEmitter<any>();
 
@@ -109,15 +111,19 @@ export class SearchPage {
 
   onKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
-      this.enterPressed = true;
       this.performSearch();
     } else {
-      this.enterPressed = false; // Reset flag on other key presses
+      this.searchRequested = false; // Reset flag on other key presses
     }
   }
 
   onSearchTypeChange() {
-    if (this.enterPressed && this.searchQuery.trim()) {
+    // Check if the search type has changed but the query remains the same
+    if (this.searchQuery.trim() === this.lastSearchQuery && this.searchResults[this.searchType].length > 0) {
+      return; // Skip the search
+    }
+
+    if (this.searchRequested && this.searchQuery.trim()) {
       this.performSearch();
     }
   }
@@ -154,7 +160,12 @@ export class SearchPage {
   }
 
   performSearch() {
+    this.searchRequested = true;
     const params = this.buildSearchParams();
+
+    // Store new search state
+    this.lastSearchQuery = this.searchQuery.trim();
+    this.lastSearchType = this.searchType;
 
     this.youtubeDataService.search('search', params).pipe(
       switchMap((response: any) => {
