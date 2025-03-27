@@ -43,7 +43,7 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
       </ion-chip>
 
       <ion-item>
-        <ion-button (click)="performSearch()">Search</ion-button>
+        <ion-button (click)="searchRequested = true; performSearch();">Search</ion-button>
       </ion-item>
 
       <!-- Adaptive Grid -->
@@ -111,6 +111,7 @@ export class SearchPage {
 
   onKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
+      this.searchRequested = true;
       this.performSearch();
     } else {
       this.searchRequested = false; // Reset flag on other key presses
@@ -160,7 +161,6 @@ export class SearchPage {
   }
 
   performSearch() {
-    this.searchRequested = true;
     const params = this.buildSearchParams();
 
     // Store new search state
