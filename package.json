@@ -13,8 +13,8 @@
   },
   "private": true,
   "dependencies": {
-    "@actioncrew/actionstack": "^2.1.4",
-    "@actioncrew/streamix": "^1.0.18",
+    "@actioncrew/actionstack": "^3.0.1",
+    "@actioncrew/streamix": "^2.0.6",
     "@angular/animations": "^19.0.0",
     "@angular/common": "^19.0.0",
     "@angular/compiler": "^19.0.0",
