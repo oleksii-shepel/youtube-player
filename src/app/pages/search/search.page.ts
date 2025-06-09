@@ -39,7 +39,7 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
       </div>
     </ion-header>
 
-    <ion-content>
+    <ion-content class="main">
       <ion-item>
         <ion-segment [(ngModel)]="searchType" (ionChange)="onSearchTypeChange()">
           <ion-segment-button value="videos">Videos</ion-segment-button>

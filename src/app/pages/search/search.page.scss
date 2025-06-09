@@ -19,6 +19,14 @@
   max-width: 500px;
 }
 
+ion-content::part(scroll) {
+  scrollbar-width: none; /* Firefox */
+}
+
+ion-content::part(scroll)::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
 .toolbar {
   display: flex;
   align-items: center; /* Keeps logo and avatar vertically centered with the toolbar */
