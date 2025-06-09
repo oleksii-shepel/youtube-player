@@ -65,7 +65,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #3b1f1f;
+  background: var(--ion-toolbar-background);
   border-radius: 8px;
   /* Increased padding to make it significantly taller */
   padding: 2px 20px; /* Adjust vertical and horizontal padding as needed */
@@ -86,7 +86,7 @@
 }
 
 .search-container ion-icon {
-  color: #d08c8c;
+  color: var(--ion-text-color-step-850);
   margin-right: 10px; /* Increased margin for better spacing */
   flex-shrink: 0;
   font-size: 28px; /* Larger icon size */
@@ -96,7 +96,7 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #d08c8c;
+  color: var(--ion-text-color-step-850);
   flex: 1;
   min-width: 0;
   font-size: 18px; /* Larger font size */
@@ -104,7 +104,7 @@
   max-height: 40px;
 
   &::placeholder {
-    color: #c0a4a4;
+    color: var(--ion-color-primary);
   }
 
   &::part(native) {

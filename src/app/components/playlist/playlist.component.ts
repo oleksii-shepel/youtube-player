@@ -10,12 +10,12 @@ import { PlaylistService } from 'src/app/services/playlist.service';
 
         <!-- Shuffle and Repeat Buttons in Header -->
         <div class="controls">
-          <button (click)="toggleShuffle()" [class.active]="isShuffled">
+          <ion-button fill="clear" (click)="toggleShuffle()" [class.active]="isShuffled">
             <i [class]="isShuffled ? 'la la-check' : 'la la-random'"></i> Shuffle
-          </button>
-          <button (click)="toggleRepeat()" [class.active]="isRepeating">
+          </ion-button>
+          <ion-button fill="clear" (click)="toggleRepeat()" [class.active]="isRepeating">
             <i [class]="isRepeating ? 'la la-check' : 'la la-sync-alt'"></i> Repeat
-          </button>
+          </ion-button>
         </div>
       </div>
 
