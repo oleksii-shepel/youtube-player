@@ -9,9 +9,31 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
   selector: 'app-search',
   template: `
     <ion-header>
-      <ion-toolbar>
-        <ion-title>YouTube Search</ion-title>
-      </ion-toolbar>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <ion-title>YouTube Search</ion-title>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="search-container">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-input color="primary"
+              [(ngModel)]="searchQuery"
+              placeholder="Enter search query"
+              (ionInput)="onSearchQueryChange($event)"
+              (keydown)="onKeydown($event)"
+            ></ion-input>
+          </div>
+
+          <ion-button fill="clear">
+            <ion-icon name="videocam-outline"></ion-icon>
+          </ion-button>
+
+          <ion-avatar>
+            <img src="https://i.pravatar.cc/300?img=5" />
+          </ion-avatar>
+        </div>
+      </div>
     </ion-header>
 
     <ion-content>
@@ -21,15 +43,6 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
           <ion-segment-button value="playlists">Playlists</ion-segment-button>
           <ion-segment-button value="channels">Channels</ion-segment-button>
         </ion-segment>
-      </ion-item>
-
-      <ion-item>
-        <ion-input
-          [(ngModel)]="searchQuery"
-          placeholder="Enter search query"
-          (ionInput)="onSearchQueryChange($event)"
-          (keydown)="onKeydown($event)"
-        ></ion-input>
       </ion-item>
 
       <!-- Filters Section -->
@@ -108,6 +121,15 @@ export class SearchPage {
     private youtubeDataService: YoutubeDataService,
     private playlistService: PlaylistService
   ) {}
+
+  showSearchInput = false;
+
+  toggleSearchInput(show: boolean) {
+    this.showSearchInput = show;
+    if (!show) {
+      this.suggestions = [];
+    }
+  }
 
   onKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
