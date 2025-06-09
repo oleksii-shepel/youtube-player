@@ -1,8 +1,9 @@
 .playlist-container {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Fill the parent container */
-  max-height: 100%; /* Prevent growing beyond the viewport height */
+  height: 100%;
+  max-height: 100%;
+  background-color: var(--ion-background-color); /* dark background */
 }
 
 ion-list-header {
@@ -10,12 +11,13 @@ ion-list-header {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  flex: 0 0 auto; /* Fixed height for the header */
+  flex: 0 0 auto;
   font-size: 16px;
   font-weight: bold;
   padding: 12px;
-  background-color: #f4f4f4;
-  border-bottom: 1px solid #ccc;
+  background-color: var(--ion-card-background); /* was #f4f4f4 */
+  border-bottom: 1px solid var(--ion-border-color); /* was #ccc */
+  color: var(--ion-text-color);
 }
 
 .list-header {
@@ -23,37 +25,42 @@ ion-list-header {
   flex-direction: row;
   justify-content: space-between;
   padding: 12px;
+  color: var(--ion-text-color);
 }
 
 #playlist {
-  flex: 1 1 auto; /* Take up remaining vertical space */
-  overflow-y: auto; /* Enable vertical scrolling */
+  flex: 1 1 auto;
+  overflow-y: auto;
   padding: 8px;
+  background-color: var(--ion-background-color);
 }
 
 #playlist > div {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* Add spacing between tracks */
+  gap: 8px;
 }
 
 .controls {
   display: flex;
-  gap: 15px; /* Adds space between buttons */
+  gap: 15px;
 }
 
 button {
   background-color: transparent;
   border: none;
-  color: #007aff;
+  color: var(--ion-color-primary); /* was #007aff */
   font-size: 16px;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
+button:hover,
 button:focus {
+  color: var(--ion-color-primary-shade);
   outline: none;
 }
 
 button i {
-  margin-right: 5px; /* Adjust space between icon and text */
+  margin-right: 5px;
 }

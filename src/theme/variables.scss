@@ -1,2 +1,43 @@
-// For information on how to create your own theme, please see:
-// http://ionicframework.com/docs/theming/
+:root {
+  /* Backgrounds */
+  --ion-background-color: #1e0f0f; // main background
+  --ion-toolbar-background: #2d1919; // header and filter bar
+  --ion-item-background: #1e0f0f;
+
+  /* Text Colors */
+  --ion-text-color: #C79194; // primary text
+  --ion-text-color-rgb: #C79194;
+  --ion-text-color-step-850: #b6aaaa; // secondary text
+  --ion-text-color-step-950: #ffffff; // titles/headings
+
+  /* Placeholder */
+  --ion-placeholder-color: #887c7c;
+
+  /* Inputs & Search */
+  --ion-color-input-background: #2d1919;
+  --ion-color-input-border: #473737;
+  --ion-color-input-text: #f1e9e9;
+
+  /* Cards / Items */
+  --ion-card-background: #2a1717;
+  --ion-card-border-color: #3b2525;
+
+  /* Buttons / Filters */
+  --ion-color-primary: #a14a4a;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #893f3f;
+  --ion-color-primary-tint: #bb5a5a;
+
+  --ion-color-medium: #786060; // used in secondary UI elements
+
+  /* Accent */
+  --ion-color-success: #4ade80; // optional highlight color (e.g. tags)
+  --ion-color-danger: #ef4444;
+
+  /* Border / Divider */
+  --ion-border-color: #392424;
+
+  /* Shadow */
+  --ion-box-shadow-color: rgba(0, 0, 0, 0.3);
+}
+
