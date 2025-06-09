@@ -18,13 +18,13 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
           <div class="search-container">
             <ion-icon name="search-outline"></ion-icon>
             <ion-input color="primary"
-              id="searchbar"
+              #searchbar
               [(ngModel)]="searchQuery"
               placeholder="Enter search query"
               (ionInput)="onSearchQueryChange($event)"
               (keydown)="onKeydown($event)"
             ></ion-input>
-             <ion-icon name="close-circle" class="clear-icon" onclick="document.getElementById('searchbar').value = ''"></ion-icon>
+             <ion-icon name="close-circle" class="clear-icon" onclick="searchbar.value = ''" *ngIf="searchbar.value"></ion-icon>
             <ion-button (click)="searchRequested = true; performSearch();">Search</ion-button>
           </div>
 
