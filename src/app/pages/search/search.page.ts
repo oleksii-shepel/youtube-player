@@ -18,11 +18,14 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
           <div class="search-container">
             <ion-icon name="search-outline"></ion-icon>
             <ion-input color="primary"
+              id="searchbar"
               [(ngModel)]="searchQuery"
               placeholder="Enter search query"
               (ionInput)="onSearchQueryChange($event)"
               (keydown)="onKeydown($event)"
             ></ion-input>
+             <ion-icon name="close-circle" class="clear-icon" onclick="document.getElementById('searchbar').value = ''"></ion-icon>
+            <ion-button (click)="searchRequested = true; performSearch();">Search</ion-button>
           </div>
 
           <ion-button fill="clear">
@@ -54,10 +57,6 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
       <ion-chip *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
         {{ suggestion }}
       </ion-chip>
-
-      <ion-item>
-        <ion-button (click)="searchRequested = true; performSearch();">Search</ion-button>
-      </ion-item>
 
       <!-- Adaptive Grid -->
       <div class="adaptive-grid">
