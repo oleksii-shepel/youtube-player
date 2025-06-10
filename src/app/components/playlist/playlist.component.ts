@@ -21,7 +21,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
       </div>
 
       <div id="playlist" cdkDropList (cdkDropListDropped)="drop($event)">
-        <app-playlist-track cdkDrag class="playlist-track"
+        <app-playlist-track cdkDrag
           *ngFor="let track of playlist"
           [track]="track"
           [thumbnailUrl]="getTrackThumbnail(track)"
