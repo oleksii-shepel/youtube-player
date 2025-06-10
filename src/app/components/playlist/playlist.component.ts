@@ -26,6 +26,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
           [track]="track"
           [thumbnailUrl]="getTrackThumbnail(track)"
           [formattedDuration]="getTrackFormattedDuration(track)"
+          (cdkDragStarted)="onDragStarted(track)"
           (trackSelected)="selectTrack(track)"
           [isSelected]="track === selectedTrack"
         ></app-playlist-track>
@@ -67,6 +68,10 @@ export class PlaylistComponent {
   // Format duration (assuming it's in ISO 8601 format)
   getTrackFormattedDuration(track: any): string {
     return track.contentDetails?.duration;
+  }
+
+  onDragStarted(track: any) {
+    this.selectedTrack = track;
   }
 
   drop(event: CdkDragDrop<string[]>) { // Use CdkDragDrop generic for better type safety
