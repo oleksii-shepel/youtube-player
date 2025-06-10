@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { PlaylistService } from 'src/app/services/playlist.service';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-playlist',
@@ -19,20 +20,21 @@ import { PlaylistService } from 'src/app/services/playlist.service';
         </div>
       </div>
 
-      <div id="playlist">
-        <div>
-          <app-playlist-track
-            *ngFor="let track of playlist"
-            [track]="track"
-            (trackSelected)="selectTrack(track)"
-            [isSelected]="track === selectedTrack"
-          ></app-playlist-track>
-        </div>
+      <div id="playlist" cdkDropList (cdkDropListDropped)="drop($event)">
+        <app-playlist-track cdkDrag class="playlist-track"
+          *ngFor="let track of playlist"
+          [track]="track"
+          [thumbnailUrl]="getTrackThumbnail(track)"
+          [formattedDuration]="getTrackFormattedDuration(track)"
+          (trackSelected)="selectTrack(track)"
+          [isSelected]="track === selectedTrack"
+        ></app-playlist-track>
       </div>
     </ion-list>
   `,
   styleUrls: ['playlist.component.scss'],
   standalone: false,
+  encapsulation: ViewEncapsulation.None
 })
 export class PlaylistComponent {
   @Input() playlist: any[] = [];
@@ -54,6 +56,22 @@ export class PlaylistComponent {
     this.playlistService.currentTrackIndex.subscribe((index) => {
       this.selectedTrack = this.playlist[index];
     });
+  }
+
+  // Get the thumbnail URL from the track object
+  getTrackThumbnail(track: any): string {
+    const thumbnail = track.snippet?.thumbnails?.high?.url || track.snippet?.thumbnails?.medium?.url || track.snippet?.thumbnails?.default?.url;
+    return thumbnail || ''; // Return the best available thumbnail
+  }
+
+  // Format duration (assuming it's in ISO 8601 format)
+  getTrackFormattedDuration(track: any): string {
+    return track.contentDetails?.duration;
+  }
+
+  drop(event: CdkDragDrop<string[]>) { // Use CdkDragDrop generic for better type safety
+    moveItemInArray(this.playlist, event.previousIndex, event.currentIndex);
+    this.selectedTrack = this.playlist[event.currentIndex];
   }
 
   selectTrack(track: any): void {

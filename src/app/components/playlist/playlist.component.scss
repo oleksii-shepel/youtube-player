@@ -31,16 +31,22 @@ ion-list-header {
 
 #playlist {
   flex: 1 1 auto;
-  overflow-y: auto;
   padding: 8px;
   background-color: var(--ion-background-color);
 }
 
-#playlist > div {
+/* Direct child of #playlist is app-playlist-track, which contains ion-item.track */
+#playlist > app-playlist-track {
+  display: block; /* Ensure app-playlist-track behaves as a block for margin */
+  margin-bottom: 8px; /* Apply margin between tracks here */
+}
+
+#playlist > div { /* This might be targeting the inner div where cdkDropList is applied if not app-playlist-track */
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 8px; /* This gap might be redundant if margin-bottom is set on tracks */
 }
+
 
 .controls {
   display: flex;
@@ -64,4 +70,110 @@ button:focus {
 
 button i {
   margin-right: 5px;
+}
+
+#playlist::part(scroll) {
+  scrollbar-width: none; /* Firefox */
+}
+
+#playlist::part(scroll)::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+/* Styles for the individual playlist tracks (ion-item.track)
+   These were moved from playlist-track.component.scss */
+app-playlist-track > ion-item.track {
+  /* Remove Ionic's default borders */
+  --border-width: 0;
+  --inner-border-width: 0;
+  --border-color: transparent;
+
+  /* Base colors using theme variables */
+  --background: var(--ion-item-background, var(--ion-color-light));
+  --color: var(--ion-text-color);
+
+  border-radius: 8px;
+  overflow: hidden;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+
+  ion-thumbnail {
+    --border-radius: 4px;
+    margin-inline-end: 16px;
+  }
+
+  ion-label {
+    h2 {
+      font-weight: 500;
+      font-size: 1.1em;
+      color: inherit;
+    }
+
+    p {
+      font-size: 0.9em;
+      color: inherit;
+      opacity: 0.7;
+    }
+  }
+}
+
+#playlist:not(.cdk-drop-list-dragging) app-playlist-track > ion-item.track {
+  &.track-hover:hover {
+    --background: var(--ion-color-primary-tint);
+    --color: var(--ion-color-primary-contrast);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateX(-2px);
+  }
+
+  &.track-selected {
+    --background: var(--ion-color-primary);
+    --color: var(--ion-color-primary-contrast);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateX(-2px);
+  }
+}
+
+.cdk-drag-preview,
+.cdk-drag-placeholder,
+.cdk-drag {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Styles for the drag preview element (the floating clone) */
+.cdk-drag-preview {
+  /* Exactly match the .track-selected state from playlist-track.component.scss */
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateX(-2px); /* Matching track-selected shadow */
+  border-radius: 8px;
+  opacity: 0.95;
+  cursor: grabbing; /* Indicate active dragging */
+  z-index: 1000; /* Ensure the dragged item is on top */
+  overflow: hidden; /* Prevents scrollbars on the preview */
+}
+
+/* Placeholder during drag (the original item's spot) */
+.cdk-drag-placeholder {
+  opacity: 0.6; /* Make it more visible than 0.3 */
+  background-color: var(--ion-color-primary); /* Match selected background */
+  border-radius: 8px;
+  min-height: 48px; /* Ensure placeholder has height */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Lighter shadow for placeholder */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transition */
+  color: var(--ion-color-primary-contrast); /* Match selected text color */
+
+  /* Ensure text within the placeholder also gets the correct color */
+  ion-label {
+    h2, p {
+      color: inherit; /* Inherit the forced color */
+    }
+  }
+}
+
+/* Animate item movement when drop list is being dragged */
+.cdk-drop-list-dragging app-playlist-track:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }

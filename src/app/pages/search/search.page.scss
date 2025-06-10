@@ -84,6 +84,7 @@ ion-content::part(scroll)::-webkit-scrollbar {
   margin-left: auto; /* Key for leftward expansion */
 
   /* Much larger maximum width for expansion */
+  min-width: 300px;
   max-width: 100%; /* Adjust this value. Make sure it doesn't overlap the logo! */
 }
 
