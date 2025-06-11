@@ -46,7 +46,7 @@ export class Authorization {
     let result: any = undefined;
     const subject = createSubject<AuthorizationProfile>();
     google.accounts.id.initialize({
-      clientId: environment.youtube.clientId,
+      client_id: environment.youtube.clientId,
       callback: (response: any) => {
         result = this.requestAccessToken();
         this.profile = this.decodeJwt(response.credential);
@@ -63,7 +63,7 @@ export class Authorization {
     return new Promise((resolve, reject) => {
       this.zone.run(() => {
         const tokenClient = google.accounts.oauth2.initTokenClient({
-          clientId: '53327028782-qpujl43ff13cf1pug94rjqpvrkmpd9ln.apps.googleusercontent.com',
+          client_id: environment.youtube.clientId,
           scope: 'https://www.googleapis.com/auth/youtube',
           prompt: '',
           callback: (response: TokenResponse) => {
