@@ -7,15 +7,21 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
   template: `
     <ion-list class="playlist-container">
       <div class="list-header">
-        <div>Playlist</div>
-
-        <!-- Shuffle and Repeat Buttons in Header -->
         <div class="controls">
           <ion-button fill="clear" (click)="toggleShuffle()" [class.active]="isShuffled">
-            <i [class]="isShuffled ? 'la la-check' : 'la la-random'"></i> Shuffle
+            <ion-icon name="shuffle"></ion-icon>
           </ion-button>
-          <ion-button fill="clear" (click)="toggleRepeat()" [class.active]="isRepeating">
-            <i [class]="isRepeating ? 'la la-check' : 'la la-sync-alt'"></i> Repeat
+          <ion-button fill="clear" (click)="playPrevious()">
+            <ion-icon name="play-skip-back"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" (click)="togglePlay()">
+            <ion-icon [name]="isPlaying ? 'pause' : 'play'"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" (click)="playNext()">
+            <ion-icon name="play-skip-forward"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" (click)="toggleRepeat()" [class.active]="repeatMode !== 'none'">
+            <ion-icon name="repeat"></ion-icon>
           </ion-button>
         </div>
       </div>
@@ -39,63 +45,89 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 })
 export class PlaylistComponent {
   @Input() playlist: any[] = [];
-  @Output() trackSelected = new EventEmitter<any>(); // Emit selected track to parent
+  @Output() trackSelected = new EventEmitter<any>();
 
   isShuffled: boolean = false;
-  isRepeating: boolean = false;
-  selectedTrack: any = null; // Track selected by user
+  isPlaying: boolean = false;
+  selectedTrack: any = null;
+  repeatMode: 'none' | 'all' | 'one' = 'none';
 
   constructor(private playlistService: PlaylistService) {}
 
   ngOnInit(): void {
-    // Subscribe to the playlist observable
-    this.playlistService.playlist.subscribe((playlist) => {
+    this.playlistService.playlist.subscribe(playlist => {
       this.playlist = playlist;
     });
 
-    // Subscribe to the current track index observable to get the currently playing track
-    this.playlistService.currentTrackIndex.subscribe((index) => {
+    this.playlistService.currentTrackIndex.subscribe(index => {
       this.selectedTrack = this.playlist[index];
     });
-  }
 
-  // Get the thumbnail URL from the track object
-  getTrackThumbnail(track: any): string {
-    const thumbnail = track.snippet?.thumbnails?.high?.url || track.snippet?.thumbnails?.medium?.url || track.snippet?.thumbnails?.default?.url;
-    return thumbnail || ''; // Return the best available thumbnail
-  }
+    this.playlistService.playbackState.subscribe(state => {
+      this.isPlaying = state === 'playing';
+    });
 
-  // Format duration (assuming it's in ISO 8601 format)
-  getTrackFormattedDuration(track: any): string {
-    return track.contentDetails?.duration;
-  }
-
-  onDragStarted(track: any) {
-    this.selectedTrack = track;
-  }
-
-  drop(event: CdkDragDrop<string[]>) { // Use CdkDragDrop generic for better type safety
-    moveItemInArray(this.playlist, event.previousIndex, event.currentIndex);
-    this.selectedTrack = this.playlist[event.currentIndex];
-  }
-
-  selectTrack(track: any): void {
-    this.selectedTrack = track;
-    // Update current track in the PlaylistService
-    const trackIndex = this.playlist.indexOf(track);
-    this.playlistService.setCurrentTrackIndex(trackIndex);
-    this.trackSelected.emit(track); // Emit track to parent component
+    this.isShuffled = this.playlistService.isPlaylistShuffled();
+    this.repeatMode = this.playlistService.getRepeatMode();
   }
 
   toggleShuffle(): void {
     this.isShuffled = !this.isShuffled;
-    if (this.isShuffled) {
-      this.playlistService.shufflePlaylist(); // Shuffle the playlist
-    }
+    this.playlistService.setShuffleState(this.isShuffled);
   }
 
   toggleRepeat(): void {
-    this.isRepeating = !this.isRepeating;
-    // Handle repeat logic here (can be added to PlaylistService if needed)
+    if (this.repeatMode === 'none') {
+      this.repeatMode = 'all';
+    } else if (this.repeatMode === 'all') {
+      this.repeatMode = 'one';
+    } else {
+      this.repeatMode = 'none';
+    }
+
+    this.playlistService.setRepeatMode(this.repeatMode);
+  }
+
+  togglePlay(): void {
+    if (this.isPlaying) {
+      this.playlistService.pause();
+    } else {
+      this.playlistService.play();
+    }
+  }
+
+  playNext(): void {
+    this.playlistService.next();
+  }
+
+  playPrevious(): void {
+    this.playlistService.previous();
+  }
+
+  selectTrack(track: any): void {
+    this.selectedTrack = track;
+    const trackIndex = this.playlist.indexOf(track);
+    this.playlistService.setCurrentTrackIndex(trackIndex);
+    this.playlistService.play();
+    this.trackSelected.emit(track);
+  }
+
+  drop(event: CdkDragDrop<string[]>) {
+    moveItemInArray(this.playlist, event.previousIndex, event.currentIndex);
+    this.selectedTrack = this.playlist[event.currentIndex];
+    this.playlistService.updatePlaylistOrder(this.playlist);
+  }
+
+  getTrackThumbnail(track: any): string {
+    const thumbnails = track.snippet?.thumbnails || {};
+    return thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default?.url || '';
+  }
+
+  getTrackFormattedDuration(track: any): string {
+    return track.contentDetails?.duration ?? '';
+  }
+
+  onDragStarted(track: any): void {
+    this.selectedTrack = track;
   }
 }
