@@ -138,7 +138,7 @@ import { Subscription } from '@actioncrew/streamix';
         </div>
       </div>
 
-      <div id="playlist" cdkDropList (cdkDropListDropped)="drop($event)">
+      <div id="playlist" cdkDropList [cdkDropListData]="playlist" (cdkDropListDropped)="drop($event)">
         <app-playlist-track
           cdkDrag
           *ngFor="let track of playlist; let i = index"
