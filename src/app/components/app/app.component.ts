@@ -1,5 +1,5 @@
 import { Component, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
-import { PlaylistService } from 'src/app/services/playlist.service';
+import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../youtube-player/youtube-player.component';
 import { Subscription } from '@actioncrew/streamix';
 
