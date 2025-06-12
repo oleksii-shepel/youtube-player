@@ -1,22 +1,29 @@
 import { Injectable } from '@angular/core';
 import { createUpdater } from '../utils/stateUpdater';
+import { YoutubePlayerComponent } from '../components/youtube-player/youtube-player.component';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlaylistService {
   // Reactive state
-  public playlist = createUpdater<any[]>([]);
-  public currentTrackIndex = createUpdater<number>(-1);
-  public playbackState = createUpdater<'playing' | 'paused' | 'stopped'>('stopped');
+  playlist = createUpdater<any[]>([]);
+  currentTrackIndex = createUpdater<number>(-1);
+  playbackState = createUpdater<'playing' | 'paused' | 'stopped'>('stopped');
 
-  private isShuffled = createUpdater<boolean>(false);
-  private repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
-  private originalPlaylist: any[] = [];
+  isShuffled = createUpdater<boolean>(false);
+  repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
+  originalPlaylist: any[] = [];
 
-  constructor() { }
+  // Reference to player component to control playback
+  private currentPlayerComponent: YoutubePlayerComponent | null = null;
 
-  // Playlist methods
+  constructor() {}
+
+  setPlayerComponent(player: YoutubePlayerComponent) {
+    this.currentPlayerComponent = player;
+  }
+
   addToPlaylist(video: any): void {
     if (!this.playlist.value.some(v => v.id === video.id)) {
       const newPlaylist = [...this.playlist.value, video];
@@ -39,48 +46,50 @@ export class PlaylistService {
     this.playlist.set(newOrder);
   }
 
-  // Playback control
   play(): void {
     if (this.playlist.value.length === 0) return;
 
-    // Ensure a valid current track index
-    if (this.currentTrackIndex.value == null || this.currentTrackIndex.value >= this.playlist.value.length) {
-      this.setCurrentTrackIndex(0);
-    } else if (this.currentTrackIndex.value === 0) {
+    if (
+      this.currentTrackIndex.value == null ||
+      this.currentTrackIndex.value >= this.playlist.value.length
+    ) {
       this.setCurrentTrackIndex(0);
     }
-
-    this.playbackState.set('playing');
+    this.playCurrentTrack();
   }
 
   pause(): void {
     this.playbackState.set('paused');
+    this.currentPlayerComponent?.pauseVideo();
   }
 
   stop(): void {
     this.playbackState.set('stopped');
+    this.currentPlayerComponent?.stopVideo();
   }
 
   next(): void {
     if (this.playlist.value.length === 0) return;
 
-    const nextIndex = this.repeatMode.value === 'one'
-      ? this.currentTrackIndex.value
-      : this.getNextTrackIndex(this.currentTrackIndex.value);
+    const nextIndex =
+      this.repeatMode.value === 'one'
+        ? this.currentTrackIndex.value
+        : this.getNextTrackIndex(this.currentTrackIndex.value);
 
     this.setCurrentTrackIndex(nextIndex);
-    this.play();
+    this.playCurrentTrack();
   }
 
   previous(): void {
     if (this.playlist.value.length === 0) return;
 
-    const prevIndex = this.repeatMode.value === 'one'
-      ? this.currentTrackIndex.value
-      : this.getPreviousTrackIndex(this.currentTrackIndex.value);
+    const prevIndex =
+      this.repeatMode.value === 'one'
+        ? this.currentTrackIndex.value
+        : this.getPreviousTrackIndex(this.currentTrackIndex.value);
 
     this.setCurrentTrackIndex(prevIndex);
-    this.play();
+    this.playCurrentTrack();
   }
 
   setCurrentTrackIndex(index: number): void {
@@ -99,7 +108,6 @@ export class PlaylistService {
     return this.playlist.value;
   }
 
-  // Repeat
   setRepeatMode(mode: 'none' | 'all' | 'one'): void {
     this.repeatMode.set(mode);
   }
@@ -108,13 +116,12 @@ export class PlaylistService {
     return this.repeatMode.value;
   }
 
-  // Shuffle
   setShuffleState(shuffled: boolean): void {
     if (shuffled && !this.isShuffled.value) {
       this.originalPlaylist = [...this.playlist.value];
       this.playlist.set(this.shuffleArray([...this.playlist.value]));
       this.isShuffled.set(true);
-    } else if (!shuffled && this.isShuffled) {
+    } else if (!shuffled && this.isShuffled.value) {
       const currentTrack = this.playlist.value[this.currentTrackIndex.value];
       const newIndex = this.originalPlaylist.findIndex(t => t.id === currentTrack.id);
       this.playlist.set([...this.originalPlaylist]);
@@ -129,13 +136,17 @@ export class PlaylistService {
 
   private getNextTrackIndex(currentIndex: number): number {
     return currentIndex >= this.playlist.value.length - 1
-      ? (this.repeatMode.value === 'all' ? 0 : currentIndex)
+      ? this.repeatMode.value === 'all'
+        ? 0
+        : currentIndex
       : currentIndex + 1;
   }
 
   private getPreviousTrackIndex(currentIndex: number): number {
     return currentIndex <= 0
-      ? (this.repeatMode.value === 'all' ? this.playlist.value.length - 1 : currentIndex)
+      ? this.repeatMode.value === 'all'
+        ? this.playlist.value.length - 1
+        : currentIndex
       : currentIndex - 1;
   }
 
@@ -145,5 +156,13 @@ export class PlaylistService {
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
+  }
+
+  private playCurrentTrack(): void {
+    const track = this.getCurrentTrack();
+    if (track && this.currentPlayerComponent) {
+      this.currentPlayerComponent.playVideo(track.id);
+      this.playbackState.set('playing');
+    }
   }
 }

@@ -16,7 +16,7 @@ import { Subscription } from '@actioncrew/streamix';
               #youtubePlayer
               [videoId]="selectedVideoId"
               class="player"
-              (videoEnded)="onPlayerStateChange($event)"
+              (videoEnded)="onPlayerVideoEnded()"
             ></youtube-player>
           </div>
         </ion-menu>
@@ -33,37 +33,38 @@ import { Subscription } from '@actioncrew/streamix';
 export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild('youtubePlayer') youtubePlayer!: YoutubePlayerComponent;
 
-  selectedVideoId: string = '';
+  selectedVideoId = '';
   private subscriptions: Subscription[] = [];
 
   constructor(public playlistService: PlaylistService) {}
 
   ngAfterViewInit(): void {
-    // Keep selected video in sync with service's current index
+    // Inform PlaylistService about the player component instance
+    this.playlistService.setPlayerComponent(this.youtubePlayer);
+
+    // Sync selectedVideoId with playlist's current track index
     const sub = this.playlistService.currentTrackIndex.subscribe(index => {
       const track = this.playlistService.getPlaylist()[index];
-      this.selectedVideoId = track?.id || '';
+      if (track && track.id !== this.selectedVideoId) {
+        this.selectedVideoId = track.id;
+      }
     });
     this.subscriptions.push(sub);
   }
 
   onTrackSelected(track: any): void {
-    this.selectedVideoId = track.id;
-    const trackIndex = this.playlistService.getPlaylist().indexOf(track);
-    this.playlistService.setCurrentTrackIndex(trackIndex);
-    this.playlistService.play(); // Ensure playback starts when manually selecting
+    const playlist = this.playlistService.getPlaylist();
+    const trackIndex = playlist.findIndex(t => t.id === track.id);
+
+    if (trackIndex >= 0) {
+      this.playlistService.setCurrentTrackIndex(trackIndex);
+      this.playlistService.play();
+    }
   }
 
-  playNextTrack(): void {
-    this.playlistService.next(); // Updates index & triggers playback
-  }
-
-  playPreviousTrack(): void {
-    this.playlistService.previous();
-  }
-
-  onPlayerStateChange(event: any): void {
-    this.playNextTrack();
+  onPlayerVideoEnded(): void {
+    // Move to the next track when video ends
+    this.playlistService.next();
   }
 
   ngOnDestroy(): void {

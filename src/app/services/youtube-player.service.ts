@@ -103,7 +103,7 @@ export class YoutubePlayerService {
    */
   generateUniqueId(): string {
     const len = 7;
-    return Math.random().toString(35).substr(2, len);
+    return Math.random().toString(35).substring(2, len);
   }
 
   /**
@@ -158,8 +158,15 @@ export class YoutubePlayerService {
    * @param player The YT.Player instance to control.
    */
   playVideo(media: any, player: YT.Player) {
-    const id = media.id?.videoId ? media.id.videoId : media.id; // Handles different media object structures
-    player.loadVideoById(id);
+    const id = media.id?.videoId ? media.id.videoId : media.id;
+    const currentVideoId = player.getVideoData()?.video_id;
+    if (currentVideoId === id) {
+      // Same video loaded: just resume playback without resetting position
+      player.playVideo();
+    } else {
+      // Different video: load it from start
+      player.loadVideoById(id);
+    }
   }
 
   /**
