@@ -24,7 +24,7 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
               (ionInput)="onSearchQueryChange($event)"
               (keydown)="onKeydown($event)"
             ></ion-input>
-             <ion-icon name="close-circle" class="clear-icon" onclick="searchbar.value = ''" *ngIf="searchbar.value"></ion-icon>
+             <ion-icon name="close-circle" class="clear-icon" (click)="searchbar.value = ''" *ngIf="searchbar.value"></ion-icon>
             <ion-button (click)="searchRequested = true; performSearch();">Search</ion-button>
           </div>
 
