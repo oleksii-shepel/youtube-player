@@ -29,19 +29,21 @@ export class PlaylistService {
     // 1. Load the YouTube API script as soon as the service is instantiated
     this.youtubePlayerService.loadPlayerApi({ protocol: 'https' });
 
+    const playerOutputs: IPlayerOutputs = {
+      ready: createReplaySubject<YT.Player>(1),
+      change: createReplaySubject<YT.PlayerEvent>(1),
+    };
+
     // 2. Subscribe to the API ready signal. Once the API is ready, create the player.
     this.youtubePlayerService.api.subscribe((YT_API_READY: any) => {
       // Check if player is already created to avoid re-creation on hot module replacement etc.
       if (!this.player) {
         // Create the YouTube player instance
         // 'youtube-player' is the ID of the div element in your main player component
+
         this.player = this.youtubePlayerService.createPlayer(
           'youtube-player', // <--- Make sure you have a <div id="youtube-player"></div> in your HTML where the player should render
-          {
-            // These outputs are ReplaySubjects because they might emit before the subscriber is ready
-            ready: createReplaySubject<YT.Player>(1),
-            change: createReplaySubject<YT.PlayerEvent>(1),
-          },
+          playerOutputs,
           { height: 270, width: 367 }, // Your desired default sizes
           '', // No initial videoId, as playlist service will handle playing the first track
           {
@@ -69,19 +71,6 @@ export class PlaylistService {
             // The provided `YoutubePlayerService` passes these to the `outputs` parameter.
             // So we need to subscribe to those subjects here:
 
-            // A slightly cleaner way to get the event handling from createPlayer:
-            const playerOutputs: IPlayerOutputs = {
-              ready: createReplaySubject<YT.Player>(1),
-              change: createReplaySubject<YT.PlayerEvent>(1),
-            };
-
-            this.player = this.youtubePlayerService.createPlayer(
-              'youtube-player',
-              playerOutputs, // Pass these subjects to createPlayer
-              { height: 270, width: 367 },
-              '',
-              { autoplay: 0 }
-            );
 
             // Now subscribe to these subjects directly in the PlaylistService
             playerOutputs.change.subscribe((event: any) => {
