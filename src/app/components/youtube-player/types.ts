@@ -1,9 +1,8 @@
-import 'youtube';
-import { EventEmitter } from '@angular/core';
+import { Stream } from '@actioncrew/streamix';
 
 export interface IPlayerOutputs {
-  ready?: EventEmitter<YT.Player>;
-  change?: EventEmitter<YT.PlayerEvent>;
+  ready?: Stream<YT.Player>;
+  change?: Stream<YT.PlayerEvent>;
 }
 
 export interface IPlayerSize {

@@ -2,16 +2,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "paths": {
-      "angular": [
-        "./dist/angular"
-      ],
-      "@streamix/angular": [
-        "./projects/streamix/src/public-api.ts",
-        "./dist/angular/index.d.ts"
-      ]
-    },
-    "types": ["gapi.client", "gapi.client.youtube"],
+    "types": ["gapi.client", "youtube"],
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
@@ -29,7 +20,7 @@
     "target": "es2022",
     "module": "es2020",
     "lib": [
-      "es2018",
+      "es2020",
       "dom"
     ],
     "useDefineForClassFields": false
