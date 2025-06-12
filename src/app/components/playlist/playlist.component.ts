@@ -281,12 +281,18 @@ export class PlaylistComponent implements OnInit {
   }
 
   drop(event: CdkDragDrop<string[]>) {
+    // Remember the currently selected track before reordering
+    const selectedTrack = this.playlist[this.currentTrackIndex];
+
+    // Reorder playlist
     moveItemInArray(this.playlist, event.previousIndex, event.currentIndex);
     this.playlistService.updatePlaylistOrder(this.playlist);
 
-    // Update selected track if it was moved
-    if (this.isTrackSelected(this.playlist[event.currentIndex])) {
-      this.playlistService.setCurrentTrackIndex(event.currentIndex);
+    // Find new index of previously selected track
+    const newIndex = this.playlist.findIndex(track => track === selectedTrack);
+
+    if (newIndex !== -1) {
+      this.playlistService.setCurrentTrackIndex(newIndex);
     }
   }
 

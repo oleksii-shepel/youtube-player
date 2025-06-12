@@ -4,20 +4,7 @@
   height: 100%;
   max-height: 100%;
   background-color: var(--ion-background-color); /* dark background */
-}
-
-ion-list-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  flex: 0 0 auto;
-  font-size: 16px;
-  font-weight: bold;
-  padding: 12px;
-  background-color: var(--ion-card-background); /* was #f4f4f4 */
-  border-bottom: 1px solid var(--ion-border-color); /* was #ccc */
-  color: var(--ion-text-color);
+  overflow: hidden; // Prevent double scrollbars
 }
 
 .list-header {
@@ -27,6 +14,7 @@ ion-list-header {
   align-items: center;
   padding: 0 20px;
   color: var(--ion-text-color);
+  flex-shrink: 0; // Prevent header from shrinking
 }
 
 #playlist {
@@ -80,43 +68,50 @@ button i {
   display: none; /* Chrome, Safari */
 }
 
-/* Styles for the individual playlist tracks (ion-item.track)
-   These were moved from playlist-track.component.scss */
+/* Base styling for individual playlist tracks (ion-item.track within app-playlist-track) */
 app-playlist-track > ion-item.track {
-  /* Remove Ionic's default borders */
+  // Reset Ionic's default borders to use custom styling
   --border-width: 0;
   --inner-border-width: 0;
   --border-color: transparent;
 
-  /* Base colors using theme variables */
-  --background: transparent;
+  // Base colors using theme variables
+  --background: var(--ion-item-background);
   --color: var(--ion-text-color);
 
+  // Set custom internal padding, letting height be flexible
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 8px;   // Standard vertical padding for items
+  --padding-bottom: 8px; // Standard vertical padding for items
+  --min-height: 72px; // A common minimum height for list items, but can grow
+
   border-radius: 8px;
-  overflow: hidden;
+  overflow: hidden; // Ensures rounded corners and content clipping
   transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   cursor: pointer;
 
+  // Internal Ionic component styling
   ion-thumbnail {
+    --size: 56px; // Fixed thumbnail size
     --border-radius: 4px;
-    margin-inline-end: 16px;
+    margin-inline-end: 16px; // Space between thumbnail and label
   }
 
   ion-label {
     h2 {
       font-weight: 500;
-      font-size: 1.1em;
-      color: inherit;
+      font-size: 1rem;
+      margin-bottom: 4px;
     }
-
     p {
-      font-size: 0.9em;
-      color: inherit;
+      font-size: 0.875rem;
       opacity: 0.7;
     }
   }
 }
 
+/* Hover and selected states for actual track items */
 #playlist:not(.cdk-drop-list-dragging) .track {
   &.track-hover:hover {
     --background: var(--ion-color-primary-tint);
@@ -141,51 +136,93 @@ app-playlist-track > ion-item.track {
   -ms-user-select: none;
 }
 
-/* Styles for the drag preview element (the floating clone) */
-app-playlist-track.cdk-drag.cdk-drag-preview {
-  /* Exactly match the .track-selected state from playlist-track.component.scss */
-  --background: var(--ion-color-primary) !important;
-  --color: var(--ion-color-primary-contrast) !important;
-  background: var(--ion-color-primary) !important;
-  color: var(--ion-color-primary-contrast) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transform: translateX(-2px); /* Matching track-selected shadow */
+
+/* Drag and drop styling */
+
+// The element being dragged (floating clone)
+.cdk-drag-preview {
+  box-sizing: border-box;
   border-radius: 8px;
-  cursor: grabbing; /* Indicate active dragging */
-  z-index: 1000; /* Ensure the dragged item is on top */
-  overflow: hidden; /* Prevents scrollbars on the preview */
-}
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); // Stronger shadow for floating effect
+  opacity: 0.9;
+  z-index: 1000;
+  // Crucial: Inherit margins to maintain consistent spacing in the preview list
+  margin-bottom: 8px; // Matches the app-playlist-track margin-bottom
 
-/* Placeholder during drag (the original item's spot) */
-app-playlist-track.cdk-drag.cdk-drag-placeholder {
-  /* Ionic component variables */
-  --background: var(--ion-placeholder-color) !important;
-  --color: var(--ion-background-color) !important;
-
-  /* Element styles */
-  background: var(--ion-placeholder-color) !important;
-  color: var(--ion-background-color) !important;
-
-  /* Visual styling */
-  border-radius: 8px;
-  border: 1px solid var(--ion-border-color);
-  box-shadow: none;
-  transition: all 0.3s ease;
-
-  /* Internal ion-item styling */
+  // Ensure the ion-item inside the preview maintains its actual content-driven height
+  // and styling for the primary color.
   ion-item {
-    --background: transparent !important;
-    --color: var(--ion-background-color) !important;
-    height: 100%;
-  }
-
-  /* Label text styling */
-  ion-label {
-    h2, p {
-      color: var(--ion-background-color) !important;
-    }
+    // Allow inner content to determine height (no fixed height here)
+    height: auto !important;
+    min-height: inherit !important;
+    max-height: inherit !important;
+    // Ensure original Ionic paddings are maintained by inheriting them.
+    --padding-start: inherit;
+    --padding-end: inherit;
+    --padding-top: inherit;
+    --padding-bottom: inherit;
+    --min-height: inherit;
   }
 }
+
+// The empty space where the item was or will be dropped
+app-playlist-track.cdk-drag.cdk-drag-placeholder {
+  // Visual styling for the empty slot
+  background: var(--ion-color-medium, #e0e0e0); // A muted background color
+  border-radius: 8px;
+  border: 1px dashed var(--ion-border-color, #ccc); // Dashed border to indicate empty space
+  box-shadow: none;
+  z-index: 100;
+  // Animate transform for smooth movement into place
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  // Crucial: Maintain the same margin as a regular track
+  margin-bottom: 8px !important;
+  z-index: 100;
+  // CRITICAL: Allow the placeholder to inherit the exact computed height of the dragged item
+  // Angular Material's CDK will set its height based on the original element's dimensions.
+  // We ensure internal structure matches, but don't force height here directly.
+  height: auto !important;
+  min-height: inherit !important;
+  max-height: inherit !important;
+
+  // Make the *internal* ion-item transparent and ensure its padding is respected
+  ion-item {
+    --background: transparent !important; // Ensures placeholder background is fully visible
+    --color: transparent !important; // Makes any default text/icon color transparent
+
+    // IMPORTANT: Explicitly set Ionic's internal padding/min-height variables
+    // to match the *base* styles of `app-playlist-track > ion-item.track`.
+    // This ensures the placeholder's internal box model is identical,
+    // allowing CDK to calculate heights accurately.
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --min-height: 72px;
+
+    // Ensure the internal layout is consistent (flex for thumbnail/label)
+    display: flex;
+    align-items: center;
+  }
+
+  // Explicitly hide children elements' visuals to make the placeholder look empty
+  ion-thumbnail {
+    visibility: hidden; // Hide the image content
+    // But importantly, maintain its structural size and margin to ensure correct item height
+    width: var(--size, 56px); // Match your ion-thumbnail --size
+    height: var(--size, 56px); // Match your ion-thumbnail --size
+    min-width: var(--size, 56px);
+    min-height: var(--size, 56px);
+    margin-inline-end: 16px; // Re-apply your margin
+    --border-radius: 4px; // Maintain border-radius
+  }
+
+  ion-label {
+    visibility: hidden; // Hide the label text
+    flex-grow: 1; // Ensure the label area still takes up available space
+  }
+}
+
 
 /* Animate item movement when drop list is being dragged */
 .cdk-drop-list-dragging app-playlist-track:not(.cdk-drag-placeholder) {
