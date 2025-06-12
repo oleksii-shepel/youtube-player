@@ -165,6 +165,13 @@ app-playlist-track > ion-item.track {
   }
 }
 
+.cdk-drag-preview .track-selected {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateX(-2px);
+}
+
 // The empty space where the item was or will be dropped
 app-playlist-track.cdk-drag.cdk-drag-placeholder {
   // Visual styling for the empty slot
