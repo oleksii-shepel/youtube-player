@@ -1,150 +1,141 @@
 import { Injectable } from '@angular/core';
-import { createBehaviorSubject } from '@actioncrew/streamix';
+import { createUpdater } from '../utils/stateUpdater';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlaylistService {
   // Reactive state
-  public playlist = createBehaviorSubject<any[]>([]);
-  public currentTrackIndex = createBehaviorSubject<number>(0);
-  public playbackState = createBehaviorSubject<'playing' | 'paused' | 'stopped'>('stopped');
+  public playlist = createUpdater<any[]>([]);
+  public currentTrackIndex = createUpdater<number>(-1);
+  public playbackState = createUpdater<'playing' | 'paused' | 'stopped'>('stopped');
 
-  // Internal state
-  private playlistValue: any[] = [];
-  private currentTrackIndexValue = 0;
+  private isShuffled = createUpdater<boolean>(false);
+  private repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
   private originalPlaylist: any[] = [];
 
-  private isShuffled = false;
-  private repeatMode: 'none' | 'all' | 'one' = 'none';
-
-  constructor() {
-    this.playlist.subscribe(value => this.playlistValue = value);
-    this.currentTrackIndex.subscribe(value => this.currentTrackIndexValue = value);
-  }
+  constructor() { }
 
   // Playlist methods
   addToPlaylist(video: any): void {
-    if (!this.playlistValue.some(v => v.id === video.id)) {
-      const newPlaylist = [...this.playlistValue, video];
-      this.playlistValue = newPlaylist;
-      if (!this.isShuffled) this.originalPlaylist = [...newPlaylist];
-      this.playlist.next(newPlaylist);
+    if (!this.playlist.value.some(v => v.id === video.id)) {
+      const newPlaylist = [...this.playlist.value, video];
+      if (!this.isShuffled.value) this.originalPlaylist = [...newPlaylist];
+      this.playlist.set(newPlaylist);
     }
   }
 
   clearPlaylist(): void {
-    this.playlistValue = [];
+    this.playlist.set([]);
     this.originalPlaylist = [];
-    this.playlist.next([]);
-    this.currentTrackIndex.next(0);
-    this.playbackState.next('stopped');
+    this.currentTrackIndex.set(-1);
+    this.playbackState.set('stopped');
   }
 
   updatePlaylistOrder(newOrder: any[]): void {
-    if (this.isShuffled) {
+    if (this.isShuffled.value) {
       this.originalPlaylist = newOrder;
     }
-    this.playlist.next(newOrder);
+    this.playlist.set(newOrder);
   }
 
   // Playback control
   play(): void {
-    if (this.playlistValue.length === 0) return;
+    if (this.playlist.value.length === 0) return;
 
     // Ensure a valid current track index
-    if (this.currentTrackIndexValue == null || this.currentTrackIndexValue >= this.playlistValue.length) {
+    if (this.currentTrackIndex.value == null || this.currentTrackIndex.value >= this.playlist.value.length) {
       this.setCurrentTrackIndex(0);
-    } else if (this.currentTrackIndexValue === 0) {
+    } else if (this.currentTrackIndex.value === 0) {
       this.setCurrentTrackIndex(0);
     }
 
-    this.playbackState.next('playing');
+    this.playbackState.set('playing');
   }
 
   pause(): void {
-    this.playbackState.next('paused');
+    this.playbackState.set('paused');
   }
 
   stop(): void {
-    this.playbackState.next('stopped');
+    this.playbackState.set('stopped');
   }
 
   next(): void {
-    if (this.playlistValue.length === 0) return;
+    if (this.playlist.value.length === 0) return;
 
-    const nextIndex = this.repeatMode === 'one'
-      ? this.currentTrackIndexValue
-      : this.getNextTrackIndex(this.currentTrackIndexValue);
+    const nextIndex = this.repeatMode.value === 'one'
+      ? this.currentTrackIndex.value
+      : this.getNextTrackIndex(this.currentTrackIndex.value);
 
     this.setCurrentTrackIndex(nextIndex);
     this.play();
   }
 
   previous(): void {
-    if (this.playlistValue.length === 0) return;
+    if (this.playlist.value.length === 0) return;
 
-    const prevIndex = this.repeatMode === 'one'
-      ? this.currentTrackIndexValue
-      : this.getPreviousTrackIndex(this.currentTrackIndexValue);
+    const prevIndex = this.repeatMode.value === 'one'
+      ? this.currentTrackIndex.value
+      : this.getPreviousTrackIndex(this.currentTrackIndex.value);
 
     this.setCurrentTrackIndex(prevIndex);
     this.play();
   }
 
   setCurrentTrackIndex(index: number): void {
-    this.currentTrackIndex.next(index);
+    this.currentTrackIndex.set(index);
   }
 
   getCurrentTrack(): any | null {
-    return this.playlistValue[this.currentTrackIndexValue] || null;
+    return this.playlist.value[this.currentTrackIndex.value] || null;
   }
 
   getCurrentTrackIndex(): number {
-    return this.currentTrackIndexValue;
+    return this.currentTrackIndex.value;
   }
 
   getPlaylist(): any[] {
-    return this.playlistValue;
+    return this.playlist.value;
   }
 
   // Repeat
   setRepeatMode(mode: 'none' | 'all' | 'one'): void {
-    this.repeatMode = mode;
+    this.repeatMode.set(mode);
   }
 
   getRepeatMode(): 'none' | 'all' | 'one' {
-    return this.repeatMode;
+    return this.repeatMode.value;
   }
 
   // Shuffle
   setShuffleState(shuffled: boolean): void {
-    if (shuffled && !this.isShuffled) {
-      this.originalPlaylist = [...this.playlistValue];
-      this.playlist.next(this.shuffleArray([...this.playlistValue]));
-      this.isShuffled = true;
+    if (shuffled && !this.isShuffled.value) {
+      this.originalPlaylist = [...this.playlist.value];
+      this.playlist.set(this.shuffleArray([...this.playlist.value]));
+      this.isShuffled.set(true);
     } else if (!shuffled && this.isShuffled) {
-      const currentTrack = this.playlistValue[this.currentTrackIndexValue];
+      const currentTrack = this.playlist.value[this.currentTrackIndex.value];
       const newIndex = this.originalPlaylist.findIndex(t => t.id === currentTrack.id);
-      this.playlist.next([...this.originalPlaylist]);
+      this.playlist.set([...this.originalPlaylist]);
       if (newIndex >= 0) this.setCurrentTrackIndex(newIndex);
-      this.isShuffled = false;
+      this.isShuffled.set(false);
     }
   }
 
   isPlaylistShuffled(): boolean {
-    return this.isShuffled;
+    return this.isShuffled.value;
   }
 
   private getNextTrackIndex(currentIndex: number): number {
-    return currentIndex >= this.playlistValue.length - 1
-      ? (this.repeatMode === 'all' ? 0 : currentIndex)
+    return currentIndex >= this.playlist.value.length - 1
+      ? (this.repeatMode.value === 'all' ? 0 : currentIndex)
       : currentIndex + 1;
   }
 
   private getPreviousTrackIndex(currentIndex: number): number {
     return currentIndex <= 0
-      ? (this.repeatMode === 'all' ? this.playlistValue.length - 1 : currentIndex)
+      ? (this.repeatMode.value === 'all' ? this.playlist.value.length - 1 : currentIndex)
       : currentIndex - 1;
   }
 

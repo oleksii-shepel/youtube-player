@@ -1,10 +1,10 @@
-import { createBehaviorSubject, Stream } from '@actioncrew/streamix';
+import { createBehaviorSubject, Receiver, Stream, Subscription } from '@actioncrew/streamix';
 
 export interface StateUpdater<T> {
-  value: T;
-  subject: Stream<T>;
+  get value(): T;
   set: (next: T) => void;
   update: (updater: (current: T) => T) => void;
+  subscribe: (callbackOrReceiver?: ((value: T) => void) | Receiver<T>) => Subscription;
 }
 
 export function createUpdater<T>(initial: T): StateUpdater<T> {
@@ -19,7 +19,7 @@ export function createUpdater<T>(initial: T): StateUpdater<T> {
       current = next;
       subject.next(next);
     },
-    subject,
+    subscribe: subject.subscribe.bind(subject),
     set(next) {
       current = next;
       subject.next(next);
