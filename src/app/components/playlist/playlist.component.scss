@@ -38,7 +38,9 @@
 
 .controls {
   display: flex;
-  gap: 15px;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
 }
 
 button {
