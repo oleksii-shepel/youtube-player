@@ -142,11 +142,12 @@ export class SearchPage {
 
       // Listen for One Tap / sign-in responses (or prompt the user)
       this.authorization.loadAuth().subscribe({
-        next: ({ profile, accessToken }) => {
-          console.log('Signed in:', profile);
+        next: ({ profile }) => {
+          this.isSignedIn = true;
+          this.userPicture = profile.picture;
         },
         error: (err) => {
-          console.error('Sign-in failed:', err);
+          this.isSignedIn = false;
         }
       });
     } else {
