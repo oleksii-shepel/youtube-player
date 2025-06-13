@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100%;
   max-height: 100%;
-  background-color: var(--ion-background-color); /* dark background */
+  background-color: var(--ion-background-color);
   overflow: hidden; // Prevent double scrollbars
 }
 
@@ -14,27 +14,24 @@
   align-items: center;
   padding: 0 20px;
   color: var(--ion-text-color);
-  flex-shrink: 0; // Prevent header from shrinking
+  flex-shrink: 0;
 }
 
 #playlist {
   flex: 1 1 auto;
   padding: 8px;
   background-color: var(--ion-background-color);
-}
-
-/* Direct child of #playlist is app-playlist-track, which contains ion-item.track */
-#playlist > app-playlist-track {
-  display: block; /* Ensure app-playlist-track behaves as a block for margin */
-  margin-bottom: 8px; /* Apply margin between tracks here */
-}
-
-#playlist > div { /* This might be targeting the inner div where cdkDropList is applied if not app-playlist-track */
   display: flex;
   flex-direction: column;
-  gap: 8px; /* This gap might be redundant if margin-bottom is set on tracks */
+  gap: 8px; // This will handle spacing between tracks nicely
+  overflow-y: auto; /* IMPORTANT: Add this to allow scrolling if content overflows */
 }
 
+/* Adjust the margin for app-playlist-track to avoid double spacing if using gap on #playlist */
+#playlist > app-playlist-track {
+  display: block; /* Keep this */
+  margin-bottom: 0; /* Change to 0 or remove, as `gap` on #playlist handles spacing */
+}
 
 .controls {
   display: flex;
