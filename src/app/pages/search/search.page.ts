@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { Stream, switchMap } from '@actioncrew/streamix';
 import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.service';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // Import YoutubeDataService
+import { Authorization } from 'src/app/services/authorization.service';
 
 @Component({
   selector: 'app-search',
@@ -32,9 +33,15 @@ import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // 
             <ion-icon name="videocam-outline"></ion-icon>
           </ion-button>
 
-          <ion-avatar>
-            <img src="https://i.pravatar.cc/300?img=5" />
-          </ion-avatar>
+          <div *ngIf="isSignedIn; else loginButton">
+            <ion-avatar (click)="logout()">
+              <img [src]="userPicture" />
+            </ion-avatar>
+          </div>
+
+          <ng-template #loginButton>
+            <div #googleButtonContainer id="google-signin-btn"></div>
+          </ng-template>
         </div>
       </div>
     </ion-header>
@@ -109,19 +116,49 @@ export class SearchPage {
   };
   filters: any = {}; // New filter object to hold the filter criteria
 
+  showSearchInput = false;
   searchRequested = false;
   lastSearchQuery = '';
   lastSearchType = '';
 
   @Output() addToPlaylist = new EventEmitter<any>();
 
+  @ViewChild('googleButtonContainer', { static: false }) googleButtonContainer!: ElementRef;
+  isSignedIn = false;
+  userPicture = '';
+
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
     private youtubeDataService: YoutubeDataService,
-    private playlistService: PlaylistService
+    private playlistService: PlaylistService,
+    private authorization: Authorization
   ) {}
 
-  showSearchInput = false;
+  ngAfterViewInit() {
+    const container = document.getElementById('google-signin-btn');
+    if (container) {
+      this.authorization.generateButton(container, () => {
+        this.authorization.loadAuth().subscribe({
+          next: ({ profile, accessToken }) => {
+            console.log('Signed in:', profile);
+          },
+          error: err => {
+            console.error('Sign-in failed:', err);
+          }
+        });
+      });
+    } else {
+      console.warn('Google Sign-In button container not found');
+    }
+  }
+
+  logout() {
+    this.authorization.signOut().then(() => {
+      this.isSignedIn = false;
+      this.userPicture = '';
+      this.ngAfterViewInit(); // Re-render button
+    });
+  }
 
   toggleSearchInput(show: boolean) {
     this.showSearchInput = show;

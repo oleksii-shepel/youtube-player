@@ -38,25 +38,37 @@ export class Authorization {
   accessToken: string | null = null;
   autoSignInTimer: Subscription | null = null;
   profile: AuthorizationProfile | null = null;
+  authStream: Stream<{ profile: AuthorizationProfile; accessToken: string }> | null = null;
 
   constructor(private zone: NgZone) {
-  }
-
-  loadAuth(): Stream<{profile: AuthorizationProfile, accessToken: string}> {
-    let result: any = undefined;
-    const subject = createSubject<AuthorizationProfile>();
     google.accounts.id.initialize({
       client_id: environment.youtube.clientId,
       callback: (response: any) => {
-        result = this.requestAccessToken();
-        this.profile = this.decodeJwt(response.credential);
-        subject.next(this.profile);
-        subject.complete();
+        this.handleCredentialResponse(response);
       },
     });
+  }
 
+  private handleCredentialResponse(response: any) {
+    const subject = createSubject<AuthorizationProfile>();
+    const access$ = this.requestAccessToken();
+
+    this.profile = this.decodeJwt(response.credential);
+    subject.next(this.profile);
+    subject.complete();
+
+    this.authStream = subject.pipe(
+      switchMap(() => fromPromise(access$)),
+      map((accessToken) => ({
+        profile: this.profile!,
+        accessToken,
+      }))
+    );
+  }
+
+  loadAuth(): Stream<{ profile: AuthorizationProfile; accessToken: string }> {
     google.accounts.id.prompt();
-    return subject.pipe(switchMap(() => result), map((result: string) => ({profile: this.profile, accessToken: result})));
+    return this.authStream!;
   }
 
   requestAccessToken(): Promise<any> {
