@@ -51,7 +51,7 @@ export class Authorization {
   constructor(private zone: NgZone) {
     google.accounts.id.initialize({
       client_id: environment.youtube.clientId,
-      callback: (response: any) => this.handleCredentialResponse(response), // ✅ Unified callback
+      callback: (response: any) => this.handleCredentialResponse(response)
     });
   }
 
@@ -61,16 +61,6 @@ export class Authorization {
       theme: 'outline',
       size: 'large',
     });
-  }
-
-  /**
-   * Triggers Google One Tap prompt and handles result via internal callback.
-   */
-  loadAuth(): Stream<{ profile: AuthorizationProfile; accessToken: string }> {
-    const subject = createSubject<{ profile: AuthorizationProfile; accessToken: string }>();
-    this.authSubject = subject; // ✅ Save to emit from callback later
-
-    return subject;
   }
 
   private handleCredentialResponse(response: any) {
@@ -85,7 +75,7 @@ export class Authorization {
         if (this.authSubject) {
           this.authSubject.next({ profile, accessToken: token });
           this.authSubject.complete();
-          this.authSubject = null; // ✅ Prevent reuse
+          this.authSubject = null;
         }
       }).catch((err) => {
         this.authSubject?.error(err);

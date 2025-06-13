@@ -139,17 +139,6 @@ export class SearchPage {
     if (container) {
       // Render Google Sign-In button once
       this.authorization.generateButton(container);
-
-      // Listen for One Tap / sign-in responses (or prompt the user)
-      this.authorization.loadAuth().subscribe({
-        next: ({ profile }) => {
-          this.isSignedIn = true;
-          this.userPicture = profile.picture;
-        },
-        error: (err) => {
-          this.isSignedIn = false;
-        }
-      });
     } else {
       console.warn('Google Sign-In button container not found');
     }
