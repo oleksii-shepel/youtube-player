@@ -134,7 +134,7 @@ export class YoutubePlayerService {
       events: {
         // Handle onReady event: emit player instance and potentially play video
         onReady: (ev: YT.PlayerEvent) => {
-          this.zone.run(() => outputs.ready?.next(ev.target)); // Emit player instance in Angular zone
+          this.zone.run(() => outputs.ready.next(ev.target)); // Emit player instance in Angular zone
           // If videoId is provided and autoplay is not explicitly set to 0, play on ready.
           // Note: Autoplay can be tricky on mobile devices due to browser policies.
           if(videoId && playerVars.autoplay !== 0) {
@@ -142,8 +142,8 @@ export class YoutubePlayerService {
           }
         },
         // Handle onStateChange event: emit the event object
-        onStateChange: (ev: YT.PlayerEvent) => {
-          this.zone.run(() => outputs.change?.next(ev)); // Emit state change event in Angular zone
+        onStateChange: (ev: YT.PlayerEvent & any) => {
+          this.zone.run(() => outputs.change.next(ev)); // Emit state change event in Angular zone
         },
       },
       playerVars, // Apply custom player parameters

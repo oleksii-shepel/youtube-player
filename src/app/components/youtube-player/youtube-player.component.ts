@@ -18,7 +18,7 @@ import {
   YoutubePlayerService,
   defaultSizes
 } from '../../services/youtube-player.service';
-import { createReplaySubject } from '@actioncrew/streamix';
+import { createReplaySubject, Subscription } from '@actioncrew/streamix';
 
 @Component({
   standalone: true,
@@ -44,6 +44,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   private hasEnded = false;
 
   private playerOutputs: IPlayerOutputs;
+  private subs: Subscription[] = [];
 
   constructor(
     public playerService: YoutubePlayerService,
@@ -55,19 +56,19 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
       change: createReplaySubject<YT.PlayerEvent>(1),
     };
 
-    this.playerOutputs.ready.subscribe((player: YT.Player) => {
+    this.subs.push(this.playerOutputs.ready.subscribe((player: YT.Player) => {
       this.zone.run(() => {
         this.player = player;
         this.ready.emit(player);
       });
-    });
+    }));
 
-    this.playerOutputs.change.subscribe((event: YT.PlayerEvent) => {
+    this.subs.push(this.playerOutputs.change.subscribe((event: YT.PlayerEvent & any) => {
       this.zone.run(() => {
         this.change.emit(event);
         this.handlePlayerStateChange(event);
       });
-    });
+    }));
   }
 
   ngAfterContentInit() {
