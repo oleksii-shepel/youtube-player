@@ -24,7 +24,14 @@
   display: flex;
   flex-direction: column;
   gap: 8px; // This will handle spacing between tracks nicely
-  overflow-y: auto; /* IMPORTANT: Add this to allow scrolling if content overflows */
+  overflow: auto;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+
+/* For Webkit browsers (Chrome, Safari, newer Edge) - needs a separate rule */
+#playlist::-webkit-scrollbar {
+  display: none;
 }
 
 /* Adjust the margin for app-playlist-track to avoid double spacing if using gap on #playlist */
@@ -113,7 +120,7 @@ app-playlist-track > ion-item.track {
 /* Hover and selected states for actual track items */
 #playlist:not(.cdk-drop-list-dragging) .track {
   &.track-hover:hover {
-    --background: var(--ion-color-primary-tint);
+    --background: var(--ion-toolbar-background);
     --color: var(--ion-color-primary-contrast);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transform: translateX(-2px);

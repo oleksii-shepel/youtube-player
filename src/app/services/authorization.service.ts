@@ -49,6 +49,9 @@ export class Authorization {
   private authSubject: ReturnType<typeof createSubject<{ profile: AuthorizationProfile; accessToken: string }>> | null = null;
 
   constructor(private zone: NgZone) {
+  }
+
+  ngOnInit() {
     google.accounts.id.initialize({
       client_id: environment.youtube.clientId,
       callback: (response: any) => this.handleCredentialResponse(response)
