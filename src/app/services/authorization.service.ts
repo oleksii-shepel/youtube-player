@@ -1,8 +1,15 @@
-import { createSubject, fromPromise } from '@actioncrew/streamix';
 import { Injectable, NgZone } from '@angular/core';
 import { jwtDecode } from 'jwt-decode';
-import { from, Stream, Subscription, timer } from '@actioncrew/streamix';
-import { catchError, map, retry, switchMap } from '@actioncrew/streamix';
+import {
+  createSubject,
+  fromPromise,
+  Stream,
+  Subscription,
+  timer,
+  switchMap,
+  map,
+  catchError,
+} from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
 
 declare const google: any;
@@ -35,43 +42,53 @@ export interface AuthorizationProfile {
 
 @Injectable({ providedIn: 'root' })
 export class Authorization {
-  accessToken: string | null = null;
-  autoSignInTimer: Subscription | null = null;
-  profile: AuthorizationProfile | null = null;
-  authStream: Stream<{ profile: AuthorizationProfile; accessToken: string }> | null = null;
+  private accessToken: string | null = null;
+  private profile: AuthorizationProfile | null = null;
+  private autoSignInTimer: Subscription | null = null;
 
   constructor(private zone: NgZone) {
     google.accounts.id.initialize({
       client_id: environment.youtube.clientId,
       callback: (response: any) => {
-        this.handleCredentialResponse(response);
+        // No-op here: we handle login explicitly in loadAuth
       },
     });
   }
 
-  private handleCredentialResponse(response: any) {
-    const subject = createSubject<AuthorizationProfile>();
-    const access$ = this.requestAccessToken();
-
-    this.profile = this.decodeJwt(response.credential);
-    subject.next(this.profile);
-    subject.complete();
-
-    this.authStream = subject.pipe(
-      switchMap(() => fromPromise(access$)),
-      map((accessToken) => ({
-        profile: this.profile!,
-        accessToken,
-      }))
-    );
-  }
-
   loadAuth(): Stream<{ profile: AuthorizationProfile; accessToken: string }> {
-    google.accounts.id.prompt();
-    return this.authStream!;
+    const subject = createSubject<{ profile: AuthorizationProfile; accessToken: string }>();
+
+    google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed()) {
+        subject.error(new Error('Google sign-in not displayed.'));
+      }
+      if (notification.isSkippedMoment()) {
+        subject.error(new Error('Google sign-in skipped.'));
+      }
+    });
+
+    // Register a one-time callback for sign-in
+    google.accounts.id.initialize({
+      client_id: environment.youtube.clientId,
+      callback: (response: any) => {
+        const profile = this.decodeJwt(response.credential);
+        this.profile = profile;
+
+        this.requestAccessToken()
+          .then((accessToken) => {
+            this.accessToken = accessToken;
+            this.setAuthTimer(3600);
+            subject.next({ profile, accessToken });
+            subject.complete();
+          })
+          .catch((err) => subject.error(err));
+      },
+    });
+
+    return subject;
   }
 
-  requestAccessToken(): Promise<any> {
+  requestAccessToken(): Promise<string> {
     return new Promise((resolve, reject) => {
       this.zone.run(() => {
         const tokenClient = google.accounts.oauth2.initTokenClient({
@@ -79,10 +96,14 @@ export class Authorization {
           scope: 'https://www.googleapis.com/auth/youtube',
           prompt: '',
           callback: (response: TokenResponse) => {
-            this.accessToken = response.access_token;
-            resolve(this.accessToken);
-            this.setAuthTimer(response.expires_in);
-          }
+            if (response?.access_token) {
+              this.accessToken = response.access_token;
+              this.setAuthTimer(response.expires_in);
+              resolve(this.accessToken);
+            } else {
+              reject(new Error('Access token request failed.'));
+            }
+          },
         });
 
         tokenClient.requestAccessToken();
@@ -90,26 +111,30 @@ export class Authorization {
     });
   }
 
-  revokeProfile(): Promise<any> {
-    return new Promise<void>((resolve, reject) => {
-      google.accounts.id.revoke(this.profile!.email, (done: any) => {
-        if(done.successful) {
+  revokeProfile(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.profile) return resolve();
+
+      google.accounts.id.revoke(this.profile.email, (done: any) => {
+        if (done.successful) {
           this.profile = null;
           resolve();
-        } else if (done.error) {
+        } else {
           reject(done.error_description);
         }
       });
     });
   }
 
-  revokeAccessToken(): Promise<any> {
-    return new Promise<void>((resolve, reject) => {
+  revokeAccessToken(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.accessToken) return resolve();
+
       google.accounts.oauth2.revoke(this.accessToken, (done: any) => {
-        if(done.successful) {
+        if (done.successful) {
           this.accessToken = null;
           resolve();
-        } else if (done.error) {
+        } else {
           reject(done.error_description);
         }
       });
@@ -120,12 +145,12 @@ export class Authorization {
     google.accounts.id.disableAutoSelect();
   }
 
-  generateButton(parentElement: HTMLElement, callback: Function) {
+  generateButton(parentElement: HTMLElement, onClick: () => void) {
     google.accounts.id.renderButton(parentElement, {
       type: 'icon',
       theme: 'outline',
       size: 'large',
-      click_listener: callback
+      click_listener: onClick,
     });
   }
 
@@ -133,47 +158,43 @@ export class Authorization {
     return jwtDecode<AuthorizationProfile>(token);
   }
 
-  setAuthTimer(expires_in: number) {
-    const MILLISECOND = 1000;
-    const expireTimeInMs = expires_in * MILLISECOND;
+  setAuthTimer(expiresInSeconds: number) {
     this.stopAutoSignInTimer();
-    this.autoSignInTimer = this.startTimerToNextAuth(expireTimeInMs);
+    this.autoSignInTimer = this.startTimerToNextAuth(expiresInSeconds * 1000);
   }
 
   startTimerToNextAuth(timeInMs: number): Subscription {
     return timer(timeInMs)
       .pipe(
-        switchMap(() => retry(() => fromPromise(this.requestAccessToken()), 3)),
-        catchError((error) => window.location.reload())
+        switchMap(() => fromPromise(this.requestAccessToken())),
+        catchError((error) => {
+          console.warn('Token refresh failed, reloading page.', error);
+          window.location.reload();
+          return [];
+        })
       )
       .subscribe();
   }
 
-  signOut(): Promise<any> {
-    return Promise.all([this.revokeProfile(), this.revokeAccessToken()]).then(() => {
-      this.stopAutoSignInTimer();
-    })
+  stopAutoSignInTimer() {
+    this.autoSignInTimer?.unsubscribe();
   }
 
-  stopAutoSignInTimer() {
-    if (this.autoSignInTimer) {
-      this.autoSignInTimer.unsubscribe();
-    }
+  signOut(): Promise<void> {
+    return Promise.all([this.revokeProfile(), this.revokeAccessToken()]).then(() => {
+      this.stopAutoSignInTimer();
+    });
   }
 
   isSignedIn(): boolean {
-    if (this.accessToken === null || this.profile === null) {
-      return false;
-    }
-
-    return true;
+    return !!this.profile && !!this.accessToken;
   }
 
-  getAccessToken() {
+  getAccessToken(): string | null {
     return this.accessToken;
   }
 
-  getProfile() {
+  getProfile(): AuthorizationProfile | null {
     return this.profile;
   }
 }
