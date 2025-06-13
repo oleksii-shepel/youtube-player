@@ -5,8 +5,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   selector: 'app-playlist-track',
   template: `
     <ion-item (click)="selectTrack()" class="track" [ngClass]="{
-      'track-hover': !isSelected,
-      'track-selected': isSelected
+      'selected': isSelected
       }">
         <ion-thumbnail slot="start">
         <img [src]="thumbnailUrl" alt="Thumbnail">
