@@ -70,14 +70,6 @@ export class Authorization {
     const subject = createSubject<{ profile: AuthorizationProfile; accessToken: string }>();
     this.authSubject = subject; // ✅ Save to emit from callback later
 
-    google.accounts.id.prompt((notification: any) => {
-      if (notification.isNotDisplayed()) {
-        subject.error(new Error('Google sign-in not displayed.'));
-      } else if (notification.isSkippedMoment()) {
-        subject.error(new Error('Google sign-in skipped.'));
-      }
-    });
-
     return subject;
   }
 
