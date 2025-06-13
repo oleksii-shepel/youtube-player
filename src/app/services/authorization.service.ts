@@ -47,17 +47,32 @@ export class Authorization {
   private autoSignInTimer: Subscription | null = null;
 
   constructor(private zone: NgZone) {
+    // Initialize once with callback that just forwards to internal handler
     google.accounts.id.initialize({
       client_id: environment.youtube.clientId,
-      callback: (response: any) => {
-        // No-op here: we handle login explicitly in loadAuth
-      },
+      callback: (response: any) => this.handleCredentialResponse(response),
     });
   }
 
+  /**
+   * Shows the Google Sign-In button inside the given container.
+   */
+  generateButton(parentElement: HTMLElement) {
+    google.accounts.id.renderButton(parentElement, {
+      type: 'icon',
+      theme: 'outline',
+      size: 'large',
+    });
+  }
+
+  /**
+   * Load auth via Google One Tap / Sign-In prompt.
+   * Returns a stream that emits profile + accessToken after sign-in.
+   */
   loadAuth(): Stream<{ profile: AuthorizationProfile; accessToken: string }> {
     const subject = createSubject<{ profile: AuthorizationProfile; accessToken: string }>();
 
+    // Show the One Tap prompt
     google.accounts.id.prompt((notification: any) => {
       if (notification.isNotDisplayed()) {
         subject.error(new Error('Google sign-in not displayed.'));
@@ -67,41 +82,66 @@ export class Authorization {
       }
     });
 
-    // Register a one-time callback for sign-in
-    google.accounts.id.initialize({
-      client_id: environment.youtube.clientId,
-      callback: (response: any) => {
-        const profile = this.decodeJwt(response.credential);
-        this.profile = profile;
+    // The ID token callback from initialize() will call handleCredentialResponse()
 
-        this.requestAccessToken()
-          .then((accessToken) => {
-            this.accessToken = accessToken;
-            this.setAuthTimer(3600);
-            subject.next({ profile, accessToken });
-            subject.complete();
-          })
-          .catch((err) => subject.error(err));
-      },
+    // We hook into a promise to emit profile + access token when ready
+    this.authResultPromise = new Promise<void>((resolve, reject) => {
+      this.authResultResolve = resolve;
+      this.authResultReject = reject;
+    }).catch((err) => subject.error(err));
+
+    this.authResultPromise.then(() => {
+      if (this.profile && this.accessToken) {
+        subject.next({ profile: this.profile, accessToken: this.accessToken });
+        subject.complete();
+      }
     });
 
     return subject;
   }
 
+  private authResultPromise: Promise<void> | null = null;
+  private authResultResolve: (() => void) | null = null;
+  private authResultReject: ((err: any) => void) | null = null;
+
+  /**
+   * Internal handler for Google ID token callback
+   */
+  private handleCredentialResponse(response: any) {
+    try {
+      const profile = this.decodeJwt(response.credential);
+      this.profile = profile;
+
+      // Now request OAuth2 access token popup
+      this.requestAccessToken()
+        .then((token) => {
+          this.accessToken = token;
+          this.setAuthTimer(3600); // typical 1h expiry
+          this.authResultResolve?.();
+        })
+        .catch((err) => {
+          this.authResultReject?.(err);
+        });
+    } catch (err) {
+      this.authResultReject?.(err);
+    }
+  }
+
+  /**
+   * Requests OAuth2 access token with popup.
+   */
   requestAccessToken(): Promise<string> {
     return new Promise((resolve, reject) => {
       this.zone.run(() => {
         const tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: environment.youtube.clientId,
           scope: 'https://www.googleapis.com/auth/youtube',
-          prompt: '',
+          prompt: '', // no prompt for silent refresh, popup if needed
           callback: (response: TokenResponse) => {
             if (response?.access_token) {
-              this.accessToken = response.access_token;
-              this.setAuthTimer(response.expires_in);
-              resolve(this.accessToken);
+              resolve(response.access_token);
             } else {
-              reject(new Error('Access token request failed.'));
+              reject(new Error('Access token request failed'));
             }
           },
         });
@@ -143,15 +183,6 @@ export class Authorization {
 
   disableAutoSelect() {
     google.accounts.id.disableAutoSelect();
-  }
-
-  generateButton(parentElement: HTMLElement, onClick: () => void) {
-    google.accounts.id.renderButton(parentElement, {
-      type: 'icon',
-      theme: 'outline',
-      size: 'large',
-      click_listener: onClick,
-    });
   }
 
   decodeJwt(token: string): AuthorizationProfile {

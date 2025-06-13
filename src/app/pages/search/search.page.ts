@@ -137,15 +137,17 @@ export class SearchPage {
   ngAfterViewInit() {
     const container = document.getElementById('google-signin-btn');
     if (container) {
-      this.authorization.generateButton(container, () => {
-        this.authorization.loadAuth().subscribe({
-          next: ({ profile, accessToken }) => {
-            console.log('Signed in:', profile);
-          },
-          error: err => {
-            console.error('Sign-in failed:', err);
-          }
-        });
+      // Render Google Sign-In button once
+      this.authorization.generateButton(container);
+
+      // Listen for One Tap / sign-in responses (or prompt the user)
+      this.authorization.loadAuth().subscribe({
+        next: ({ profile, accessToken }) => {
+          console.log('Signed in:', profile);
+        },
+        error: (err) => {
+          console.error('Sign-in failed:', err);
+        }
       });
     } else {
       console.warn('Google Sign-In button container not found');
