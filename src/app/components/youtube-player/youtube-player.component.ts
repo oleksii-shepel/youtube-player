@@ -5,37 +5,29 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  NgZone,
+  OnDestroy,
   Output,
   Renderer2,
   SimpleChanges,
-  OnDestroy,
-  ViewChild,
-  NgZone
+  ViewChild
 } from '@angular/core';
-import {
-  IPlayerOutputs,
-  YouTubeRef,
-  YoutubePlayerService,
-  defaultSizes
-} from '../../services/youtube-player.service';
-import { createReplaySubject, Subscription } from '@actioncrew/streamix';
+import { createReplaySubject, ReplaySubject, Subscription } from '@actioncrew/streamix';
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'youtube-player',
-  template: `
-    <div #playerContainer style="width: 100%; height: 100%; min-height: 270px;"></div>
-  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<div #playerContainer style="width: 100%; height: 100%; min-height: 270px;"></div>`,
 })
 export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   @Input() videoId = '';
-  @Input() protocol = this.getProtocol();
+  @Input() protocol: 'http' | 'https' = this.getProtocol();
   @Input() playerVars: YT.PlayerVars = {};
 
-  @Output() ready = new EventEmitter<YT.Player>();
+  @Output() ready = new EventEmitter<boolean>();
   @Output() change = new EventEmitter<YT.PlayerEvent>();
-  @Output() videoEnded = new EventEmitter<void>();
+  @Output() videoEnded = new EventEmitter<boolean>();
 
   @ViewChild('playerContainer', { static: true }) playerContainer!: ElementRef;
 
@@ -43,108 +35,129 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   private playerId = '';
   private hasEnded = false;
 
-  private playerOutputs: IPlayerOutputs;
+  private api: ReplaySubject<any> = createReplaySubject(1);
   private subs: Subscription[] = [];
 
-  constructor(
-    public playerService: YoutubePlayerService,
-    private renderer: Renderer2,
-    private zone: NgZone
-  ) {
-    this.playerOutputs = {
-      ready: createReplaySubject<YT.Player>(1),
-      change: createReplaySubject<YT.PlayerEvent>(1),
-    };
-
-    this.subs.push(this.playerOutputs.ready.subscribe((player: YT.Player) => {
-      this.zone.run(() => {
-        this.player = player;
-        this.ready.emit(player);
-      });
-    }));
-
-    this.subs.push(this.playerOutputs.change.subscribe((event: YT.PlayerEvent & any) => {
-      this.zone.run(() => {
-        this.change.emit(event);
-        this.handlePlayerStateChange(event);
-      });
-    }));
+  constructor(private renderer: Renderer2, private zone: NgZone) {
+    this.setupYouTubeApi();
   }
 
   ngAfterContentInit() {
+    this.loadPlayerApi();
     this.initializePlayer();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['videoId'] && !changes['videoId'].firstChange) {
-      if (this.player) {
-        this.player.destroy();
-        this.player = null;
-      }
+      this.cleanupPlayer();
       this.initializePlayer();
     }
   }
 
   ngOnDestroy() {
-    if (this.player) {
-      this.player.destroy();
-      this.player = null;
+    this.cleanupPlayer();
+  }
+
+  private getProtocol(): 'http' | 'https' {
+    const hasWindow = typeof window !== 'undefined' && window.location;
+    return (hasWindow ? window.location.protocol.replace(':', '') : 'http') as 'http' | 'https';
+  }
+
+  private setupYouTubeApi() {
+    const win = window as any;
+    win['onYouTubeIframeAPIReady'] = () => {
+      win['onYouTubeIframeAPIReadyCalled'] = true;
+      this.api.next(win['YT']);
+    };
+
+    if (win['onYouTubeIframeAPIReadyCalled']) {
+      this.api.next(win['YT']);
     }
-    this.playerOutputs.ready.complete();
-    this.playerOutputs.change.complete();
+  }
+
+  private loadPlayerApi() {
+    if (!(window as any)['YouTubeApiLoaded']) {
+      (window as any)['YouTubeApiLoaded'] = true;
+      const script = document.createElement('script');
+      script.src = `${this.protocol}://www.youtube.com/iframe_api`;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }
+
+  private generateUniqueId(): string {
+    return Math.random().toString(36).substring(2, 9);
   }
 
   private initializePlayer() {
-    this.playerId = this.playerService.generateUniqueId();
+    this.playerId = this.generateUniqueId();
     this.renderer.setAttribute(this.playerContainer.nativeElement, 'id', this.playerId);
 
     const container = this.playerContainer.nativeElement;
     const playerSize = {
       width: container.offsetWidth,
-      height: Math.min(defaultSizes.height, container.offsetHeight)
+      height: Math.min(container.offsetHeight || 270, 270)
     };
 
-    this.playerService.loadPlayerApi({ protocol: this.protocol });
-
-    this.playerService.api.subscribe(() => {
-      if (!this.player) {
-        this.player = this.playerService.createPlayer(
-          this.playerId,
-          this.playerOutputs,
-          playerSize,
-          this.videoId,
-          this.playerVars
-        );
-      } else if (this.videoId && this.player.getVideoData().video_id !== this.videoId) {
-        this.playerService.playVideo({ id: { videoId: this.videoId } }, this.player);
-      }
-    });
+    this.subs.push(this.api.subscribe((YT: typeof window.YT) => {
+      const Player = YT.Player;
+      this.player = new Player(this.playerId, {
+        ...playerSize,
+        videoId: this.videoId,
+        playerVars: this.playerVars,
+        events: {
+          onReady: (ev: YT.PlayerEvent) => {
+            this.zone.run(() => {
+              this.ready.emit(true);
+              if (this.videoId && this.playerVars.autoplay !== 0) {
+                ev.target.playVideo();
+              }
+            });
+          },
+          onStateChange: (ev: YT.OnStateChangeEvent) => {
+            this.zone.run(() => {
+              this.change.emit(ev);
+              this.handlePlayerStateChange(ev);
+            });
+          }
+        }
+      });
+    }));
   }
 
-  private handlePlayerStateChange(event: YT.PlayerEvent & any): void {
-    const YT = YouTubeRef();
+  private cleanupPlayer() {
+    this.subs.forEach(sub => sub.unsubscribe());
+    this.subs = [];
 
-    if (event.data === YT.PlayerState.ENDED) {
-      if (!this.hasEnded) {
-        this.hasEnded = true;
-        this.videoEnded.emit();
-      }
-    } else if (event.data === YT.PlayerState.PLAYING) {
+    if (this.player) {
+      this.player.destroy();
+      this.player = null;
+    }
+
+    this.hasEnded = false;
+  }
+
+  private handlePlayerStateChange(event: YT.OnStateChangeEvent): void {
+    const state = event.data;
+    const YT = (window as any).YT;
+
+    if (state === YT?.PlayerState.ENDED && !this.hasEnded) {
+      this.hasEnded = true;
+      this.videoEnded.emit(true);
+    } else if (state === YT?.PlayerState.PLAYING) {
       this.hasEnded = false;
     }
   }
 
-  private getProtocol(): "http" | "https" {
-    const hasWindow = typeof window !== 'undefined' && window.location;
-    const protocol = hasWindow ? window.location.protocol.replace(':', '') : 'http';
-    return protocol as "http" | "https";
-  }
-
-  // Public methods to control player externally
-
+  // Public methods
   playVideo(videoId: string) {
     if (this.player) {
-      this.playerService.playVideo({ id: { videoId } }, this.player);
+      const currentVideoId = this.player.getVideoData()?.video_id;
+      if (currentVideoId === videoId) {
+        this.player.playVideo();
+      } else {
+        this.player.loadVideoById(videoId);
+      }
     } else {
       this.videoId = videoId;
       this.initializePlayer();
@@ -152,15 +165,11 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   }
 
   pauseVideo() {
-    if (this.player) {
-      this.playerService.pause(this.player);
-    }
+    this.player?.pauseVideo();
   }
 
   stopVideo() {
-    if (this.player) {
-      this.playerService.stopVideo(this.player);
-    }
+    this.player?.stopVideo();
   }
 
   getCurrentPlayer(): YT.Player | null {
@@ -168,14 +177,10 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   }
 
   getVideoData(): YT.VideoData | null {
-    if (this.player && typeof this.player.getVideoData === 'function') {
-      try {
-        return this.player.getVideoData();
-      } catch (e) {
-        console.warn('Error getting video data from player:', e);
-        return null;
-      }
+    try {
+      return this.player?.getVideoData?.() ?? null;
+    } catch {
+      return null;
     }
-    return null;
   }
 }

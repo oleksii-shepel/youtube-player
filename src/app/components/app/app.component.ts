@@ -73,7 +73,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     if (event.data === YT.PlayerState.PAUSED) {
       this.playlistService.pause();
-    } else if (event.data === YT.PlayerState.PLAYING) {
+    } else if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.UNSTARTED || event.data === YT.PlayerState.BUFFERING) {
       this.playlistService.play();
     } else if (event.data === YT.PlayerState.ENDED) {
       // Optional: handle ended state here or rely on videoEnded event
