@@ -4,6 +4,7 @@
   "compilerOptions": {
     "types": ["gapi.client", "youtube"],
     "baseUrl": "./",
+    "allowSyntheticDefaultImports": true,
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
