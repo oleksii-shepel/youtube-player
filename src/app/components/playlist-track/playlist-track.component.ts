@@ -1,12 +1,10 @@
 import { ToFriendlyDurationPipe } from './../../pipes/to-friendly-duration.pipe';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-playlist-track',
   template: `
-    <ion-item (click)="selectTrack()" class="track" [ngClass]="{
-      'selected': isSelected
-      }">
+    <ion-item (click)="selectTrack()" class="track">
         <ion-thumbnail slot="start">
         <img [src]="thumbnailUrl" alt="Thumbnail">
       </ion-thumbnail>
@@ -25,6 +23,10 @@ export class PlaylistTrackComponent {
   @Input() formattedDuration!: string; // Now directly receiving the formatted duration
   @Output() trackSelected = new EventEmitter<any>();
   @Input() isSelected: boolean = false;
+
+  @HostBinding('class.selected') get addSelectedClass() {
+    return this.isSelected;
+  }
 
   selectTrack(): void {
     this.trackSelected.emit(this.track);  // Emit the selected track to the parent component

@@ -9,6 +9,8 @@ import {
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Subscription } from '@actioncrew/streamix';
+import { Options } from 'sortablejs';
+import { SortableDirective } from 'src/app/directives/sortable/sortable.directive';
 
 @Component({
   selector: 'app-playlist',
@@ -138,14 +140,12 @@ import { Subscription } from '@actioncrew/streamix';
         </div>
       </div>
 
-      <div id="playlist" cdkDropList [cdkDropListData]="playlist" (cdkDropListDropped)="drop($event)">
+      <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" (sortUpdate)="onPlaylistSort($event)">
         <app-playlist-track
-          cdkDrag
           *ngFor="let track of playlist; let i = index"
           [track]="track"
           [thumbnailUrl]="getTrackThumbnail(track)"
           [formattedDuration]="getTrackFormattedDuration(track)"
-          (cdkDragStarted)="onDragStarted(track)"
           (trackSelected)="selectTrack(track)"
           [isSelected]="isTrackSelected(track)"
         ></app-playlist-track>
@@ -169,6 +169,18 @@ export class PlaylistComponent implements OnInit {
   hasNext: boolean = false;
 
   private subscriptions: Subscription[] = [];
+
+   // Define your SortableJS options
+  sortablePlaylistOptions: Options = {
+    group: 'playlist-items', // To allow dragging between multiple lists if needed
+    animation: 150,
+    ghostClass: 'sortable-ghost', // Class for the placeholder
+    chosenClass: 'sortable-chosen', // Class for the dragged item
+    dragClass: 'sortable-drag', // Class when item is actively dragged
+    forceFallback: true
+    // You can add many more options here: handle, filter, etc.
+    // See SortableJS documentation for all options: https://github.com/SortableJS/Sortable#options
+  };
 
   constructor(private playlistService: PlaylistService) {}
 
@@ -280,22 +292,6 @@ export class PlaylistComponent implements OnInit {
     }
   }
 
-  drop(event: CdkDragDrop<string[]>) {
-    // Remember the currently selected track before reordering
-    const selectedTrack = this.playlist[this.currentTrackIndex];
-
-    // Reorder playlist
-    moveItemInArray(this.playlist, event.previousIndex, event.currentIndex);
-    this.playlistService.updatePlaylistOrder(this.playlist);
-
-    // Find new index of previously selected track
-    const newIndex = this.playlist.findIndex(track => track === selectedTrack);
-
-    if (newIndex !== -1) {
-      this.playlistService.setCurrentTrackIndex(newIndex);
-    }
-  }
-
   getTrackThumbnail(track: any): string {
     const thumbnails = track.snippet?.thumbnails || {};
     return (
@@ -310,7 +306,25 @@ export class PlaylistComponent implements OnInit {
     return track.contentDetails?.duration ?? '';
   }
 
-  onDragStarted(track: any): void {
-    this.selectedTrack = track;
+  onPlaylistSort(event: { oldIndex: number; newIndex: number; item: any }): void {
+    console.log('Playlist sorted:', event);
+    // The directive has already updated `this.playlist` due to splice
+    // Now, update your service to persist the new order
+    this.playlistService.updatePlaylistOrder(this.playlist);
+
+    // Find new index of previously selected track if it was moved
+    // The `event.item` is the actual track object that was moved.
+    // If you were tracking `currentTrackIndex` based on its position,
+    // you'd need to update it here.
+    if (this.selectedTrack === event.item) {
+      this.playlistService.setCurrentTrackIndex(event.newIndex);
+    } else {
+        // If another item was selected, its index might have changed due to the sort.
+        // Re-find the index of the currently selected track.
+        const newIndex = this.playlist.findIndex(track => track === this.selectedTrack);
+        if (newIndex !== -1) {
+            this.playlistService.setCurrentTrackIndex(newIndex);
+        }
+    }
   }
 }
