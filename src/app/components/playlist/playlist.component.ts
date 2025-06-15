@@ -140,7 +140,7 @@ import { SortableDirective } from 'src/app/directives/sortable/sortable.directiv
         </div>
       </div>
 
-      <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" (sortUpdate)="onPlaylistSort($event)">
+      <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" [enabled]="!isTouchableDevice()" (sortUpdate)="onPlaylistSort($event)">
         <app-playlist-track
           *ngFor="let track of playlist; let i = index"
           [track]="track"
@@ -226,6 +226,14 @@ export class PlaylistComponent implements OnInit {
     // Initialize from service
     this.isShuffled = this.playlistService.isPlaylistShuffled();
     this.repeatMode = this.playlistService.getRepeatMode();
+  }
+
+  isTouchableDevice(): boolean {
+    return (
+      'ontouchstart' in window || // Standard touch event detection
+      navigator.maxTouchPoints > 0 || // IE/Edge touch points
+      (navigator as any).msMaxTouchPoints > 0 // Old IE touch points
+    );
   }
 
   ngOnDestroy(): void {

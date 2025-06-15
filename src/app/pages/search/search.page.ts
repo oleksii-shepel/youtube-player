@@ -25,9 +25,63 @@ import { Authorization } from 'src/app/services/authorization.service';
               (ionInput)="onSearchQueryChange($event)"
               (keydown)="onKeydown($event)"
             ></ion-input>
-             <ion-icon name="close-circle" class="clear-icon" (click)="searchbar.value = ''" *ngIf="searchbar.value"></ion-icon>
-            <ion-button (click)="searchRequested = true; performSearch();">Search</ion-button>
+              <div class="icon-buttons">
+                <ion-button fill="clear" id="sort-button" size="small" (click)="searchbar.value = ''" *ngIf="searchbar.value">
+                  <ion-icon name="close-circle" class="clear-icon"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" id="sort-button" size="small" [color]="sortOrder ? 'primary' : undefined">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-az-icon lucide-arrow-down-a-z"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M20 8h-5"/><path d="M15 10V6.5a2.5 2.5 0 0 1 5 0V10"/><path d="M15 14h5l-5 6h5"/></svg>
+                </ion-button>
+              </div>
+              <ion-button (click)="searchRequested = true; performSearch();">Search</ion-button>
           </div>
+
+          <ion-popover
+            trigger="sort-button"
+            triggerAction="click"
+            [dismissOnSelect]="true"
+            showBackdrop="false"
+          >
+            <ng-template>
+              <ion-list>
+                <ion-item
+                  button
+                  (click)="setSort('')"
+                  [color]="sortOrder === '' ? 'primary' : ''"
+                >
+                  Relevance (default)
+                </ion-item>
+                <ion-item
+                  button
+                  (click)="setSort('date')"
+                  [color]="sortOrder === 'date' ? 'primary' : ''"
+                >
+                  Upload Date
+                </ion-item>
+                <ion-item
+                  button
+                  (click)="setSort('viewCount')"
+                  [color]="sortOrder === 'viewCount' ? 'primary' : ''"
+                >
+                  View Count
+                </ion-item>
+                <ion-item
+                  button
+                  (click)="setSort('rating')"
+                  [color]="sortOrder === 'rating' ? 'primary' : ''"
+                >
+                  Rating
+                </ion-item>
+                <ion-item
+                  button
+                  (click)="setSort('title')"
+                  [color]="sortOrder === 'title' ? 'primary' : ''"
+                >
+                  Title
+                </ion-item>
+              </ion-list>
+            </ng-template>
+          </ion-popover>
 
           <ion-button fill="clear">
             <ion-icon name="videocam-outline"></ion-icon>
@@ -120,6 +174,7 @@ export class SearchPage {
   searchRequested = false;
   lastSearchQuery = '';
   lastSearchType = '';
+  sortOrder: string = '';
 
   @Output() addToPlaylist = new EventEmitter<any>();
 
@@ -136,12 +191,27 @@ export class SearchPage {
 
   ngAfterViewInit() {
     const container = document.getElementById('google-signin-btn');
-    if (container) {
-      // Render Google Sign-In button once
-      this.authorization.generateButton(container);
-    } else {
+    if (!container) {
       console.warn('Google Sign-In button container not found');
     }
+  }
+
+  setSort(value: string) {
+    this.sortOrder = value;
+    this.onSortOrderChanged();
+  }
+
+  getSortLabel(value: string): string {
+    switch (value) {
+      case 'date': return 'Upload Date';
+      case 'viewCount': return 'View Count';
+      case 'rating': return 'Rating';
+      case 'title': return 'Title';
+      default: return 'Relevance (default)';
+    }
+  }
+
+  onSortOrderChanged() {
   }
 
   logout() {
@@ -328,7 +398,6 @@ export class SearchPage {
       maxResults: 10,
     };
 
-    // Add the correct page token for the current search type
     if (this.pageTokens[this.searchType]) {
       params.pageToken = this.pageTokens[this.searchType];
     }
@@ -340,6 +409,11 @@ export class SearchPage {
     } else {
       params.type = 'playlist';
     }
+
+    if (this.sortOrder) {
+      params.order = this.sortOrder;
+    }
+
     return params;
   }
 

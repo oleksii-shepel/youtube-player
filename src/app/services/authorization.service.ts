@@ -52,18 +52,17 @@ export class Authorization {
   }
 
   ngOnInit() {
-    google.accounts.id.initialize({
-      client_id: environment.youtube.clientId,
-      callback: (response: any) => this.handleCredentialResponse(response)
-    });
-  }
+    window.onload = () => {
+      google.accounts.id.initialize({
+        client_id: environment.youtube.clientId,
+        callback: (response: any) => this.handleCredentialResponse(response)
+      });
 
-  generateButton(parentElement: HTMLElement) {
-    google.accounts.id.renderButton(parentElement, {
-      type: 'icon',
-      theme: 'outline',
-      size: 'large',
-    });
+       google.accounts.id.renderButton(
+        document.getElementById("gsi-button"),
+        { theme: "outline", size: "large" }
+      );
+    }
   }
 
   private handleCredentialResponse(response: any) {

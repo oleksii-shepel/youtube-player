@@ -142,3 +142,28 @@ ion-avatar {
   height: 40px !important;
   width: 40px !important;
 }
+
+#sort-button ion-icon {
+  height: 16px !important;
+  width: 16px !important;
+  margin: 0;
+  padding: 0;
+}
+
+.icon-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+
+  & ion-button {
+    margin: 0;
+    padding: 0;
+  }
+
+  & ion-button:not(.ion-color-primary) svg {
+    stroke: var(--ion-text-color-step-850);
+    color: var(--ion-text-color-step-850);
+  }
+}
+
+
