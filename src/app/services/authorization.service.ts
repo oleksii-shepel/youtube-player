@@ -51,18 +51,17 @@ export class Authorization {
   constructor(private zone: NgZone) {
   }
 
-  ngOnInit() {
-    window.onload = () => {
-      google.accounts.id.initialize({
+  initializeGsiButton() {
+    google.accounts.id.initialize({
         client_id: environment.youtube.clientId,
         callback: (response: any) => this.handleCredentialResponse(response)
       });
 
-       google.accounts.id.renderButton(
-        document.getElementById("gsi-button"),
-        { theme: "outline", size: "large" }
-      );
-    }
+    google.accounts.id.renderButton(document.getElementById('google-signin-btn'), {
+      type: 'icon',
+      theme: 'outline',
+      size: 'small',
+    });
   }
 
   private handleCredentialResponse(response: any) {

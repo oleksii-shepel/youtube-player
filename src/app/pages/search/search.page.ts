@@ -193,6 +193,8 @@ export class SearchPage {
     const container = document.getElementById('google-signin-btn');
     if (!container) {
       console.warn('Google Sign-In button container not found');
+    } else {
+      this.authorization.initializeGsiButton();
     }
   }
 
