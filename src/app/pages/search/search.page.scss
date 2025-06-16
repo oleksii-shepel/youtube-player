@@ -62,7 +62,7 @@ ion-content::part(scroll)::-webkit-scrollbar {
 .toolbar-right {
   display: flex;
   align-items: center; /* Default alignment */
-  gap: 12px;
+  gap: 5px;
   flex-grow: 1;
   justify-content: flex-end;
   min-width: 0;
@@ -161,19 +161,7 @@ ion-avatar {
   }
 }
 
-.google-signin-custom {
-  display: flex;
-  align-items: center;
-  padding: 8px 8px;
-  border: 1px solid #dadce0;
-  border-radius: 4px;
-  background: white;
-  font-size: 14px;
-  font-weight: 500;
-  color: #3c4043;
-  cursor: pointer;
-}
-
-.google-signin-custom:hover {
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,.30), 0 1px 3px 1px rgba(60,64,67,.15);
+.google-icon {
+  width: 20px;
+  height: 20px;
 }
