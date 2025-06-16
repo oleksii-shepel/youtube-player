@@ -7,10 +7,8 @@ import {
   OnInit,
 } from '@angular/core';
 import { PlaylistService } from 'src/app/services/playlist.service';
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Subscription } from '@actioncrew/streamix';
 import { Options } from 'sortablejs';
-import { SortableDirective } from 'src/app/directives/sortable/sortable.directive';
 
 @Component({
   selector: 'app-playlist',
