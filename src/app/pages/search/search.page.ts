@@ -87,15 +87,27 @@ import { Authorization } from 'src/app/services/authorization.service';
             <ion-icon name="videocam-outline"></ion-icon>
           </ion-button>
 
-          <div *ngIf="isSignedIn; else loginButton">
-            <ion-avatar (click)="logout()">
-              <img [src]="userPicture" />
+          <ng-container *ngIf="(auth$ | async) as auth; else loginButton">
+            <ion-avatar (click)="openPopover($event)">
+              <img [src]="auth.profile.picture" />
             </ion-avatar>
-          </div>
+          </ng-container>
 
           <ng-template #loginButton>
-            <div #googleButtonContainer id="google-signin-btn"></div>
+            <div id="google-signin-btn"></div>
           </ng-template>
+
+          <ion-popover
+            [isOpen]="showPopover"
+            [event]="popoverEvent"
+            (didDismiss)="showPopover = false">
+            <ng-template>
+              <ion-list>
+                <ion-item (click)="goToProfile()">View Profile</ion-item>
+                <ion-item (click)="logout()">Logout</ion-item>
+              </ion-list>
+            </ng-template>
+          </ion-popover>
         </div>
       </div>
     </ion-header>
@@ -176,11 +188,13 @@ export class SearchPage {
   lastSearchType = '';
   sortOrder: string = '';
 
+  showPopover = false;
+  popoverEvent: any;
+
   @Output() addToPlaylist = new EventEmitter<any>();
 
   @ViewChild('googleButtonContainer', { static: false }) googleButtonContainer!: ElementRef;
-  isSignedIn = false;
-  userPicture = '';
+  auth$ = this.authorization.authSubject;
 
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
@@ -196,6 +210,15 @@ export class SearchPage {
     } else {
       this.authorization.initializeGsiButton();
     }
+  }
+
+  openPopover(event: Event) {
+    this.showPopover = true;
+    this.popoverEvent = event;
+  }
+
+  goToProfile() {
+
   }
 
   setSort(value: string) {
@@ -217,11 +240,8 @@ export class SearchPage {
   }
 
   logout() {
-    this.authorization.signOut().then(() => {
-      this.isSignedIn = false;
-      this.userPicture = '';
-      this.ngAfterViewInit(); // Re-render button
-    });
+    this.showPopover = false;
+    this.authorization.signOut();
   }
 
   toggleSearchInput(show: boolean) {

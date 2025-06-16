@@ -1,14 +1,12 @@
 import { Injectable, NgZone } from '@angular/core';
 import { jwtDecode } from 'jwt-decode';
 import {
-  createSubject,
   fromPromise,
-  Stream,
   Subscription,
   timer,
   switchMap,
-  map,
   catchError,
+  Subject,
 } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
 
@@ -42,11 +40,11 @@ export interface AuthorizationProfile {
 
 @Injectable({ providedIn: 'root' })
 export class Authorization {
- private accessToken: string | null = null;
+  private accessToken: string | null = null;
   private profile: AuthorizationProfile | null = null;
   private autoSignInTimer: Subscription | null = null;
 
-  private authSubject: ReturnType<typeof createSubject<{ profile: AuthorizationProfile; accessToken: string }>> | null = null;
+  authSubject: Subject<{ profile: AuthorizationProfile; accessToken: string }> | null = null;
 
   constructor(private zone: NgZone) {
   }
