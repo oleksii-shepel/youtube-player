@@ -10,6 +10,7 @@ import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
     <div class="video-card" [class.compact]="isCompact">
       <div class="video-image-wrapper">
         <ion-img [src]="thumbnailUrl" alt="{{ video.snippet.title }} thumbnail" class="video-image"></ion-img>
+        <span class="video-duration">{{ video.contentDetails.duration | toFriendlyDuration }}</span>
         <div class="video-info-overlay">
           <span class="view-count">{{ video.statistics.viewCount | shrink }} views</span>
           <span class="publish-date">{{ video.snippet.publishedAt | date }}</span>
