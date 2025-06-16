@@ -10,7 +10,7 @@ import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/co
       </ion-thumbnail>
       <ion-label>
         <h2>{{ track.snippet.title }}</h2>
-        <p>{{ formattedDuration | toFriendlyDuration }}</p>
+        <p class="duration">{{ formattedDuration | toFriendlyDuration }}</p>
       </ion-label>
     </ion-item>
   `,

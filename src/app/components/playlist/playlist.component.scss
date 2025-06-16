@@ -19,7 +19,7 @@
 
 #playlist {
   flex: 1 1 auto;
-  padding: 8px;
+  padding: 5px 5px 5px 7px;
   background-color: var(--ion-background-color);
   display: flex;
   flex-direction: column;
@@ -36,7 +36,7 @@
 /* Adjust the margin for app-playlist-track to avoid double spacing if using gap on #playlist */
 #playlist > app-playlist-track {
   display: block;
-  margin-bottom: 8px; // This handles all spacing
+  margin-bottom: 4px; // This handles all spacing
   position: relative !important; // Force relative positioning
   transform: none; // Reset any existing transforms
 }
@@ -138,7 +138,7 @@ app-playlist-track.sortable-chosen {
   border-radius: 8px;
   opacity: 0.9;
   z-index: 1000; /* On top of everything */
-  margin-bottom: 8px !important; /* Remove extra margin while dragging */
+  margin-bottom: 4px !important; /* Remove extra margin while dragging */
 
   ion-item {
     height: inherit !important;
