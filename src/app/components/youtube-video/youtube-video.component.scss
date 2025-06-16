@@ -6,6 +6,7 @@
   flex-direction: column;
   background-color: var(--ion-card-background); /* was #fff */
   color: var(--ion-text-color); /* primary text color */
+  height: 100%;
 }
 
 .video-card.compact {
@@ -64,9 +65,12 @@
 }
 
 .video-info {
+  display: flex;
   padding: 1rem;
   flex-grow: 1;
   color: var(--ion-text-color);
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .video-card.compact .video-info {
