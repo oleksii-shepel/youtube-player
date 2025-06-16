@@ -1,6 +1,6 @@
-.chip-group-container {
+:host {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   flex: 1;
   justify-content: center;

@@ -6,7 +6,7 @@ import { IonicModule } from '@ionic/angular';
 @Component({
   selector: 'app-filter',
   template: `
-    <div class="chip-group-container">
+    <ng-container>
       <!-- Duration Group -->
       <div class="chip-group" *ngIf="searchType === 'videos'">
         <ion-chip [color]="selectedFilters.duration === 'Short' ? 'primary' : 'light'" (click)="selectFilter('duration', 'Short')">
@@ -64,8 +64,7 @@ import { IonicModule } from '@ionic/angular';
           <ion-label>{{ topic.label }}</ion-label>
         </ion-chip>
       </div>
-
-    </div>
+    </ng-container>
   `,
   styleUrls: ['./filter.component.scss'],
   imports: [CommonModule, FormsModule, IonicModule]
