@@ -69,6 +69,12 @@ ion-content::part(scroll)::-webkit-scrollbar {
   padding-left: 20px;
 }
 
+.filter-inner {
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: nowrap; /* or wrap, depending on layout */
+}
+
 .search-container {
   position: relative;
   display: flex;

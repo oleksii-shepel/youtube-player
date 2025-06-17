@@ -18,22 +18,53 @@ import { Authorization } from 'src/app/services/authorization.service';
         <div class="toolbar-right">
           <div class="search-container">
             <ion-icon name="search-outline"></ion-icon>
-            <ion-input color="primary"
+            <ion-input
+              color="primary"
               #searchbar
               [(ngModel)]="searchQuery"
               placeholder="Enter search query"
               (ionInput)="onSearchQueryChange($event)"
               (keydown)="onKeydown($event)"
             ></ion-input>
-              <div class="icon-buttons">
-                <ion-button fill="clear" id="sort-button" size="small" (click)="searchbar.value = ''" *ngIf="searchbar.value">
-                  <ion-icon name="close-circle" class="clear-icon"></ion-icon>
-                </ion-button>
-                <ion-button fill="clear" id="sort-button" size="small" [color]="sortOrder ? 'primary' : undefined">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-az-icon lucide-arrow-down-a-z"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M20 8h-5"/><path d="M15 10V6.5a2.5 2.5 0 0 1 5 0V10"/><path d="M15 14h5l-5 6h5"/></svg>
-                </ion-button>
-              </div>
-              <ion-button (click)="searchRequested = true; performSearch();">Search</ion-button>
+            <div class="icon-buttons">
+              <ion-button
+                fill="clear"
+                id="sort-button"
+                size="small"
+                (click)="searchbar.value = ''"
+                *ngIf="searchbar.value"
+              >
+                <ion-icon name="close-circle" class="clear-icon"></ion-icon>
+              </ion-button>
+              <ion-button
+                fill="clear"
+                id="sort-button"
+                size="small"
+                [color]="sortOrder ? 'primary' : undefined"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-arrow-down-az-icon lucide-arrow-down-a-z"
+                >
+                  <path d="m3 16 4 4 4-4" />
+                  <path d="M7 20V4" />
+                  <path d="M20 8h-5" />
+                  <path d="M15 10V6.5a2.5 2.5 0 0 1 5 0V10" />
+                  <path d="M15 14h5l-5 6h5" />
+                </svg>
+              </ion-button>
+            </div>
+            <ion-button (click)="searchRequested = true; performSearch()"
+              >Search</ion-button
+            >
           </div>
 
           <ion-popover
@@ -88,19 +119,35 @@ import { Authorization } from 'src/app/services/authorization.service';
             <ion-icon name="videocam-outline"></ion-icon>
           </ion-button>
 
-          <ng-container *ngIf="(auth$ | async) as auth; else loginButton">
+          <ng-container *ngIf="auth$ | async as auth; else loginButton">
             <ion-avatar *ngIf="auth" (click)="openPopover($event)">
               <img [src]="auth.profile.picture" />
             </ion-avatar>
           </ng-container>
 
           <ng-template #loginButton>
-            <ion-button id="google-signin-btn" fill="clear" class="google-signin-custom">
+            <ion-button
+              id="google-signin-btn"
+              fill="clear"
+              class="google-signin-custom"
+            >
               <svg class="google-icon" viewBox="0 0 24 24">
-                <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                <path
+                  fill="#4285f4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34a853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#fbbc05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#ea4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
               </svg>
             </ion-button>
           </ng-template>
@@ -109,7 +156,8 @@ import { Authorization } from 'src/app/services/authorization.service';
             [isOpen]="showPopover"
             [event]="popoverEvent"
             (didDismiss)="showPopover = false"
-            class="scrollable">
+            class="scrollable"
+          >
             <ng-template>
               <ion-list>
                 <ion-item (click)="goToProfile()">View Profile</ion-item>
@@ -123,7 +171,10 @@ import { Authorization } from 'src/app/services/authorization.service';
 
     <ion-content class="main">
       <ion-item>
-        <ion-segment [(ngModel)]="searchType" (ionChange)="onSearchTypeChange()">
+        <ion-segment
+          [(ngModel)]="searchType"
+          (ionChange)="onSearchTypeChange()"
+        >
           <ion-segment-button value="videos">Videos</ion-segment-button>
           <ion-segment-button value="playlists">Playlists</ion-segment-button>
           <ion-segment-button value="channels">Channels</ion-segment-button>
@@ -131,13 +182,20 @@ import { Authorization } from 'src/app/services/authorization.service';
       </ion-item>
 
       <!-- Filters Section -->
-      <app-filter
-        [searchType]="searchType"
-        (filtersChanged)="onFiltersChanged($event)"
-        class="scrollable">
-      </app-filter>
+      <div class="scrollable">
+        <div class="filter-inner">
+          <app-filter
+            [searchType]="searchType"
+            (filtersChanged)="onFiltersChanged($event)"
+          >
+          </app-filter>
+        </div>
+      </div>
 
-      <ion-chip *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
+      <ion-chip
+        *ngFor="let suggestion of suggestions"
+        (click)="selectSuggestion(suggestion)"
+      >
         {{ suggestion }}
       </ion-chip>
 
@@ -148,19 +206,22 @@ import { Authorization } from 'src/app/services/authorization.service';
             *ngFor="let video of searchResults['videos']"
             [videoData]="video"
             [isCompact]="false"
-            (addTrackToPlaylist)="addTrackToPlaylist($event)">
+            (addTrackToPlaylist)="addTrackToPlaylist($event)"
+          >
           </app-youtube-video>
         </ng-container>
         <ng-container *ngIf="searchType === 'playlists'">
           <app-youtube-playlist
             *ngFor="let playlist of searchResults['playlists']"
-            [playlistData]="playlist">
+            [playlistData]="playlist"
+          >
           </app-youtube-playlist>
         </ng-container>
         <ng-container *ngIf="searchType === 'channels'">
           <app-youtube-channel
             *ngFor="let channel of searchResults['channels']"
-            [channelData]="channel">
+            [channelData]="channel"
+          >
           </app-youtube-channel>
         </ng-container>
       </div>
@@ -168,27 +229,30 @@ import { Authorization } from 'src/app/services/authorization.service';
       <ion-infinite-scroll (ionInfinite)="loadMore($event)">
         <ion-infinite-scroll-content
           loadingSpinner="bubbles"
-          loadingText="Loading more...">
+          loadingText="Loading more..."
+        >
         </ion-infinite-scroll-content>
       </ion-infinite-scroll>
     </ion-content>
   `,
   styleUrls: ['./search.page.scss'],
-  standalone: false
+  standalone: false,
 })
 export class SearchPage {
   searchQuery: string = '';
   searchType: string = 'videos'; // Default to video
   suggestions: string[] = [];
-  pageTokens: { [key: string]: string } = {  // Using an object for pageTokens
+  pageTokens: { [key: string]: string } = {
+    // Using an object for pageTokens
     videos: '',
     playlists: '',
-    channels: ''
+    channels: '',
   };
-  searchResults: { [key: string]: any[] } = {  // Separate results for each search type
+  searchResults: { [key: string]: any[] } = {
+    // Separate results for each search type
     videos: [],
     playlists: [],
-    channels: []
+    channels: [],
   };
   filters: any = {}; // New filter object to hold the filter criteria
 
@@ -203,8 +267,11 @@ export class SearchPage {
 
   @Output() addToPlaylist = new EventEmitter<any>();
 
-  @ViewChild('googleButtonContainer', { static: false }) googleButtonContainer!: ElementRef;
+  @ViewChild('googleButtonContainer', { static: false })
+  googleButtonContainer!: ElementRef;
+
   auth$ = this.authorization.authSubject;
+  playbackState$ = this.playlistService.playbackState;
 
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
@@ -235,8 +302,7 @@ export class SearchPage {
     this.popoverEvent = event;
   }
 
-  goToProfile() {
-  }
+  goToProfile() {}
 
   setSort(value: string) {
     this.sortOrder = value;
@@ -245,16 +311,20 @@ export class SearchPage {
 
   getSortLabel(value: string): string {
     switch (value) {
-      case 'date': return 'Upload Date';
-      case 'viewCount': return 'View Count';
-      case 'rating': return 'Rating';
-      case 'title': return 'Title';
-      default: return 'Relevance (default)';
+      case 'date':
+        return 'Upload Date';
+      case 'viewCount':
+        return 'View Count';
+      case 'rating':
+        return 'Rating';
+      case 'title':
+        return 'Title';
+      default:
+        return 'Relevance (default)';
     }
   }
 
-  onSortOrderChanged() {
-  }
+  onSortOrderChanged() {}
 
   logout() {
     this.showPopover = false;
@@ -279,7 +349,10 @@ export class SearchPage {
 
   onSearchTypeChange() {
     // Check if the search type has changed but the query remains the same
-    if (this.searchQuery.trim() === this.lastSearchQuery && this.searchResults[this.searchType].length > 0) {
+    if (
+      this.searchQuery.trim() === this.lastSearchQuery &&
+      this.searchResults[this.searchType].length > 0
+    ) {
       return; // Skip the search
     }
 
@@ -287,7 +360,6 @@ export class SearchPage {
       this.performSearch();
     }
   }
-
 
   onSearchQueryChange(event: any) {
     const query = event.target.value;
@@ -302,15 +374,14 @@ export class SearchPage {
 
   onFiltersChanged(filters: any) {
     console.log('Filters changed:', filters);
-    this.filters = filters;  // Update filters when the filter component emits changes
-    this.performSearch();  // Re-run the search when filters are updated
+    this.filters = filters; // Update filters when the filter component emits changes
+    this.performSearch(); // Re-run the search when filters are updated
   }
 
   fetchSuggestions(query: string): Stream<string[]> {
-    return this.googleSuggestionsService.getSuggestions(query).pipe(
-      debounce(300),
-      distinctUntilChanged()
-    );
+    return this.googleSuggestionsService
+      .getSuggestions(query)
+      .pipe(debounce(300), distinctUntilChanged());
   }
 
   selectSuggestion(suggestion: string) {
@@ -326,95 +397,111 @@ export class SearchPage {
     this.lastSearchQuery = this.searchQuery.trim();
     this.lastSearchType = this.searchType;
 
-    this.youtubeDataService.search('search', params).pipe(
-      switchMap((response: any) => {
-        const results = this.mapResults(response);
+    this.youtubeDataService
+      .search('search', params)
+      .pipe(
+        switchMap((response: any) => {
+          const results = this.mapResults(response);
 
-        let detailedResults$: Stream<any>;
+          let detailedResults$: Stream<any>;
 
-        // Fetch detailed data based on the search type
-        if (this.searchType === 'videos') {
-          const videoIds = results.map(item => item.id);
-          detailedResults$ = this.youtubeDataService.fetchVideos(videoIds);
-        } else if (this.searchType === 'playlists') {
-          const playlistIds = results.map(item => item.id);
-          detailedResults$ = this.youtubeDataService.fetchPlaylists(playlistIds);
-        } else if (this.searchType === 'channels') {
-          const channelIds = results.map(item => item.id);
-          detailedResults$ = this.youtubeDataService.fetchChannels(channelIds);
-        } else {
-          throw new Error('Unknown search type.');
-        }
+          // Fetch detailed data based on the search type
+          if (this.searchType === 'videos') {
+            const videoIds = results.map((item) => item.id);
+            detailedResults$ = this.youtubeDataService.fetchVideos(videoIds);
+          } else if (this.searchType === 'playlists') {
+            const playlistIds = results.map((item) => item.id);
+            detailedResults$ =
+              this.youtubeDataService.fetchPlaylists(playlistIds);
+          } else if (this.searchType === 'channels') {
+            const channelIds = results.map((item) => item.id);
+            detailedResults$ =
+              this.youtubeDataService.fetchChannels(channelIds);
+          } else {
+            throw new Error('Unknown search type.');
+          }
 
+          // Combine basic and detailed results
+          return detailedResults$.pipe(
+            map((detailedItems: any) => {
+              this.updatePageToken(response); // Update the correct page token
 
-        // Combine basic and detailed results
-        return detailedResults$.pipe(
-          map((detailedItems: any) => {
-            this.updatePageToken(response);  // Update the correct page token
-
-            const mergedResults = results.map(result => {
-              const detailedItem = detailedItems.items.find((item: any) => item.id === result.id);
-              return { ...result, ...detailedItem };
-            });
-            return mergedResults;
-          })
-        );
-      })
-    ).subscribe((finalResults: any[]) => {
-      this.searchResults[this.searchType] = finalResults; // Update specific search type results
-    });
+              const mergedResults = results.map((result) => {
+                const detailedItem = detailedItems.items.find(
+                  (item: any) => item.id === result.id
+                );
+                return { ...result, ...detailedItem };
+              });
+              return mergedResults;
+            })
+          );
+        })
+      )
+      .subscribe((finalResults: any[]) => {
+        this.searchResults[this.searchType] = finalResults; // Update specific search type results
+      });
   }
 
   loadMore(event: any) {
     const params = this.buildSearchParams();
 
-    this.youtubeDataService.search('search', params).pipe(
-      switchMap((response: any) => {
-        const results = this.mapResults(response);
-        let detailedResults$: Stream<any>;
+    this.youtubeDataService
+      .search('search', params)
+      .pipe(
+        switchMap((response: any) => {
+          const results = this.mapResults(response);
+          let detailedResults$: Stream<any>;
 
-        if (this.searchType === 'videos') {
-          const videoIds = results.map(item => item.id);
-          detailedResults$ = this.youtubeDataService.fetchVideos(videoIds);
-        } else if (this.searchType === 'playlists') {
-          const playlistIds = results.map(item => item.id);
-          detailedResults$ = this.youtubeDataService.fetchPlaylists(playlistIds);
-        } else if (this.searchType === 'channels') {
-          const channelIds = results.map(item => item.id);
-          detailedResults$ = this.youtubeDataService.fetchChannels(channelIds);
-        } else {
-          throw new Error('Unknown search type.');
-        }
+          if (this.searchType === 'videos') {
+            const videoIds = results.map((item) => item.id);
+            detailedResults$ = this.youtubeDataService.fetchVideos(videoIds);
+          } else if (this.searchType === 'playlists') {
+            const playlistIds = results.map((item) => item.id);
+            detailedResults$ =
+              this.youtubeDataService.fetchPlaylists(playlistIds);
+          } else if (this.searchType === 'channels') {
+            const channelIds = results.map((item) => item.id);
+            detailedResults$ =
+              this.youtubeDataService.fetchChannels(channelIds);
+          } else {
+            throw new Error('Unknown search type.');
+          }
 
-        return detailedResults$.pipe(
-          map((detailedItems: any) => {
-            this.updatePageToken(response);  // Update the correct page token
-            const mergedResults = results.map(result => {
-              const detailedItem = detailedItems.items.find((item: any) => item.id === result.id);
-              return { ...result, ...detailedItem };
-            });
-            return mergedResults;
-          }),
-          // Handle the correct page token for pagination
-          map((finalResults: any[]) => {
-            this.searchResults[this.searchType] = [...this.searchResults[this.searchType], ...finalResults];
-            return this.searchResults[this.searchType];
-          })
-        );
-      })
-    ).subscribe({
-      next: () => {
-        event.target.complete();
-        // Disable infinite scroll if no more results
-        if (!this.pageTokenAvailable()) {
-          event.target.disabled = true;
-        }
-      },
-      error: (err) => {
-        console.error('Error loading more results:', err);
-        event.target.complete();
-      }
-    });
+          return detailedResults$.pipe(
+            map((detailedItems: any) => {
+              this.updatePageToken(response); // Update the correct page token
+              const mergedResults = results.map((result) => {
+                const detailedItem = detailedItems.items.find(
+                  (item: any) => item.id === result.id
+                );
+                return { ...result, ...detailedItem };
+              });
+              return mergedResults;
+            }),
+            // Handle the correct page token for pagination
+            map((finalResults: any[]) => {
+              this.searchResults[this.searchType] = [
+                ...this.searchResults[this.searchType],
+                ...finalResults,
+              ];
+              return this.searchResults[this.searchType];
+            })
+          );
+        })
+      )
+      .subscribe({
+        next: () => {
+          event.target.complete();
+          // Disable infinite scroll if no more results
+          if (!this.pageTokenAvailable()) {
+            event.target.disabled = true;
+          }
+        },
+        error: (err) => {
+          console.error('Error loading more results:', err);
+          event.target.complete();
+        },
+      });
   }
 
   updatePageToken(response: any = null) {
