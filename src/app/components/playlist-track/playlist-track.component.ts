@@ -4,31 +4,52 @@ import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/co
 @Component({
   selector: 'app-playlist-track',
   template: `
-    <ion-item (click)="selectTrack()" class="track">
+    <ion-item-sliding>
+      <ion-item
+        (click)="selectTrack()"
+        class="track"
+        [class.selected]="isSelected"
+        [attr.aria-selected]="isSelected"
+        role="option"
+      >
         <ion-thumbnail slot="start">
-        <img [src]="thumbnailUrl" alt="Thumbnail">
-      </ion-thumbnail>
-      <ion-label>
-        <h2>{{ track.snippet.title }}</h2>
-        <p class="duration">{{ formattedDuration | toFriendlyDuration }}</p>
-      </ion-label>
-    </ion-item>
+          <img [src]="thumbnailUrl" [alt]="track.snippet?.title || 'Track thumbnail'" />
+        </ion-thumbnail>
+        <ion-label>
+          <h2 class="track-title">{{ track.snippet?.title || 'Unknown Title' }}</h2>
+          <p class="duration">{{ formattedDuration | toFriendlyDuration }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="deleteTrack()" expandable>
+          Delete
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
   `,
   styleUrls: ['./playlist-track.component.scss'],
-  standalone: false,
+  standalone: false
 })
 export class PlaylistTrackComponent {
-  @Input() track!: any; // This represents the track passed as input
-  @Input() thumbnailUrl!: string; // Now directly receiving the thumbnail URL
-  @Input() formattedDuration!: string; // Now directly receiving the formatted duration
-  @Output() trackSelected = new EventEmitter<any>();
+  @Input() track!: any;
+  @Input() thumbnailUrl!: string;
+  @Input() formattedDuration!: string;
   @Input() isSelected: boolean = false;
 
-  @HostBinding('class.selected') get addSelectedClass() {
+  @Output() trackSelected = new EventEmitter<any>();
+  @Output() trackDeleted = new EventEmitter<any>();
+
+  @HostBinding('class.selected')
+  get addSelectedClass() {
     return this.isSelected;
   }
 
   selectTrack(): void {
-    this.trackSelected.emit(this.track);  // Emit the selected track to the parent component
+    this.trackSelected.emit(this.track);
+  }
+
+  deleteTrack(): void {
+    this.trackDeleted.emit(this.track);
   }
 }

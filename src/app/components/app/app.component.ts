@@ -8,7 +8,7 @@ declare const YT: any; // Add this to access YT.PlayerState constants
 @Component({
   selector: 'app-root',
   template: `
-    <ion-app>
+    <ion-app id="mainContainer">
       <ion-split-pane contentId="main-content">
         <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
           <div class="content">

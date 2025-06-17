@@ -39,6 +39,31 @@ export class PlaylistService {
     this.playbackState.set('stopped');
   }
 
+  removeTrack(track: any): void {
+    const index = this.playlist.value.findIndex(t => t.id === track.id);
+    if (index === -1) return;
+
+    const newPlaylist = [
+      ...this.playlist.value.slice(0, index),
+      ...this.playlist.value.slice(index + 1),
+    ];
+    this.playlist.set(newPlaylist);
+
+    // Maintain current index logic
+    if (this.currentTrackIndex.value === index) {
+      this.stop();
+      this.setCurrentTrackIndex(-1);
+    } else if (this.currentTrackIndex.value > index) {
+      this.setCurrentTrackIndex(this.currentTrackIndex.value - 1);
+    }
+
+    if (!this.isShuffled.value) {
+      this.originalPlaylist = [...newPlaylist];
+    } else {
+      this.originalPlaylist = this.originalPlaylist.filter(t => t.id !== track.id);
+    }
+  }
+
   updatePlaylistOrder(newOrder: any[]): void {
     if (this.isShuffled.value) {
       this.originalPlaylist = newOrder;

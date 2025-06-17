@@ -145,6 +145,7 @@ import { Options } from 'sortablejs';
           [thumbnailUrl]="getTrackThumbnail(track)"
           [formattedDuration]="getTrackFormattedDuration(track)"
           (trackSelected)="selectTrack(track)"
+          (trackDeleted)="deleteTrack(track)"
           [isSelected]="isTrackSelected(track)"
         ></app-playlist-track>
       </div>
@@ -157,6 +158,7 @@ import { Options } from 'sortablejs';
 export class PlaylistComponent implements OnInit {
   @Input() playlist: any[] = [];
   @Output() trackSelected = new EventEmitter<any>();
+  @Output() stateChanged = new EventEmitter<boolean>();
 
   isShuffled: boolean = false;
   isPlaying: boolean = false;
@@ -206,6 +208,7 @@ export class PlaylistComponent implements OnInit {
     this.subscriptions.push(
       this.playlistService.playbackState.subscribe((state) => {
         this.isPlaying = state === 'playing';
+        this.stateChanged.emit(this.isPlaying);
       })
     );
 
@@ -331,6 +334,21 @@ export class PlaylistComponent implements OnInit {
         if (newIndex !== -1) {
             this.playlistService.setCurrentTrackIndex(newIndex);
         }
+    }
+  }
+
+  deleteTrack(track: any): void {
+    const index = this.playlist.indexOf(track);
+    if (index !== -1) {
+      this.playlist.splice(index, 1); // update local array
+      this.playlistService.removeTrack(track); // update via service
+      this.updateNavigationState();
+
+      // Reset selection if deleted track was selected
+      if (this.selectedTrack === track) {
+        this.selectedTrack = null;
+        this.playlistService.setCurrentTrackIndex(-1);
+      }
     }
   }
 }

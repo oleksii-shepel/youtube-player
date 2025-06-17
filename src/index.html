@@ -19,6 +19,49 @@
 </head>
 
 <body>
+
+  <script>
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 100;
+    canvas.id = 'visualizer-canvas';
+    canvas.style.position = 'fixed';
+    canvas.style.bottom = '10px';
+    canvas.style.left = '50%';
+    canvas.style.transform = 'translateX(-50%)';
+    canvas.style.zIndex = '9999';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.borderRadius = '8px';
+    canvas.style.background = 'rgba(0, 0, 0, 0.3)';
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    let frequencyData = [];
+
+    window.addEventListener('message', (event) => {
+      if (event.data?.type === 'AUDIO_FREQUENCY_DATA') {
+        frequencyData = event.data.payload;
+      }
+    });
+
+    function draw() {
+      requestAnimationFrame(draw);
+      if (!frequencyData.length) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / frequencyData.length) * 1.5;
+      let x = 0;
+
+      for (let i = 0; i < frequencyData.length; i++) {
+        const barHeight = frequencyData[i] * 0.4;
+        ctx.fillStyle = `hsl(${i * 10}, 100%, 50%)`;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        x += barWidth + 1;
+      }
+    }
+
+    draw();
+  </script>
   <app-root></app-root>
 </body>
 
