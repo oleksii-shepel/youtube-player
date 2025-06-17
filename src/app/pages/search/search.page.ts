@@ -10,161 +10,164 @@ import { Authorization } from 'src/app/services/authorization.service';
   selector: 'app-search',
   template: `
     <ion-header>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <ion-title>YouTube Search</ion-title>
-        </div>
-
-        <div class="toolbar-right">
-          <div class="search-container">
-            <ion-icon name="search-outline"></ion-icon>
-            <ion-input
-              color="primary"
-              #searchbar
-              [(ngModel)]="searchQuery"
-              placeholder="Enter search query"
-              (ionInput)="onSearchQueryChange($event)"
-              (keydown)="onKeydown($event)"
-            ></ion-input>
-            <div class="icon-buttons">
-              <ion-button
-                fill="clear"
-                id="sort-button"
-                size="small"
-                (click)="searchbar.value = ''"
-                *ngIf="searchbar.value"
-              >
-                <ion-icon name="close-circle" class="clear-icon"></ion-icon>
-              </ion-button>
-              <ion-button
-                fill="clear"
-                id="sort-button"
-                size="small"
-                [color]="sortOrder ? 'primary' : undefined"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="lucide lucide-arrow-down-az-icon lucide-arrow-down-a-z"
-                >
-                  <path d="m3 16 4 4 4-4" />
-                  <path d="M7 20V4" />
-                  <path d="M20 8h-5" />
-                  <path d="M15 10V6.5a2.5 2.5 0 0 1 5 0V10" />
-                  <path d="M15 14h5l-5 6h5" />
-                </svg>
-              </ion-button>
+      <div class="scrollable">
+        <div class="toolbar-inner">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <ion-title>YouTube Search</ion-title>
             </div>
-            <ion-button (click)="searchRequested = true; performSearch()"
-              >Search</ion-button
-            >
+
+            <div class="toolbar-right">
+              <div class="search-container">
+                <ion-icon name="search-outline"></ion-icon>
+                <ion-input
+                  color="primary"
+                  #searchbar
+                  [(ngModel)]="searchQuery"
+                  placeholder="Enter search query"
+                  (ionInput)="onSearchQueryChange($event)"
+                  (keydown)="onKeydown($event)"
+                ></ion-input>
+                <div class="icon-buttons">
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    (click)="clearSearch($event)"
+                    *ngIf="searchbar.value"
+                  >
+                    <ion-icon name="close-circle" class="clear-icon"></ion-icon>
+                  </ion-button>
+                  <ion-button
+                    fill="clear"
+                    id="sort-button"
+                    size="small"
+                    [color]="sortOrder ? 'primary' : undefined"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="lucide lucide-arrow-down-az-icon lucide-arrow-down-a-z"
+                    >
+                      <path d="m3 16 4 4 4-4" />
+                      <path d="M7 20V4" />
+                      <path d="M20 8h-5" />
+                      <path d="M15 10V6.5a2.5 2.5 0 0 1 5 0V10" />
+                      <path d="M15 14h5l-5 6h5" />
+                    </svg>
+                  </ion-button>
+                </div>
+                <ion-button (click)="searchRequested = true; performSearch()"
+                  >Search</ion-button
+                >
+              </div>
+
+              <ion-popover
+                trigger="sort-button"
+                triggerAction="click"
+                [dismissOnSelect]="true"
+                showBackdrop="false"
+                class="scrollable"
+              >
+                <ng-template>
+                  <ion-list>
+                    <ion-item
+                      button
+                      (click)="setSort('')"
+                      [color]="sortOrder === '' ? 'primary' : ''"
+                    >
+                      Relevance (default)
+                    </ion-item>
+                    <ion-item
+                      button
+                      (click)="setSort('date')"
+                      [color]="sortOrder === 'date' ? 'primary' : ''"
+                    >
+                      Upload Date
+                    </ion-item>
+                    <ion-item
+                      button
+                      (click)="setSort('viewCount')"
+                      [color]="sortOrder === 'viewCount' ? 'primary' : ''"
+                    >
+                      View Count
+                    </ion-item>
+                    <ion-item
+                      button
+                      (click)="setSort('rating')"
+                      [color]="sortOrder === 'rating' ? 'primary' : ''"
+                    >
+                      Rating
+                    </ion-item>
+                    <ion-item
+                      button
+                      (click)="setSort('title')"
+                      [color]="sortOrder === 'title' ? 'primary' : ''"
+                    >
+                      Title
+                    </ion-item>
+                  </ion-list>
+                </ng-template>
+              </ion-popover>
+
+              <ion-button fill="clear">
+                <ion-icon name="videocam-outline"></ion-icon>
+              </ion-button>
+
+              <ng-container *ngIf="auth$ | async as auth; else loginButton">
+                <ion-avatar *ngIf="auth" (click)="openPopover($event)">
+                  <img [src]="auth.profile.picture" />
+                </ion-avatar>
+              </ng-container>
+
+              <ng-template #loginButton>
+                <ion-button
+                  id="google-signin-btn"
+                  fill="clear"
+                  class="google-signin-custom"
+                >
+                  <svg class="google-icon" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285f4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34a853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#fbbc05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    />
+                    <path
+                      fill="#ea4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
+                  </svg>
+                </ion-button>
+              </ng-template>
+
+              <ion-popover
+                [isOpen]="showPopover"
+                [event]="popoverEvent"
+                (didDismiss)="showPopover = false"
+                class="scrollable"
+              >
+                <ng-template>
+                  <ion-list>
+                    <ion-item (click)="goToProfile()">View Profile</ion-item>
+                    <ion-item (click)="logout()">Logout</ion-item>
+                  </ion-list>
+                </ng-template>
+              </ion-popover>
+            </div>
           </div>
-
-          <ion-popover
-            trigger="sort-button"
-            triggerAction="click"
-            [dismissOnSelect]="true"
-            showBackdrop="false"
-            class="scrollable"
-          >
-            <ng-template>
-              <ion-list>
-                <ion-item
-                  button
-                  (click)="setSort('')"
-                  [color]="sortOrder === '' ? 'primary' : ''"
-                >
-                  Relevance (default)
-                </ion-item>
-                <ion-item
-                  button
-                  (click)="setSort('date')"
-                  [color]="sortOrder === 'date' ? 'primary' : ''"
-                >
-                  Upload Date
-                </ion-item>
-                <ion-item
-                  button
-                  (click)="setSort('viewCount')"
-                  [color]="sortOrder === 'viewCount' ? 'primary' : ''"
-                >
-                  View Count
-                </ion-item>
-                <ion-item
-                  button
-                  (click)="setSort('rating')"
-                  [color]="sortOrder === 'rating' ? 'primary' : ''"
-                >
-                  Rating
-                </ion-item>
-                <ion-item
-                  button
-                  (click)="setSort('title')"
-                  [color]="sortOrder === 'title' ? 'primary' : ''"
-                >
-                  Title
-                </ion-item>
-              </ion-list>
-            </ng-template>
-          </ion-popover>
-
-          <ion-button fill="clear">
-            <ion-icon name="videocam-outline"></ion-icon>
-          </ion-button>
-
-          <ng-container *ngIf="auth$ | async as auth; else loginButton">
-            <ion-avatar *ngIf="auth" (click)="openPopover($event)">
-              <img [src]="auth.profile.picture" />
-            </ion-avatar>
-          </ng-container>
-
-          <ng-template #loginButton>
-            <ion-button
-              id="google-signin-btn"
-              fill="clear"
-              class="google-signin-custom"
-            >
-              <svg class="google-icon" viewBox="0 0 24 24">
-                <path
-                  fill="#4285f4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34a853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#fbbc05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#ea4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-            </ion-button>
-          </ng-template>
-
-          <ion-popover
-            [isOpen]="showPopover"
-            [event]="popoverEvent"
-            (didDismiss)="showPopover = false"
-            class="scrollable"
-          >
-            <ng-template>
-              <ion-list>
-                <ion-item (click)="goToProfile()">View Profile</ion-item>
-                <ion-item (click)="logout()">Logout</ion-item>
-              </ion-list>
-            </ng-template>
-          </ion-popover>
         </div>
       </div>
     </ion-header>
@@ -295,6 +298,11 @@ export class SearchPage {
 
   removeActivated(event: Event) {
     (event.currentTarget as HTMLElement).classList.remove('ion-activated');
+  }
+
+  clearSearch(event: Event) {
+    this.searchQuery = '';
+    this.onSearchQueryChange(event);
   }
 
   openPopover(event: Event) {
