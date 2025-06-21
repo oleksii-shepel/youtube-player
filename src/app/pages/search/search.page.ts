@@ -32,7 +32,7 @@ import { Authorization } from 'src/app/services/authorization.service';
                   <ion-button
                     fill="clear"
                     size="small"
-                    (click)="clearSearch($event)"
+                    (mousedown)="clearSearch($event)"
                     *ngIf="searchbar.value"
                   >
                     <ion-icon name="close-circle" class="clear-icon"></ion-icon>
@@ -301,6 +301,7 @@ export class SearchPage {
   }
 
   clearSearch(event: Event) {
+    event.preventDefault();
     this.searchQuery = '';
     this.onSearchQueryChange(event);
   }
