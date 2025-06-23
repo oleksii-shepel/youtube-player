@@ -103,6 +103,12 @@ export class PlaylistService {
   next(): void {
     if (this.playlist.value.length === 0) return;
 
+    if (this.repeatMode.value === 'none' && this.currentTrackIndex.value >= this.playlist.value.length - 1) {
+      this.stop();
+      this.setCurrentTrackIndex(-1);
+      return;
+    }
+
     const nextIndex =
       this.repeatMode.value === 'one'
         ? this.currentTrackIndex.value
@@ -114,6 +120,12 @@ export class PlaylistService {
 
   previous(): void {
     if (this.playlist.value.length === 0) return;
+
+    if (this.repeatMode.value === 'none' && this.currentTrackIndex.value <= 0) {
+      this.stop();
+      this.setCurrentTrackIndex(-1);
+      return;
+    }
 
     const prevIndex =
       this.repeatMode.value === 'one'

@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { createUpdater } from '../utils/stateUpdater';
-import { YoutubePlayerComponent } from '../components/youtube-player/youtube-player.component';
+import { Injectable } from "@angular/core";
+import { YoutubePlayerComponent } from "../components/youtube-player/youtube-player.component";
+import { createUpdater } from "../utils/stateUpdater";
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +11,9 @@ export class PlayerService {
 
   private player: YoutubePlayerComponent | null = null;
   private isHidden = false;
+
+  // Store original styles to restore later
+  private originalStyles: Partial<CSSStyleDeclaration> = {};
 
   constructor() {}
 
@@ -47,13 +50,23 @@ export class PlayerService {
     if (this.isHidden || !this.player) return;
     this.isHidden = true;
 
-    const iframe = document.querySelector('youtube-player.player') as HTMLElement;
-    if (iframe) {
-      iframe.style.position = 'absolute';
-      iframe.style.width = '1px';
-      iframe.style.height = '1px';
-      iframe.style.opacity = '0.01';
-      iframe.style.pointerEvents = 'none';
+    const el =  document.querySelector('youtube-player.player') as HTMLElement;
+    if (el) {
+      // Save current styles you want to override
+      this.originalStyles = {
+        position: el.style.position,
+        width: el.style.width,
+        height: el.style.height,
+        opacity: el.style.opacity,
+        pointerEvents: el.style.pointerEvents,
+      };
+
+      // Apply hiding styles
+      el.style.position = 'absolute';
+      el.style.width = '1px';
+      el.style.height = '1px';
+      el.style.opacity = '0.01';
+      el.style.pointerEvents = 'none';
     }
   }
 
@@ -61,13 +74,17 @@ export class PlayerService {
     if (!this.isHidden || !this.player) return;
     this.isHidden = false;
 
-    const iframe = document.querySelector('youtube-player.player') as HTMLElement;
-    if (iframe) {
-      iframe.style.position = 'relative';
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.style.opacity = '1';
-      iframe.style.pointerEvents = '';
+    const el =  document.querySelector('youtube-player.player') as HTMLElement;
+    if (el) {
+      // Restore saved styles exactly
+      el.style.position = this.originalStyles.position || '';
+      el.style.width = this.originalStyles.width || '';
+      el.style.height = this.originalStyles.height || '';
+      el.style.opacity = this.originalStyles.opacity || '';
+      el.style.pointerEvents = this.originalStyles.pointerEvents || '';
+
+      // Clear the saved styles cache
+      this.originalStyles = {};
     }
   }
 }
