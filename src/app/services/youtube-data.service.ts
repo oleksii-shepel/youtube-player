@@ -69,6 +69,17 @@ export class YoutubeDataService {
     } as IYoutubeQueryParams & { id: string });
   }
 
+  getTrendingVideos(
+  ): Stream<any> {
+    const params: IYoutubeQueryParams = {
+      part: 'snippet,contentDetails,statistics',
+      chart: 'mostPopular'
+    };
+
+    // We use 'videos' endpoint with chart=mostPopular
+    return this.search('videos', params);
+  }
+
   private buildHttpParams(queryParams: IYoutubeQueryParams): Record<string, string> {
     // Initialize the parameters with the API key
 

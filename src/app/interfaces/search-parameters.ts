@@ -130,6 +130,7 @@ export interface IYoutubeQueryParams {
   pageToken?: string; // Pagination token
 
   // Video-specific parameters
+  chart?: string;
   videoDuration?: YouTubeVideoDuration; // any | short | medium | long
   videoDefinition?: YouTubeVideoDefinition; // standard | high
   eventType?: YouTubeEventType; // live | completed | upcoming
