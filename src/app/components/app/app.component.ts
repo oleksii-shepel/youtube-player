@@ -9,11 +9,12 @@ declare const YT: any; // Add this to access YT.PlayerState constants
   selector: 'app-root',
   template: `
     <ion-app id="mainContainer">
-      <ion-split-pane contentId="main-content">
-        <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
-          <div class="content">
-            <app-playlist (trackSelected)="onTrackSelected($event)" class="expandable-list"></app-playlist>
-
+      <ion-modal
+        [isOpen]="isOpen"
+        class="youtube-modal"
+      >
+        <ng-template>
+          <div class="modal-container">
             <youtube-player
               #youtubePlayer
               [videoId]="selectedVideoId"
@@ -21,6 +22,15 @@ declare const YT: any; // Add this to access YT.PlayerState constants
               (videoEnded)="onPlayerVideoEnded()"
               (change)="onPlayerStateChange($event)"
             ></youtube-player>
+
+            <ion-button expand="block">Close</ion-button>
+          </div>
+        </ng-template>
+      </ion-modal>
+      <ion-split-pane contentId="main-content">
+        <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
+          <div class="content">
+            <app-playlist (trackSelected)="onTrackSelected($event)" class="expandable-list"></app-playlist>
           </div>
         </ion-menu>
 
@@ -39,6 +49,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   selectedVideoId = '';
   currentPlayerState: number = -1;
   private subscriptions: Subscription[] = [];
+  isOpen = false;
 
   constructor(public playlistService: PlaylistService) {}
 
@@ -62,6 +73,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       this.playlistService.setCurrentTrackIndex(trackIndex);
       this.playlistService.play();
     }
+
+    this.isOpen = true;
   }
 
   onPlayerVideoEnded(): void {

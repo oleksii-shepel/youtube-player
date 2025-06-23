@@ -240,6 +240,7 @@ export class PlaylistComponent implements OnInit {
   onTrackClick(index: number, event: MouseEvent): void {
     // Pass ctrlKey/shiftKey flags for multi-selection support
     this.playlistService.selectTrack(index, event.ctrlKey, event.shiftKey);
+    this.trackSelected.emit(this.playlist[index]);
 
     // If no modifiers, set current playing track and play
     if (!event.ctrlKey && !event.shiftKey) {

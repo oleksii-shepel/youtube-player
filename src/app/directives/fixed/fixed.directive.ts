@@ -8,7 +8,7 @@ export class FixedDirective implements OnInit, OnDestroy {
   @Input() side: 'left' | 'right' | 'top' | 'bottom' | 'all' = 'top'; // Default position
   @Input() offset: number = 0; // Offset from the specified side
 
-  private resizeObserver: ResizeObserver;
+  private resizeObserver!: ResizeObserver;
 
   constructor(private el: ElementRef, private renderer: Renderer2) {}
 
