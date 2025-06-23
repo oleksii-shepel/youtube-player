@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { HostListener, Injectable } from '@angular/core';
 import { createUpdater } from '../utils/stateUpdater';
 import { PlayerService } from './player.service';
 import { YoutubePlayerComponent } from '../components/youtube-player/youtube-player.component';
@@ -16,20 +16,20 @@ export class PlaylistService {
   repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
   originalPlaylist: any[] = [];
 
+  // Multi-selection state: holds indexes of selected tracks
+  selectedTrackIndexes = createUpdater<Set<number>>(new Set());
+
   constructor(private playerService: PlayerService) {
-    // Sync playbackState with PlayerService playbackState
     this.playerService.playbackState.subscribe(state => {
       this.playbackState.set(state);
     });
 
-    // Sync repeatMode with PlayerService repeatMode
     this.playerService.repeatMode.subscribe(mode => {
       this.repeatMode.set(mode);
     });
   }
 
   setPlayerComponent(player: YoutubePlayerComponent) {
-    // Delegate to PlayerService
     this.playerService.setPlayerComponent(player);
   }
 
@@ -38,6 +38,12 @@ export class PlaylistService {
       const newPlaylist = [...this.playlist.value, video];
       if (!this.isShuffled.value) this.originalPlaylist = [...newPlaylist];
       this.playlist.set(newPlaylist);
+
+      // If playlist was empty before adding, start playing the new track
+      if (this.playlist.value.length === 1) {
+        this.setCurrentTrackIndex(0);
+        this.play();
+      }
     }
   }
 
@@ -45,6 +51,7 @@ export class PlaylistService {
     this.playlist.set([]);
     this.originalPlaylist = [];
     this.currentTrackIndex.set(-1);
+    this.clearSelection();
     this.playerService.stop();
   }
 
@@ -58,7 +65,6 @@ export class PlaylistService {
     ];
     this.playlist.set(newPlaylist);
 
-    // Maintain current index logic
     if (this.currentTrackIndex.value === index) {
       this.playerService.stop();
       this.setCurrentTrackIndex(-1);
@@ -71,7 +77,53 @@ export class PlaylistService {
     } else {
       this.originalPlaylist = this.originalPlaylist.filter(t => t.id !== track.id);
     }
+
+    // Remove track from selection if selected
+    const selected = new Set(this.selectedTrackIndexes.value);
+    if (selected.has(index)) {
+      selected.delete(index);
+      this.selectedTrackIndexes.set(selected);
+    }
   }
+
+  removeSelectedTracks(): void {
+    const selected = this.selectedTrackIndexes.value;
+    if (selected.size === 0) return;
+
+    const wasPlaying = this.playbackState.value === 'playing';
+
+    const currentIndex = this.currentTrackIndex.value;
+    const isCurrentRemoved = selected.has(currentIndex);
+
+    const newPlaylist = this.playlist.value.filter((_, idx) => !selected.has(idx));
+    this.playlist.set(newPlaylist);
+
+    this.originalPlaylist = this.originalPlaylist.filter(t =>
+      newPlaylist.some(nt => nt.id === t.id)
+    );
+
+    if (isCurrentRemoved) {
+      this.playerService.stop();
+      this.setCurrentTrackIndex(-1);
+
+      if (newPlaylist.length > 0 && wasPlaying) {
+          this.setCurrentTrackIndex(0);
+          this.playCurrentTrack();
+      } else {
+          // No tracks left or wasn't playing, simply stop and clear index
+          this.playerService.stop();
+          this.setCurrentTrackIndex(-1);
+      }
+    } else {
+      const removedBeforeCurrent = [...selected].filter(i => i < currentIndex).length;
+      if (removedBeforeCurrent > 0) {
+        this.setCurrentTrackIndex(currentIndex - removedBeforeCurrent);
+      }
+    }
+
+    this.clearSelection();
+  }
+
 
   updatePlaylistOrder(newOrder: any[]): void {
     if (this.isShuffled.value) {
@@ -177,6 +229,56 @@ export class PlaylistService {
   isPlaylistShuffled(): boolean {
     return this.isShuffled.value;
   }
+
+  /**
+   * Multi-selection logic: select tracks only if Ctrl or Shift pressed.
+   * Otherwise, normal click selects single track clearing selection.
+   *
+   * @param index Index clicked
+   * @param ctrlKey true if Ctrl (or Cmd on Mac) pressed
+   * @param shiftKey true if Shift pressed
+   */
+  selectTrack(index: number, ctrlKey = false, shiftKey = false): void {
+    const selected = new Set(this.selectedTrackIndexes.value);
+
+    if (shiftKey) {
+      // Select range from last selected or current track to clicked index
+      const lastSelected = [...selected].length
+        ? [...selected][[...selected].length - 1]
+        : this.currentTrackIndex.value;
+
+      const start = Math.min(lastSelected, index);
+      const end = Math.max(lastSelected, index);
+
+      for (let i = start; i <= end; i++) {
+        selected.add(i);
+      }
+    } else if (ctrlKey) {
+      // Toggle selection of clicked index
+      if (selected.has(index)) {
+        selected.delete(index);
+      } else {
+        selected.add(index);
+      }
+    } else {
+      // No modifier: clear multi-selection and select only clicked index
+      selected.clear();
+      selected.add(index);
+    }
+
+    this.selectedTrackIndexes.set(selected);
+  }
+
+  clearSelection(): void {
+    this.selectedTrackIndexes.set(new Set());
+  }
+
+  getSelectedTracks(): any[] {
+    const selected = this.selectedTrackIndexes.value;
+    return this.playlist.value.filter((_, idx) => selected.has(idx));
+  }
+
+  // ========== Private helper methods ==========
 
   private getNextTrackIndex(currentIndex: number): number {
     return currentIndex >= this.playlist.value.length - 1

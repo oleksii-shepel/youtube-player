@@ -5,6 +5,7 @@ import {
   EventEmitter,
   ViewEncapsulation,
   OnInit,
+  HostListener,
 } from '@angular/core';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { Subscription } from '@actioncrew/streamix';
@@ -144,9 +145,9 @@ import { Options } from 'sortablejs';
           [track]="track"
           [thumbnailUrl]="getTrackThumbnail(track)"
           [formattedDuration]="getTrackFormattedDuration(track)"
-          (trackSelected)="selectTrack(track)"
+          (click)="onTrackClick(i, $event)"
           (trackDeleted)="deleteTrack(track)"
-          [isSelected]="isTrackSelected(track)"
+          [isSelected]="isTrackSelectedByIndex(i)"
         ></app-playlist-track>
       </div>
     </ion-list>
@@ -182,6 +183,14 @@ export class PlaylistComponent implements OnInit {
     // See SortableJS documentation for all options: https://github.com/SortableJS/Sortable#options
   };
 
+  @HostListener('window:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Delete' || event.key === 'Del') {
+      this.deleteSelectedTracks();
+      event.preventDefault();
+    }
+  }
+
   constructor(private playlistService: PlaylistService) {}
 
   ngOnInit(): void {
@@ -189,11 +198,6 @@ export class PlaylistComponent implements OnInit {
       this.playlistService.playlist.subscribe((playlist) => {
         this.playlist = playlist;
         this.updateNavigationState();
-
-        // Auto-select first track if none is selected but playlist has items
-        if (playlist.length > 0 && !this.selectedTrack) {
-          this.selectTrack(playlist[0]);
-        }
       })
     );
 
@@ -229,6 +233,25 @@ export class PlaylistComponent implements OnInit {
     this.repeatMode = this.playlistService.getRepeatMode();
   }
 
+  deleteSelectedTracks(): void {
+    this.playlistService.removeSelectedTracks();
+  }
+
+  onTrackClick(index: number, event: MouseEvent): void {
+    // Pass ctrlKey/shiftKey flags for multi-selection support
+    this.playlistService.selectTrack(index, event.ctrlKey, event.shiftKey);
+
+    // If no modifiers, set current playing track and play
+    if (!event.ctrlKey && !event.shiftKey) {
+      this.playlistService.setCurrentTrackIndex(index);
+      this.playlistService.play();
+    }
+  }
+
+  isTrackSelectedByIndex(index: number): boolean {
+    return this.playlistService.currentTrackIndex.value === index || this.playlistService.selectedTrackIndexes.value.has(index);
+  }
+
   isTouchableDevice(): boolean {
     return (
       'ontouchstart' in window || // Standard touch event detection
@@ -245,10 +268,6 @@ export class PlaylistComponent implements OnInit {
     this.hasPrevious = this.currentTrackIndex > 0 || this.isShuffled;
     this.hasNext =
       this.currentTrackIndex < this.playlist.length - 1 || this.isShuffled;
-  }
-
-  isTrackSelected(track: any): boolean {
-    return this.selectedTrack === track;
   }
 
   toggleShuffle(): void {
