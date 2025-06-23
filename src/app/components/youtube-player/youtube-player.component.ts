@@ -29,7 +29,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   @Output() change = new EventEmitter<YT.PlayerEvent>();
   @Output() videoEnded = new EventEmitter<boolean>();
 
-  @ViewChild('playerContainer', { static: true }) playerContainer!: ElementRef;
+  @ViewChild('playerContainer', { static: true }) container!: ElementRef;
 
   private player: YT.Player | null = null;
   private playerId = '';
@@ -92,9 +92,9 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
 
   private initializePlayer() {
     this.playerId = this.generateUniqueId();
-    this.renderer.setAttribute(this.playerContainer.nativeElement, 'id', this.playerId);
+    this.renderer.setAttribute(this.container.nativeElement, 'id', this.playerId);
 
-    const container = this.playerContainer.nativeElement;
+    const container = this.container.nativeElement;
     const playerSize = {
       width: container.offsetWidth,
       height: Math.min(container.offsetHeight || 270, 270)
@@ -190,19 +190,19 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
     this.isHidden = true;
 
     // Keep playing, just hide visually
-    this.renderer.setStyle(this.playerContainer.nativeElement, 'visibility', 'hidden');
-    this.renderer.setStyle(this.playerContainer.nativeElement, 'width', '0');
-    this.renderer.setStyle(this.playerContainer.nativeElement, 'height', '0');
-    this.renderer.setStyle(this.playerContainer.nativeElement, 'overflow', 'hidden');
+    this.renderer.setStyle(this.container.nativeElement, 'visibility', 'hidden');
+    this.renderer.setStyle(this.container.nativeElement, 'width', '0');
+    this.renderer.setStyle(this.container.nativeElement, 'height', '0');
+    this.renderer.setStyle(this.container.nativeElement, 'overflow', 'hidden');
   }
 
   show() {
     if (!this.isHidden) return;
     this.isHidden = false;
 
-    this.renderer.removeStyle(this.playerContainer.nativeElement, 'visibility');
-    this.renderer.removeStyle(this.playerContainer.nativeElement, 'width');
-    this.renderer.removeStyle(this.playerContainer.nativeElement, 'height');
-    this.renderer.removeStyle(this.playerContainer.nativeElement, 'overflow');
+    this.renderer.removeStyle(this.container.nativeElement, 'visibility');
+    this.renderer.removeStyle(this.container.nativeElement, 'width');
+    this.renderer.removeStyle(this.container.nativeElement, 'height');
+    this.renderer.removeStyle(this.container.nativeElement, 'overflow');
   }
 }

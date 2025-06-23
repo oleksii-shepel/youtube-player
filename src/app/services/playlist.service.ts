@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { createUpdater } from '../utils/stateUpdater';
+import { PlayerService } from './player.service';
 import { YoutubePlayerComponent } from '../components/youtube-player/youtube-player.component';
 
 @Injectable({
@@ -15,13 +16,21 @@ export class PlaylistService {
   repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
   originalPlaylist: any[] = [];
 
-  // Reference to player component to control playback
-  private currentPlayerComponent: YoutubePlayerComponent | null = null;
+  constructor(private playerService: PlayerService) {
+    // Sync playbackState with PlayerService playbackState
+    this.playerService.playbackState.subscribe(state => {
+      this.playbackState.set(state);
+    });
 
-  constructor() {}
+    // Sync repeatMode with PlayerService repeatMode
+    this.playerService.repeatMode.subscribe(mode => {
+      this.repeatMode.set(mode);
+    });
+  }
 
   setPlayerComponent(player: YoutubePlayerComponent) {
-    this.currentPlayerComponent = player;
+    // Delegate to PlayerService
+    this.playerService.setPlayerComponent(player);
   }
 
   addToPlaylist(video: any): void {
@@ -36,7 +45,7 @@ export class PlaylistService {
     this.playlist.set([]);
     this.originalPlaylist = [];
     this.currentTrackIndex.set(-1);
-    this.playbackState.set('stopped');
+    this.playerService.stop();
   }
 
   removeTrack(track: any): void {
@@ -51,7 +60,7 @@ export class PlaylistService {
 
     // Maintain current index logic
     if (this.currentTrackIndex.value === index) {
-      this.stop();
+      this.playerService.stop();
       this.setCurrentTrackIndex(-1);
     } else if (this.currentTrackIndex.value > index) {
       this.setCurrentTrackIndex(this.currentTrackIndex.value - 1);
@@ -84,13 +93,11 @@ export class PlaylistService {
   }
 
   pause(): void {
-    this.playbackState.set('paused');
-    this.currentPlayerComponent?.pauseVideo();
+    this.playerService.pause();
   }
 
   stop(): void {
-    this.playbackState.set('stopped');
-    this.currentPlayerComponent?.stopVideo();
+    this.playerService.stop();
   }
 
   next(): void {
@@ -134,11 +141,11 @@ export class PlaylistService {
   }
 
   setRepeatMode(mode: 'none' | 'all' | 'one'): void {
-    this.repeatMode.set(mode);
+    this.playerService.setRepeatMode(mode);
   }
 
   getRepeatMode(): 'none' | 'all' | 'one' {
-    return this.repeatMode.value;
+    return this.playerService.getRepeatMode();
   }
 
   setShuffleState(shuffled: boolean): void {
@@ -185,9 +192,8 @@ export class PlaylistService {
 
   private playCurrentTrack(): void {
     const track = this.getCurrentTrack();
-    if (track && this.currentPlayerComponent) {
-      this.currentPlayerComponent.playVideo(track.id);
-      this.playbackState.set('playing');
+    if (track) {
+      this.playerService.playVideo(track.id);
     }
   }
 }

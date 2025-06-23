@@ -1,3 +1,4 @@
+import { PlayerService } from './../../services/player.service';
 import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { Stream, switchMap } from '@actioncrew/streamix';
 import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
@@ -287,6 +288,7 @@ export class SearchPage {
   lastSearchType = '';
   sortOrder: string = '';
 
+  isHidden = false;
   showPopover = false;
   popoverEvent: any;
 
@@ -302,6 +304,7 @@ export class SearchPage {
     private googleSuggestionsService: GoogleSuggestionsService,
     private youtubeDataService: YoutubeDataService,
     private playlistService: PlaylistService,
+    private playerService: PlayerService,
     private authorization: Authorization
   ) {}
 
@@ -585,6 +588,7 @@ export class SearchPage {
   }
 
   togglePlayer() {
-    //this.y
+    this.isHidden ? this.playerService.show() : this.playerService.hide();
+    this.isHidden = !this.isHidden;
   }
 }
