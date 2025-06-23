@@ -1,5 +1,5 @@
 import { IonicModule } from '@ionic/angular';
-import { YoutubeDataService } from './../../services/youtube-data.service';
+import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';

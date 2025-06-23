@@ -1,7 +1,7 @@
 import { Stream } from '@actioncrew/streamix';
 import { HttpClient, readJson } from '@actioncrew/streamix/http';
 
-import { IYoutubeQueryParams } from './../interfaces/search-parameters';
+import { IYoutubeQueryParams } from '../interfaces/search-parameters';
 import { inject, Injectable } from '@angular/core';
 import { map } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';

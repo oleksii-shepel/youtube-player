@@ -4,7 +4,7 @@ import { tap } from 'rxjs/operators';
 
 import { ShrinkNumberPipe } from '../../pipes/shrink-number.pipe';
 import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
-import { YoutubeDataService } from 'src/app/services/youtube-data.service';
+import { YoutubeDataService } from 'src/app/services/data.service';
 import { IonicModule } from '@ionic/angular'; // Import IonicModule
 
 @Component({

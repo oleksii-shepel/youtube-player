@@ -34,6 +34,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   private player: YT.Player | null = null;
   private playerId = '';
   private hasEnded = false;
+  private isHidden = false;
 
   private api: ReplaySubject<any> = createReplaySubject(1);
   private subs: Subscription[] = [];
@@ -182,5 +183,26 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
     } catch {
       return null;
     }
+  }
+
+  hide() {
+    if (this.isHidden) return;
+    this.isHidden = true;
+
+    // Keep playing, just hide visually
+    this.renderer.setStyle(this.playerContainer.nativeElement, 'visibility', 'hidden');
+    this.renderer.setStyle(this.playerContainer.nativeElement, 'width', '0');
+    this.renderer.setStyle(this.playerContainer.nativeElement, 'height', '0');
+    this.renderer.setStyle(this.playerContainer.nativeElement, 'overflow', 'hidden');
+  }
+
+  show() {
+    if (!this.isHidden) return;
+    this.isHidden = false;
+
+    this.renderer.removeStyle(this.playerContainer.nativeElement, 'visibility');
+    this.renderer.removeStyle(this.playerContainer.nativeElement, 'width');
+    this.renderer.removeStyle(this.playerContainer.nativeElement, 'height');
+    this.renderer.removeStyle(this.playerContainer.nativeElement, 'overflow');
   }
 }

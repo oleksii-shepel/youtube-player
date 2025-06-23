@@ -1,10 +1,18 @@
 import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { Stream, switchMap } from '@actioncrew/streamix';
 import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
-import { GoogleSuggestionsService } from 'src/app/services/google-suggestions.service';
+import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { PlaylistService } from 'src/app/services/playlist.service';
-import { YoutubeDataService } from 'src/app/services/youtube-data.service';  // Import YoutubeDataService
+import { YoutubeDataService } from 'src/app/services/data.service';  // Import YoutubeDataService
 import { Authorization } from 'src/app/services/authorization.service';
+import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
+import { StreamixModule } from 'projects/angular/src/lib';
+import { YoutubeVideoComponent } from 'src/app/components/youtube-video/youtube-video.component';
+import { YoutubePlaylistComponent } from 'src/app/components/youtube-playlist/youtube-playlist.component';
+import { YoutubeChannelComponent } from 'src/app/components/youtube-channel/youtube-channel.component';
+import { FilterComponent } from 'src/app/components/filter/filter.component';
 
 @Component({
   selector: 'app-search',
@@ -118,6 +126,10 @@ import { Authorization } from 'src/app/services/authorization.service';
 
               <ion-button fill="clear">
                 <ion-icon name="videocam-outline"></ion-icon>
+              </ion-button>
+
+              <ion-button fill="clear" (click)="togglePlayer()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off-icon lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
               </ion-button>
 
               <ng-container *ngIf="auth$ | async as auth; else loginButton">
@@ -239,7 +251,17 @@ import { Authorization } from 'src/app/services/authorization.service';
     </ion-content>
   `,
   styleUrls: ['./search.page.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    StreamixModule,
+    YoutubeVideoComponent,
+    YoutubePlaylistComponent,
+    YoutubeChannelComponent,
+    FilterComponent
+  ]
 })
 export class SearchPage {
   searchQuery: string = '';
@@ -560,5 +582,9 @@ export class SearchPage {
 
   addTrackToPlaylist(video: any) {
     this.playlistService.addToPlaylist(video);
+  }
+
+  togglePlayer() {
+    //this.y
   }
 }
