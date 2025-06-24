@@ -289,7 +289,7 @@ export class SearchPage {
   lastSearchType = '';
   sortOrder: string = '';
 
-  isHidden = false;
+  isHidden = true;
   showPopover = false;
   popoverEvent: any;
 

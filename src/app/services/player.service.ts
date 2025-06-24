@@ -8,7 +8,7 @@ import { createUpdater } from "../utils/stateUpdater";
 export class PlayerService {
   playbackState = createUpdater<'playing' | 'paused' | 'stopped'>('stopped');
   repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
-  isHidden = createUpdater<boolean>(false);
+  isHidden = createUpdater<boolean>(true);
 
   private player: YoutubePlayerComponent | null = null;
 

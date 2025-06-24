@@ -28,12 +28,8 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-
-.modal-overlay.visible {
   z-index: 1000;
+  pointer-events: none;
 }
 
 .backdrop {
@@ -57,6 +53,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.modal-container.hidden {
+  z-index: -1;
 }
 
 .drag-overlay {

@@ -11,9 +11,9 @@ declare const YT: any;
   template: `
     <ion-app id="mainContainer">
       <ng-template #playerModalTemplate>
-        <div class="modal-overlay" [class.visible]="isOpen" [class.compact]="isCompact">
+        <div class="modal-overlay" [style.visibility]="isHidden ? 'hidden' : 'visible'" [class.compact]="isCompact">
           <div class="backdrop" (click)="closeModal()" *ngIf="!isCompact"></div>
-          <div class="modal-container" [class.hidden]="!isOpen" appDraggable appResizable [preserveAspectRatio]="false">
+          <div class="modal-container" appDraggable appResizable [preserveAspectRatio]="false">
             <div class="drag-overlay"></div>
             <youtube-player
               #youtubePlayer
@@ -26,7 +26,7 @@ declare const YT: any;
         </div>
       </ng-template>
 
-      <ng-container [class.visibility]="isOpen ? 'hidden' : 'visible'" [ngTemplateOutlet]="playerModalTemplate"></ng-container>
+      <ng-container [ngTemplateOutlet]="playerModalTemplate"></ng-container>
 
       <ion-split-pane contentId="main-content">
         <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
@@ -50,7 +50,7 @@ declare const YT: any;
 export class AppComponent implements AfterViewInit, OnDestroy {
   selectedVideoId = '';
   isCompact = true;
-  isOpen = false;
+  isHidden = true;
   currentPlayerState: number = -1;
 
   @ViewChild('youtubePlayer', { static: true }) youtubePlayer: YoutubePlayerComponent | undefined;
@@ -68,7 +68,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.playlistService.setPlayerComponent(this.youtubePlayer!);
 
     this.isHiddenSubscription = this.playerService.isHidden.subscribe((value) => {
-      this.isOpen = !value;
+      this.isHidden = value;
     })
 
     this.currentTrackSubscription = this.playlistService.currentTrackIndex.subscribe(index => {
@@ -98,11 +98,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   openModalWithTrack(): void {
-    this.isOpen = true;
+    this.playerService.show();
   }
 
   closeModal(): void {
-    this.isOpen = false;
+    this.playerService.hide();
   }
 
   onPlayerVideoEnded(): void {
