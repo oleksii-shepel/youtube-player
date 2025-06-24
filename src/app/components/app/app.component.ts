@@ -26,7 +26,7 @@ declare const YT: any;
         </div>
       </ng-template>
 
-      <ng-container *ngIf="isOpen" [ngTemplateOutlet]="playerModalTemplate"></ng-container>
+      <ng-container [class.visibility]="isOpen ? 'hidden' : 'visible'" [ngTemplateOutlet]="playerModalTemplate"></ng-container>
 
       <ion-split-pane contentId="main-content">
         <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
