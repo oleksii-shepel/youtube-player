@@ -2,6 +2,7 @@ import { Component, ViewChild, AfterViewInit, OnDestroy, ElementRef, ViewContain
 import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../youtube-player/youtube-player.component';
 import { Subscription } from '@actioncrew/streamix';
+import { PlayerService } from 'src/app/services/player.service';
 
 declare const YT: any;
 
@@ -9,18 +10,23 @@ declare const YT: any;
   selector: 'app-root',
   template: `
     <ion-app id="mainContainer">
-      <div class="modal-overlay" [class.visible]="isOpen" [class.compact]="isCompact">
-        <div class="backdrop" (click)="closeModal()"  *ngIf="!isCompact"></div>
-        <div class="modal-container" appDraggable>
-          <div class="drag-overlay"></div>
-          <youtube-player #youtubePlayer
-            [videoId]="selectedVideoId"
-            (videoEnded)="onPlayerVideoEnded()"
-            (change)="onPlayerStateChange($event)"
-          ></youtube-player>
-          <ion-button expand="block" (click)="closeModal()" *ngIf="!isCompact">Close</ion-button>
+      <ng-template #playerModalTemplate>
+        <div class="modal-overlay" [class.visible]="isOpen" [class.compact]="isCompact">
+          <div class="backdrop" (click)="closeModal()" *ngIf="!isCompact"></div>
+          <div class="modal-container" [class.hidden]="!isOpen" appDraggable appResizable [preserveAspectRatio]="false">
+            <div class="drag-overlay"></div>
+            <youtube-player
+              #youtubePlayer
+              [videoId]="selectedVideoId"
+              (videoEnded)="onPlayerVideoEnded()"
+              (change)="onPlayerStateChange($event)"
+            ></youtube-player>
+            <ion-button expand="block" (click)="closeModal()" *ngIf="!isCompact">Close</ion-button>
+          </div>
         </div>
-      </div>
+      </ng-template>
+
+      <ng-container *ngIf="isOpen" [ngTemplateOutlet]="playerModalTemplate"></ng-container>
 
       <ion-split-pane contentId="main-content">
         <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
@@ -43,20 +49,27 @@ declare const YT: any;
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   selectedVideoId = '';
-  isOpen = true;
   isCompact = true;
+  isOpen = false;
   currentPlayerState: number = -1;
 
   @ViewChild('youtubePlayer', { static: true }) youtubePlayer: YoutubePlayerComponent | undefined;
   private currentTrackSubscription: Subscription | null = null;
+  private isHiddenSubscription: Subscription | null = null;
 
   constructor(
-    public playlistService: PlaylistService
+    public playlistService: PlaylistService,
+    public playerService: PlayerService
   ) {
   }
 
+
   ngAfterViewInit(): void {
     this.playlistService.setPlayerComponent(this.youtubePlayer!);
+
+    this.isHiddenSubscription = this.playerService.isHidden.subscribe((value) => {
+      this.isOpen = !value;
+    })
 
     this.currentTrackSubscription = this.playlistService.currentTrackIndex.subscribe(index => {
       const track = this.playlistService.getPlaylist()[index];
@@ -109,6 +122,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     if (this.currentTrackSubscription) {
       this.currentTrackSubscription.unsubscribe();
+    }
+
+    if (this.isHiddenSubscription) {
+      this.isHiddenSubscription.unsubscribe();
     }
   }
 }

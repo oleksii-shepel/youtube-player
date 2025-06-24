@@ -18,7 +18,7 @@ import { createReplaySubject, ReplaySubject, Subscription } from '@actioncrew/st
   standalone: true,
   selector: 'youtube-player',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div #playerContainer style="width: 100%; height: 100%; min-height: 270px;"></div>`,
+  template: `<div #playerContainer style="width: 100%; height: 100%; min-width: 0; min-height: 0;"></div>`,
 })
 export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   @Input() videoId = '';
@@ -188,21 +188,12 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   hide() {
     if (this.isHidden) return;
     this.isHidden = true;
-
-    // Keep playing, just hide visually
-    this.renderer.setStyle(this.container.nativeElement, 'visibility', 'hidden');
-    this.renderer.setStyle(this.container.nativeElement, 'width', '0');
-    this.renderer.setStyle(this.container.nativeElement, 'height', '0');
-    this.renderer.setStyle(this.container.nativeElement, 'overflow', 'hidden');
+    this.renderer.addClass(this.container.nativeElement, 'hidden');
   }
 
   show() {
     if (!this.isHidden) return;
     this.isHidden = false;
-
-    this.renderer.removeStyle(this.container.nativeElement, 'visibility');
-    this.renderer.removeStyle(this.container.nativeElement, 'width');
-    this.renderer.removeStyle(this.container.nativeElement, 'height');
-    this.renderer.removeStyle(this.container.nativeElement, 'overflow');
+    this.renderer.removeClass(this.container.nativeElement, 'hidden');
   }
 }

@@ -13,11 +13,12 @@ import { YoutubePlayerComponent } from './components/youtube-player/youtube-play
 import { PlaylistTrackComponent } from './components/playlist-track/playlist-track.component';
 import { SortableDirective } from './directives/sortable/sortable.directive';
 import { DraggableDirective } from './directives/draggable/draggable.directive';
+import { ResizableDirective } from './directives/resizable/resizable.directive';
 
 export const HTTP_CLIENT = new InjectionToken('HttpClient');
 
 @NgModule({
-  declarations: [AppComponent, PlaylistComponent, PlaylistTrackComponent, SortableDirective, DraggableDirective],
+  declarations: [AppComponent, PlaylistComponent, PlaylistTrackComponent, SortableDirective, DraggableDirective, ResizableDirective],
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, ShrinkNumberPipe, ToFriendlyDurationPipe, YoutubePlayerComponent],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },

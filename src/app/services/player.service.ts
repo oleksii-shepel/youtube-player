@@ -8,9 +8,9 @@ import { createUpdater } from "../utils/stateUpdater";
 export class PlayerService {
   playbackState = createUpdater<'playing' | 'paused' | 'stopped'>('stopped');
   repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
+  isHidden = createUpdater<boolean>(false);
 
   private player: YoutubePlayerComponent | null = null;
-  private isHidden = false;
 
   // Store original styles to restore later
   private originalStyles: Partial<CSSStyleDeclaration> = {};
@@ -47,44 +47,10 @@ export class PlayerService {
   }
 
   hide(): void {
-    if (this.isHidden || !this.player) return;
-    this.isHidden = true;
-
-    const el =  document.querySelector('.modal-overlay') as HTMLElement;
-    if (el) {
-      // Save current styles you want to override
-      this.originalStyles = {
-        position: el.style.position,
-        width: el.style.width,
-        height: el.style.height,
-        opacity: el.style.opacity,
-        pointerEvents: el.style.pointerEvents,
-      };
-
-      // Apply hiding styles
-      el.style.position = 'absolute';
-      el.style.width = '1px';
-      el.style.height = '1px';
-      el.style.opacity = '0.01';
-      el.style.pointerEvents = 'none';
-    }
+    this.isHidden.set(true);
   }
 
   show(): void {
-    if (!this.isHidden || !this.player) return;
-    this.isHidden = false;
-
-    const el =  document.querySelector('.modal-overlay') as HTMLElement;
-    if (el) {
-      // Restore saved styles exactly
-      el.style.position = this.originalStyles.position || '';
-      el.style.width = this.originalStyles.width || '';
-      el.style.height = this.originalStyles.height || '';
-      el.style.opacity = this.originalStyles.opacity || '';
-      el.style.pointerEvents = this.originalStyles.pointerEvents || '';
-
-      // Clear the saved styles cache
-      this.originalStyles = {};
-    }
+    this.isHidden.set(false);
   }
 }
