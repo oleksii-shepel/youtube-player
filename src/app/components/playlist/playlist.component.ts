@@ -147,6 +147,7 @@ import { Options } from 'sortablejs';
           (click)="onTrackClick(i, $event)"
           (trackDeleted)="deleteTrack(track)"
           [isSelected]="isTrackSelectedByIndex(i)"
+          [isPlaying]="i === currentTrackIndex && isPlaying"
         ></app-playlist-track>
       </div>
     </ion-list>

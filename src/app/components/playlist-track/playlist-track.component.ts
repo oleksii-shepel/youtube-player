@@ -14,6 +14,9 @@ import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/co
       >
         <ion-thumbnail slot="start">
           <img [src]="thumbnailUrl" [alt]="track.snippet?.title || 'Track thumbnail'" />
+          <div class="playing-indicator" *ngIf="isPlaying" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
         </ion-thumbnail>
         <ion-label>
           <h2 class="track-title">{{ track.snippet?.title || 'Unknown Title' }}</h2>
@@ -36,6 +39,8 @@ export class PlaylistTrackComponent {
   @Input() thumbnailUrl!: string;
   @Input() formattedDuration!: string;
   @Input() isSelected: boolean = false;
+  @Input() isPlaying: boolean = false;
+
 
   @Output() trackSelected = new EventEmitter<any>();
   @Output() trackDeleted = new EventEmitter<any>();
