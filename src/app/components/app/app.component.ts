@@ -13,7 +13,7 @@ declare const YT: any;
         <div class="backdrop" (click)="closeModal()"  *ngIf="!isCompact"></div>
         <div class="modal-container" appDraggable>
           <div class="drag-overlay"></div>
-          <youtube-player
+          <youtube-player #youtubePlayer
             [videoId]="selectedVideoId"
             (videoEnded)="onPlayerVideoEnded()"
             (change)="onPlayerStateChange($event)"
@@ -47,61 +47,26 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   isCompact = true;
   currentPlayerState: number = -1;
 
-  @ViewChild('modalPlayerHost') modalPlayerHost!: ElementRef;
-  private playlistPlayerHost: ViewContainerRef | null = null;
-
-  private youtubePlayerComponentRef: ComponentRef<YoutubePlayerComponent> | null = null;
+  @ViewChild('youtubePlayer', { static: true }) youtubePlayer: YoutubePlayerComponent | undefined;
   private currentTrackSubscription: Subscription | null = null;
 
   constructor(
-    public playlistService: PlaylistService,
-    private injector: Injector
-  ) {}
-
-  onPlaylistPlayerHostReady(vcr: ViewContainerRef | any): void {
-    this.playlistPlayerHost = vcr;
-    this.createYoutubePlayer();
+    public playlistService: PlaylistService
+  ) {
   }
 
   ngAfterViewInit(): void {
+    this.playlistService.setPlayerComponent(this.youtubePlayer!);
+
     this.currentTrackSubscription = this.playlistService.currentTrackIndex.subscribe(index => {
       const track = this.playlistService.getPlaylist()[index];
       if (track && track.id !== this.selectedVideoId) {
         this.selectedVideoId = track.id;
-        if (this.youtubePlayerComponentRef) {
-          this.youtubePlayerComponentRef.instance.videoId = this.selectedVideoId;
+        if (this.youtubePlayer) {
+          this.youtubePlayer.videoId = this.selectedVideoId;
         }
       }
     });
-  }
-
-  private createYoutubePlayer(): void {
-    if (this.youtubePlayerComponentRef || !this.playlistPlayerHost) {
-      return;
-    }
-
-    this.youtubePlayerComponentRef = this.playlistPlayerHost.createComponent(YoutubePlayerComponent, {
-      injector: this.injector
-    });
-
-    // Bind outputs
-    this.youtubePlayerComponentRef.instance.videoEnded.subscribe(() => this.onPlayerVideoEnded());
-    this.youtubePlayerComponentRef.instance.change.subscribe((event) => this.onPlayerStateChange(event));
-
-    this.playlistService.setPlayerComponent(this.youtubePlayerComponentRef.instance);
-
-    // Set initial video
-    const initialTrackIndex = this.playlistService.getCurrentTrackIndex();
-    const initialPlaylist = this.playlistService.getPlaylist();
-
-    if (initialTrackIndex !== -1 && initialPlaylist[initialTrackIndex]) {
-      this.selectedVideoId = initialPlaylist[initialTrackIndex].id;
-      this.youtubePlayerComponentRef.instance.videoId = this.selectedVideoId;
-    } else if (initialPlaylist.length > 0) {
-      this.playlistService.setCurrentTrackIndex(0);
-      this.selectedVideoId = initialPlaylist[0].id;
-      this.youtubePlayerComponentRef.instance.videoId = this.selectedVideoId;
-    }
   }
 
   onTrackSelected(track: any): void {
@@ -121,66 +86,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   openModalWithTrack(): void {
     this.isOpen = true;
-
-    // Move the actual iframe DOM element
-    this.moveIframeToModal();
   }
 
   closeModal(): void {
     this.isOpen = false;
-
-    // Move the iframe back to playlist
-    this.moveIframeToPlaylist();
-  }
-
-  private moveIframeToModal(): void {
-    // Find the YouTube iframe within the YoutubePlayerComponent
-    const iframe = this.findYouTubeIframe();
-
-    if (iframe && this.modalPlayerHost) {
-      // Move the actual iframe element to modal
-      this.modalPlayerHost.nativeElement.appendChild(iframe);
-    }
-  }
-
-  private moveIframeToPlaylist(): void {
-    this.playlistService.pause();
-
-    setTimeout(() => {
-      // Find the YouTube iframe
-      const iframe = this.findYouTubeIframe();
-
-      if (iframe && this.playlistPlayerHost && this.youtubePlayerComponentRef) {
-        // Get the original container of the YoutubePlayerComponent
-        const originalContainer = this.youtubePlayerComponentRef.location.nativeElement;
-
-        // Move the iframe back to its original container
-        originalContainer.appendChild(iframe);
-      }
-
-      this.playlistService.play();
-    }, 1000);
-  }
-
-  private findYouTubeIframe(): HTMLIFrameElement | null {
-    // Method 1: Find by YouTube iframe characteristics
-    const iframes = document.querySelectorAll('iframe');
-
-    for (let iframe of Array.from(iframes)) {
-      if (iframe.src && iframe.src.includes('youtube.com/embed')) {
-        return iframe;
-      }
-    }
-
-    // Method 2: If your YoutubePlayerComponent has a specific structure
-    if (this.youtubePlayerComponentRef) {
-      const componentElement = this.youtubePlayerComponentRef.location.nativeElement;
-      const iframe = componentElement.querySelector('iframe');
-      return iframe;
-    }
-
-    // Method 3: Find by ID if your YoutubePlayerComponent sets one
-    return document.getElementById('youtube-player-iframe') as HTMLIFrameElement;
   }
 
   onPlayerVideoEnded(): void {
@@ -200,10 +109,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     if (this.currentTrackSubscription) {
       this.currentTrackSubscription.unsubscribe();
-    }
-    if (this.youtubePlayerComponentRef) {
-      this.youtubePlayerComponentRef.destroy();
-      this.youtubePlayerComponentRef = null;
     }
   }
 }
