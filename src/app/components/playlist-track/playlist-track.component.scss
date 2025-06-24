@@ -49,40 +49,48 @@ ion-item-sliding {
   }
 }
 
-.playing-indicator {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  display: flex;
-  gap: 1px;
-  width: 14px;
-  height: 10px;
-  align-items: flex-end;
+.playing-overlay svg path {
+  stroke-dasharray: 15 45;
+  stroke-dashoffset: 0;
+  animation: wave 2s linear infinite;
+}
 
-  span {
-    display: block;
-    width: 3px;
-    background: var(--ion-color-primary-contrast);
-    animation: bounce 1.2s infinite ease-in-out;
-    border-radius: 1px;
-
-    &:nth-child(1) {
-      animation-delay: 0s;
-    }
-    &:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    &:nth-child(3) {
-      animation-delay: 0.4s;
-    }
+@keyframes wave {
+  to {
+    stroke-dashoffset: -60;
   }
 }
 
-@keyframes bounce {
-  0%, 100% {
-    height: 2px;
-  }
-  50% {
-    height: 10px;
-  }
+.thumbnail-container {
+  position: relative; /* Make this the reference point for absolutely positioned children */
+  display: flex; /* Helps ensure the image fills the space */
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Important to prevent the pulsing SVG from overflowing if it extends beyond the thumbnail bounds, though with 24px it might not */
+}
+
+/* Styles for the overlay containing the SVG */
+.playing-overlay {
+  position: absolute; /* Position it relative to .thumbnail-container */
+  top: 50%; /* Move top edge to vertical center */
+  left: 50%; /* Move left edge to horizontal center */
+  transform: translate(-50%, -50%); /* Pull it back by half its own width/height to truly center it */
+  z-index: 10; /* Ensure it's above the image */
+  /* Optional: Add a semi-transparent background if you want a slight dimming effect over the image */
+  /* background-color: rgba(0, 0, 0, 0.3); */
+  /* If the image fills the thumbnail, you can make the overlay fill it too for more precise centering */
+  width: 100%;
+  height: 100%;
+  display: flex; /* Use flexbox to center the SVG within the overlay itself */
+  justify-content: center;
+  align-items: center;
+}
+
+/* If the SVG needs specific sizing within the overlay, you can target it directly */
+.playing-overlay svg {
+  /* The width/height attributes on the SVG itself are often enough,
+     but you can explicitly set them here if needed */
+  /* width: 24px;
+  height: 24px; */
+  display: block; /* Remove any extra space below the SVG */
 }

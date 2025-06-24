@@ -12,10 +12,21 @@ import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/co
         [attr.aria-selected]="isSelected"
         role="option"
       >
-        <ion-thumbnail slot="start">
+       <ion-thumbnail slot="start" class="thumbnail-container">
           <img [src]="thumbnailUrl" [alt]="track.snippet?.title || 'Track thumbnail'" />
-          <div class="playing-indicator" *ngIf="isPlaying" aria-hidden="true">
-            <span></span><span></span><span></span>
+          <div class="playing-overlay" *ngIf="isPlaying" aria-hidden="true">
+            <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="25" cy="25" r="20" fill="#a14a4a" opacity="0.8">
+                <animate attributeName="r"
+                        values="15;25;15"
+                        dur="2s"
+                        repeatCount="indefinite"/>
+                <animate attributeName="opacity"
+                        values="0.8;0.3;0.8"
+                        dur="2s"
+                        repeatCount="indefinite"/>
+              </circle>
+            </svg>
           </div>
         </ion-thumbnail>
         <ion-label>
