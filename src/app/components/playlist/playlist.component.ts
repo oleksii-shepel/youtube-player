@@ -6,9 +6,6 @@ import {
   ViewEncapsulation,
   OnInit,
   HostListener,
-  ViewContainerRef,
-  AfterViewInit, // Import AfterViewInit
-  ViewChild,     // Import ViewChild
 } from '@angular/core';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { Subscription } from '@actioncrew/streamix'; // Use rxjs for Subscription as @actioncrew/streamix is not standard
@@ -141,7 +138,7 @@ import { Options } from 'sortablejs';
         </div>
       </div>
 
-      <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" [enabled]="!isTouchableDevice()" (sortUpdate)="onPlaylistSort($event)">
+      <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" (sortUpdate)="onPlaylistSort($event)">
         <app-playlist-track
           *ngFor="let track of playlist; let i = index"
           [track]="track"
@@ -152,24 +149,16 @@ import { Options } from 'sortablejs';
           [isSelected]="isTrackSelectedByIndex(i)"
         ></app-playlist-track>
       </div>
-      <ng-container #playlistPlayerHost></ng-container>
     </ion-list>
   `,
   styleUrls: ['playlist.component.scss'],
   standalone: false,
   encapsulation: ViewEncapsulation.None,
 })
-export class PlaylistComponent implements OnInit, AfterViewInit { // Implement AfterViewInit
+export class PlaylistComponent implements OnInit { // Implement AfterViewInit
   @Input() playlist: any[] = [];
   @Output() trackSelected = new EventEmitter<any>();
   @Output() stateChanged = new EventEmitter<boolean>();
-
-  // NEW: Output to expose the ViewContainerRef to the parent
-  @Output() playlistPlayerHostReady = new EventEmitter<ViewContainerRef>();
-
-  // NEW: ViewChild to get a reference to the ng-container in this component's template
-  @ViewChild('playlistPlayerHost', { read: ViewContainerRef })
-  private _playlistPlayerHost!: ViewContainerRef;
 
   isShuffled: boolean = false;
   isPlaying: boolean = false;
@@ -187,7 +176,10 @@ export class PlaylistComponent implements OnInit, AfterViewInit { // Implement A
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
     dragClass: 'sortable-drag',
-    forceFallback: true
+    forceFallback: true,
+    delay: 200, // Wait before drag starts (in ms)
+    delayOnTouchOnly: true, // Only apply delay for touch devices
+    touchStartThreshold: 10, // Minimum px move before drag starts (on touch)
   };
 
   @HostListener('window:keydown', ['$event'])
@@ -237,16 +229,6 @@ export class PlaylistComponent implements OnInit, AfterViewInit { // Implement A
 
     this.isShuffled = this.playlistService.isPlaylistShuffled();
     this.repeatMode = this.playlistService.getRepeatMode();
-  }
-
-  ngAfterViewInit(): void {
-    // Emit the ViewContainerRef to the parent once it's initialized and available
-    // Use setTimeout to ensure _playlistPlayerHost is resolved by ViewChild
-    setTimeout(() => {
-      if (this._playlistPlayerHost) {
-        this.playlistPlayerHostReady.emit(this._playlistPlayerHost);
-      }
-    });
   }
 
   deleteSelectedTracks(): void {
