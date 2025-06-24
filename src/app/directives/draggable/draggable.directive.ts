@@ -2,6 +2,7 @@ import { Directive, ElementRef, HostListener } from '@angular/core';
 
 @Directive({
   selector: '[appDraggable]',
+  standalone: false
 })
 export class DraggableDirective {
   private isDragging = false;

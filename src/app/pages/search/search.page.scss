@@ -159,7 +159,6 @@ ion-avatar {
 
 .icon-buttons {
   display: flex;
-  gap: 4px;
   align-items: center;
 
   & ion-button {
@@ -170,6 +169,12 @@ ion-avatar {
   & ion-button:not(.ion-color-primary) svg {
     stroke: var(--ion-text-color-step-850);
     color: var(--ion-text-color-step-850);
+  }
+
+  & ion-icon {
+    margin: 0;
+    width: 20px;
+    height: 20px;
   }
 }
 

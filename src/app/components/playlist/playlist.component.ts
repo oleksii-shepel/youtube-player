@@ -6,9 +6,12 @@ import {
   ViewEncapsulation,
   OnInit,
   HostListener,
+  ViewContainerRef,
+  AfterViewInit, // Import AfterViewInit
+  ViewChild,     // Import ViewChild
 } from '@angular/core';
 import { PlaylistService } from 'src/app/services/playlist.service';
-import { Subscription } from '@actioncrew/streamix';
+import { Subscription } from '@actioncrew/streamix'; // Use rxjs for Subscription as @actioncrew/streamix is not standard
 import { Options } from 'sortablejs';
 
 @Component({
@@ -64,7 +67,6 @@ import { Options } from 'sortablejs';
             <ion-icon name="play-skip-forward"></ion-icon>
           </ion-button>
 
-          <!-- Repeat Button - cycles through states -->
           <ion-button
             fill="clear"
             (click)="toggleRepeat()"
@@ -150,16 +152,24 @@ import { Options } from 'sortablejs';
           [isSelected]="isTrackSelectedByIndex(i)"
         ></app-playlist-track>
       </div>
+      <ng-container #playlistPlayerHost></ng-container>
     </ion-list>
   `,
   styleUrls: ['playlist.component.scss'],
   standalone: false,
   encapsulation: ViewEncapsulation.None,
 })
-export class PlaylistComponent implements OnInit {
+export class PlaylistComponent implements OnInit, AfterViewInit { // Implement AfterViewInit
   @Input() playlist: any[] = [];
   @Output() trackSelected = new EventEmitter<any>();
   @Output() stateChanged = new EventEmitter<boolean>();
+
+  // NEW: Output to expose the ViewContainerRef to the parent
+  @Output() playlistPlayerHostReady = new EventEmitter<ViewContainerRef>();
+
+  // NEW: ViewChild to get a reference to the ng-container in this component's template
+  @ViewChild('playlistPlayerHost', { read: ViewContainerRef })
+  private _playlistPlayerHost!: ViewContainerRef;
 
   isShuffled: boolean = false;
   isPlaying: boolean = false;
@@ -171,16 +181,13 @@ export class PlaylistComponent implements OnInit {
 
   private subscriptions: Subscription[] = [];
 
-   // Define your SortableJS options
   sortablePlaylistOptions: Options = {
-    group: 'playlist-items', // To allow dragging between multiple lists if needed
+    group: 'playlist-items',
     animation: 150,
-    ghostClass: 'sortable-ghost', // Class for the placeholder
-    chosenClass: 'sortable-chosen', // Class for the dragged item
-    dragClass: 'sortable-drag', // Class when item is actively dragged
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
     forceFallback: true
-    // You can add many more options here: handle, filter, etc.
-    // See SortableJS documentation for all options: https://github.com/SortableJS/Sortable#options
   };
 
   @HostListener('window:keydown', ['$event'])
@@ -228,9 +235,18 @@ export class PlaylistComponent implements OnInit {
       })
     );
 
-    // Initialize from service
     this.isShuffled = this.playlistService.isPlaylistShuffled();
     this.repeatMode = this.playlistService.getRepeatMode();
+  }
+
+  ngAfterViewInit(): void {
+    // Emit the ViewContainerRef to the parent once it's initialized and available
+    // Use setTimeout to ensure _playlistPlayerHost is resolved by ViewChild
+    setTimeout(() => {
+      if (this._playlistPlayerHost) {
+        this.playlistPlayerHostReady.emit(this._playlistPlayerHost);
+      }
+    });
   }
 
   deleteSelectedTracks(): void {
@@ -238,11 +254,9 @@ export class PlaylistComponent implements OnInit {
   }
 
   onTrackClick(index: number, event: MouseEvent): void {
-    // Pass ctrlKey/shiftKey flags for multi-selection support
     this.playlistService.selectTrack(index, event.ctrlKey, event.shiftKey);
     this.trackSelected.emit(this.playlist[index]);
 
-    // If no modifiers, set current playing track and play
     if (!event.ctrlKey && !event.shiftKey) {
       this.playlistService.setCurrentTrackIndex(index);
       this.playlistService.play();
@@ -255,9 +269,9 @@ export class PlaylistComponent implements OnInit {
 
   isTouchableDevice(): boolean {
     return (
-      'ontouchstart' in window || // Standard touch event detection
-      navigator.maxTouchPoints > 0 || // IE/Edge touch points
-      (navigator as any).msMaxTouchPoints > 0 // Old IE touch points
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      (navigator as any).msMaxTouchPoints > 0
     );
   }
 
@@ -337,34 +351,25 @@ export class PlaylistComponent implements OnInit {
 
   onPlaylistSort(event: { oldIndex: number; newIndex: number; item: any }): void {
     console.log('Playlist sorted:', event);
-    // The directive has already updated `this.playlist` due to splice
-    // Now, update your service to persist the new order
     this.playlistService.updatePlaylistOrder(this.playlist);
 
-    // Find new index of previously selected track if it was moved
-    // The `event.item` is the actual track object that was moved.
-    // If you were tracking `currentTrackIndex` based on its position,
-    // you'd need to update it here.
     if (this.selectedTrack === event.item) {
       this.playlistService.setCurrentTrackIndex(event.newIndex);
     } else {
-        // If another item was selected, its index might have changed due to the sort.
-        // Re-find the index of the currently selected track.
-        const newIndex = this.playlist.findIndex(track => track === this.selectedTrack);
-        if (newIndex !== -1) {
-            this.playlistService.setCurrentTrackIndex(newIndex);
-        }
+      const newIndex = this.playlist.findIndex(track => track === this.selectedTrack);
+      if (newIndex !== -1) {
+        this.playlistService.setCurrentTrackIndex(newIndex);
+      }
     }
   }
 
   deleteTrack(track: any): void {
     const index = this.playlist.indexOf(track);
     if (index !== -1) {
-      this.playlist.splice(index, 1); // update local array
-      this.playlistService.removeTrack(track); // update via service
+      this.playlist.splice(index, 1);
+      this.playlistService.removeTrack(track);
       this.updateNavigationState();
 
-      // Reset selection if deleted track was selected
       if (this.selectedTrack === track) {
         this.selectedTrack = null;
         this.playlistService.setCurrentTrackIndex(-1);
