@@ -50,7 +50,7 @@ export class PlayerService {
     if (this.isHidden || !this.player) return;
     this.isHidden = true;
 
-    const el =  document.querySelector('youtube-player.player') as HTMLElement;
+    const el =  document.querySelector('youtube-player') as HTMLElement;
     if (el) {
       // Save current styles you want to override
       this.originalStyles = {
@@ -74,7 +74,7 @@ export class PlayerService {
     if (!this.isHidden || !this.player) return;
     this.isHidden = false;
 
-    const el =  document.querySelector('youtube-player.player') as HTMLElement;
+    const el =  document.querySelector('youtube-player') as HTMLElement;
     if (el) {
       // Restore saved styles exactly
       el.style.position = this.originalStyles.position || '';

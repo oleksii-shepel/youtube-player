@@ -101,6 +101,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.youtubePlayerComponentRef.instance.videoEnded.subscribe(() => this.onPlayerVideoEnded());
     this.youtubePlayerComponentRef.instance.change.subscribe((event) => this.onPlayerStateChange(event));
 
+    this.playlistService.setPlayerComponent(this.youtubePlayerComponentRef.instance);
+
     // Set initial videoId if a track is already selected or playlist has content
     const initialTrackIndex = this.playlistService.getCurrentTrackIndex();
     const initialPlaylist = this.playlistService.getPlaylist();
