@@ -11,10 +11,20 @@ declare const YT: any;
   template: `
     <ion-app id="mainContainer">
       <ng-template #playerModalTemplate>
-        <div class="modal-overlay" [style.visibility]="isHidden ? 'hidden' : 'visible'" [class.compact]="isCompact">
+        <div
+          class="modal-overlay"
+          [style.visibility]="isHidden ? 'hidden' : 'visible'"
+          [class.compact]="isCompact"
+        >
           <div class="backdrop" (click)="closeModal()" *ngIf="!isCompact"></div>
-          <div class="modal-container" appDraggable appResizable [preserveAspectRatio]="false">
-            <div class="drag-overlay"></div>
+          <div
+            class="modal-container"
+            appDraggable
+            appResizable
+            [preserveAspectRatio]="false"
+            (draggableClick)="disableDragOverlay()"
+          >
+            <div class="drag-overlay" *ngIf="isDragOverlayActive" (click)="$event.stopPropagation()"></div>
             <youtube-player
               #youtubePlayer
               [videoId]="selectedVideoId"
@@ -52,6 +62,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   isCompact = true;
   isHidden = true;
   currentPlayerState: number = -1;
+  isDragOverlayActive = true;
 
   @ViewChild('youtubePlayer', { static: true }) youtubePlayer: YoutubePlayerComponent | undefined;
   private currentTrackSubscription: Subscription | null = null;
@@ -62,7 +73,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     public playerService: PlayerService
   ) {
   }
-
 
   ngAfterViewInit(): void {
     this.playlistService.setPlayerComponent(this.youtubePlayer!);
@@ -80,6 +90,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         }
       }
     });
+  }
+
+  disableDragOverlay() {
+    this.isDragOverlayActive = false;
   }
 
   onTrackSelected(track: any): void {

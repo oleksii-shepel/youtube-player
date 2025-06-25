@@ -1,4 +1,11 @@
-import { Directive, ElementRef, HostListener, OnDestroy, Renderer2, AfterViewInit } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  Renderer2,
+  AfterViewInit
+} from '@angular/core';
 
 @Directive({
   selector: '[appDraggable]',
@@ -10,6 +17,9 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
   private startY = 0;
   private initialLeft = 0;
   private initialTop = 0;
+  private movedDistance = 0;
+  private readonly dragThreshold = 20;
+
   private mouseMoveListener?: (event: MouseEvent) => void;
   private mouseUpListener?: (event: MouseEvent) => void;
 
@@ -27,22 +37,18 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
     const element = this.el.nativeElement;
     const computedStyle = window.getComputedStyle(element);
 
-    // Only set position if it's not already positioned
     if (computedStyle.position === 'static') {
       this.renderer.setStyle(element, 'position', 'absolute');
 
-      // Get the current position on screen before making it absolute
       const rect = element.getBoundingClientRect();
       const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-      // Set position to maintain current visual position
       this.renderer.setStyle(element, 'left', `${rect.left + scrollLeft}px`);
       this.renderer.setStyle(element, 'top', `${rect.top + scrollTop}px`);
     }
 
-    // Set cursor style
-    this.renderer.setStyle(element, 'cursor', 'move');
+    this.renderer.setStyle(element, 'cursor', 'default');
     this.renderer.setStyle(element, 'user-select', 'none');
   }
 
@@ -50,14 +56,12 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
   onMouseDown(event: MouseEvent): void {
     const target = event.target as HTMLElement;
 
-    // Skip if target is a resize handle or has data-resize-handle attribute
     if (target.classList.contains('resizer') ||
         target.hasAttribute('data-resize-handle') ||
         target.closest('[data-resize-handle]')) {
       return;
     }
 
-    // Skip if clicking on form elements or other interactive elements
     if (this.isInteractiveElement(target)) {
       return;
     }
@@ -68,15 +72,13 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
     this.isDragging = true;
     this.startX = event.clientX;
     this.startY = event.clientY;
+    this.movedDistance = 0;
 
     const element = this.el.nativeElement;
     const computedStyle = window.getComputedStyle(element);
-
-    // Get current position, handling different positioning contexts
     this.initialLeft = parseFloat(computedStyle.left) || 0;
     this.initialTop = parseFloat(computedStyle.top) || 0;
 
-    // Add visual feedback
     this.renderer.addClass(document.body, 'dragging-active');
     this.renderer.addClass(element, 'being-dragged');
 
@@ -120,6 +122,7 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
 
     const dx = event.clientX - this.startX;
     const dy = event.clientY - this.startY;
+    this.movedDistance = Math.sqrt(dx * dx + dy * dy);
 
     const newLeft = this.initialLeft + dx;
     const newTop = this.initialTop + dy;
@@ -127,6 +130,7 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
     const element = this.el.nativeElement;
     this.renderer.setStyle(element, 'left', `${newLeft}px`);
     this.renderer.setStyle(element, 'top', `${newTop}px`);
+    this.renderer.setStyle(this.el.nativeElement, 'cursor', 'move');
   }
 
   private onMouseUp(event: MouseEvent): void {
@@ -135,12 +139,22 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
     event.preventDefault();
     event.stopPropagation();
 
+    const wasDrag = this.movedDistance > this.dragThreshold;
+
     this.isDragging = false;
+    this.movedDistance = 0;
 
     const element = this.el.nativeElement;
     this.renderer.removeClass(document.body, 'dragging-active');
     this.renderer.removeClass(element, 'being-dragged');
+    this.renderer.setStyle(this.el.nativeElement, 'cursor', 'default');
 
     this.removeGlobalListeners();
+
+    if (!wasDrag) {
+      // Emit synthetic event to distinguish click from drag
+      const clickEvent = new CustomEvent('draggableClick', { bubbles: true, cancelable: true });
+      element.dispatchEvent(clickEvent);
+    }
   }
 }
