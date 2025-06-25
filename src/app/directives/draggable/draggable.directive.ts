@@ -4,14 +4,19 @@ import {
   HostListener,
   OnDestroy,
   Renderer2,
-  AfterViewInit
+  AfterViewInit,
+  Input,
+  OnChanges,
+  SimpleChanges
 } from '@angular/core';
 
 @Directive({
   selector: '[appDraggable]',
   standalone: false
 })
-export class DraggableDirective implements OnDestroy, AfterViewInit {
+export class DraggableDirective implements AfterViewInit, OnDestroy, OnChanges {
+  @Input('appDraggable') enabled: boolean = true;
+
   private isDragging = false;
   private startX = 0;
   private startY = 0;
@@ -27,6 +32,12 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.initializeElement();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['enabled']) {
+      this.updateCursor();
+    }
   }
 
   ngOnDestroy(): void {
@@ -48,23 +59,26 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
       this.renderer.setStyle(element, 'top', `${rect.top + scrollTop}px`);
     }
 
-    this.renderer.setStyle(element, 'cursor', 'default');
     this.renderer.setStyle(element, 'user-select', 'none');
+    this.updateCursor();
+  }
+
+  private updateCursor(): void {
+    this.renderer.setStyle(this.el.nativeElement, 'cursor', this.enabled ? 'move' : 'default');
   }
 
   @HostListener('mousedown', ['$event'])
   onMouseDown(event: MouseEvent): void {
+    if (!this.enabled) return;
+
     const target = event.target as HTMLElement;
+    if (
+      target.classList.contains('resizer') ||
+      target.hasAttribute('data-resize-handle') ||
+      target.closest('[data-resize-handle]')
+    ) return;
 
-    if (target.classList.contains('resizer') ||
-        target.hasAttribute('data-resize-handle') ||
-        target.closest('[data-resize-handle]')) {
-      return;
-    }
-
-    if (this.isInteractiveElement(target)) {
-      return;
-    }
+    if (this.isInteractiveElement(target)) return;
 
     event.preventDefault();
     event.stopPropagation();
@@ -89,10 +103,12 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
     const interactiveTags = ['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT', 'A'];
     const interactiveRoles = ['button', 'link', 'textbox'];
 
-    return interactiveTags.includes(element.tagName) ||
-           interactiveRoles.includes(element.getAttribute('role') || '') ||
-           element.contentEditable === 'true' ||
-           element.hasAttribute('tabindex');
+    return (
+      interactiveTags.includes(element.tagName) ||
+      interactiveRoles.includes(element.getAttribute('role') || '') ||
+      element.contentEditable === 'true' ||
+      element.hasAttribute('tabindex')
+    );
   }
 
   private addGlobalListeners(): void {
@@ -130,7 +146,6 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
     const element = this.el.nativeElement;
     this.renderer.setStyle(element, 'left', `${newLeft}px`);
     this.renderer.setStyle(element, 'top', `${newTop}px`);
-    this.renderer.setStyle(this.el.nativeElement, 'cursor', 'move');
   }
 
   private onMouseUp(event: MouseEvent): void {
@@ -147,12 +162,12 @@ export class DraggableDirective implements OnDestroy, AfterViewInit {
     const element = this.el.nativeElement;
     this.renderer.removeClass(document.body, 'dragging-active');
     this.renderer.removeClass(element, 'being-dragged');
-    this.renderer.setStyle(this.el.nativeElement, 'cursor', 'default');
+
+    this.updateCursor(); // Reset cursor
 
     this.removeGlobalListeners();
 
     if (!wasDrag) {
-      // Emit synthetic event to distinguish click from drag
       const clickEvent = new CustomEvent('draggableClick', { bubbles: true, cancelable: true });
       element.dispatchEvent(clickEvent);
     }

@@ -11,29 +11,13 @@ declare const YT: any;
   template: `
     <ion-app id="mainContainer">
       <ng-template #playerModalTemplate>
-        <div
-          class="modal-overlay"
-          [style.visibility]="isHidden ? 'hidden' : 'visible'"
-          [class.compact]="isCompact"
-        >
-          <div class="backdrop" (click)="closeModal()" *ngIf="!isCompact"></div>
-          <div
-            class="modal-container"
-            appDraggable
-            appResizable
-            [preserveAspectRatio]="false"
-            (draggableClick)="disableDragOverlay()"
-          >
-            <div class="drag-overlay" *ngIf="isDragOverlayActive" (click)="$event.stopPropagation()"></div>
-            <youtube-player
-              #youtubePlayer
-              [videoId]="selectedVideoId"
-              (videoEnded)="onPlayerVideoEnded()"
-              (change)="onPlayerStateChange($event)"
-            ></youtube-player>
-            <ion-button expand="block" (click)="closeModal()" *ngIf="!isCompact">Close</ion-button>
-          </div>
-        </div>
+        <youtube-player
+          [isHidden]="isHidden"
+            #youtubePlayer
+            [videoId]="selectedVideoId"
+          (videoEnded)="onPlayerVideoEnded()"
+          (change)="onPlayerStateChange($event)"
+        ></youtube-player>
       </ng-template>
 
       <ng-container [ngTemplateOutlet]="playerModalTemplate"></ng-container>

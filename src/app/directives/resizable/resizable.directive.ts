@@ -14,6 +14,8 @@ import {
   standalone: false
 })
 export class ResizableDirective implements OnInit, OnDestroy {
+  @Input('appResizable') enabled: boolean = true;
+
   @Input() minSize = 100;
   @Input() maxSize = 1000;
   @Input() preserveAspectRatio = true;
@@ -21,20 +23,21 @@ export class ResizableDirective implements OnInit, OnDestroy {
   @Input() resizeHandleColor = 'rgba(0, 0, 0, 0.3)';
 
   private resizer!: HTMLElement;
-  private startX = 0;
-  private startY = 0;
-  private startWidth = 0;
-  private startHeight = 0;
-  private startLeft = 0;
-  private startTop = 0;
   private isResizing = false;
   private mutationObserver?: MutationObserver;
   private mouseMoveListener?: (event: MouseEvent) => void;
   private mouseUpListener?: (event: MouseEvent) => void;
 
+  private startX = 0;
+  private startY = 0;
+  private startWidth = 0;
+  private startHeight = 0;
+
   constructor(private el: ElementRef, private renderer: Renderer2) {}
 
   ngOnInit(): void {
+    if (!this.enabled) return;
+
     this.initializeElementPosition();
     this.createResizer();
     this.setInitialStyles();
@@ -42,6 +45,7 @@ export class ResizableDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (!this.enabled) return;
     this.mutationObserver?.disconnect();
     this.removeGlobalListeners();
   }
@@ -50,16 +54,13 @@ export class ResizableDirective implements OnInit, OnDestroy {
     const host = this.el.nativeElement;
     const computedStyle = window.getComputedStyle(host);
 
-    // Only set position if it's not already positioned
     if (computedStyle.position === 'static') {
       this.renderer.setStyle(host, 'position', 'absolute');
 
-      // Get the current position on screen before making it absolute
       const rect = host.getBoundingClientRect();
       const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-      // Set position to maintain current visual position
       this.renderer.setStyle(host, 'left', `${rect.left + scrollLeft}px`);
       this.renderer.setStyle(host, 'top', `${rect.top + scrollTop}px`);
     }
@@ -70,17 +71,19 @@ export class ResizableDirective implements OnInit, OnDestroy {
     this.renderer.addClass(this.resizer, 'resizer');
     this.renderer.setAttribute(this.resizer, 'data-resize-handle', 'true');
     this.renderer.appendChild(this.el.nativeElement, this.resizer);
+
+    this.renderer.listen(this.resizer, 'mousedown', (event: MouseEvent) => {
+      this.onResizerMouseDown(event);
+    });
   }
 
   private setInitialStyles(): void {
     const host = this.el.nativeElement;
 
-    // Host element styles
-    this.renderer.setStyle(host, 'overflow', 'visible'); // Changed from hidden to allow resize handle
+    this.renderer.setStyle(host, 'overflow', 'visible');
     this.renderer.setStyle(host, 'transform-origin', 'center center');
     this.renderer.setStyle(host, 'box-sizing', 'border-box');
 
-    // Resizer handle styles
     this.renderer.setStyle(this.resizer, 'position', 'absolute');
     this.renderer.setStyle(this.resizer, 'width', `${this.resizeHandleSize}px`);
     this.renderer.setStyle(this.resizer, 'height', `${this.resizeHandleSize}px`);
@@ -94,12 +97,9 @@ export class ResizableDirective implements OnInit, OnDestroy {
   }
 
   private setupMutationObserver(): void {
-    this.mutationObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-          this.positionResizeHandle();
-        }
-      });
+    this.mutationObserver = new MutationObserver(() => {
+      this.renderer.setStyle(this.resizer, 'right', '0');
+      this.renderer.setStyle(this.resizer, 'bottom', '0');
     });
 
     this.mutationObserver.observe(this.el.nativeElement, {
@@ -108,29 +108,39 @@ export class ResizableDirective implements OnInit, OnDestroy {
     });
   }
 
-  private positionResizeHandle(): void {
-    // Keep the handle positioned at the bottom-right corner
-    this.renderer.setStyle(this.resizer, 'right', '0');
-    this.renderer.setStyle(this.resizer, 'bottom', '0');
-  }
-
   private addGlobalListeners(): void {
     this.mouseMoveListener = this.onDocumentMouseMove.bind(this);
     this.mouseUpListener = this.onDocumentMouseUp.bind(this);
 
-    document.addEventListener('mousemove', this.mouseMoveListener, { passive: false });
-    document.addEventListener('mouseup', this.mouseUpListener, { passive: false });
+    document.addEventListener('mousemove', this.mouseMoveListener!, { passive: false });
+    document.addEventListener('mouseup', this.mouseUpListener!, { passive: false });
   }
 
   private removeGlobalListeners(): void {
     if (this.mouseMoveListener) {
       document.removeEventListener('mousemove', this.mouseMoveListener);
-      this.mouseMoveListener = undefined;
     }
     if (this.mouseUpListener) {
       document.removeEventListener('mouseup', this.mouseUpListener);
-      this.mouseUpListener = undefined;
     }
+  }
+
+  private onResizerMouseDown(event: MouseEvent): void {
+    if (!this.enabled) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const host = this.el.nativeElement;
+    const rect = host.getBoundingClientRect();
+
+    this.startX = event.clientX;
+    this.startY = event.clientY;
+    this.startWidth = rect.width;
+    this.startHeight = rect.height;
+
+    this.isResizing = true;
+    this.renderer.addClass(document.body, 'resizing-active');
+    this.addGlobalListeners();
   }
 
   private onDocumentMouseMove(event: MouseEvent): void {
@@ -142,67 +152,26 @@ export class ResizableDirective implements OnInit, OnDestroy {
     const dx = event.clientX - this.startX;
     const dy = event.clientY - this.startY;
 
-    let newWidth: number;
-    let newHeight: number;
+    let newWidth = this.startWidth + dx;
+    let newHeight = this.startHeight + dy;
 
     if (this.preserveAspectRatio) {
-      // Use the larger delta to maintain aspect ratio
-      const delta = Math.max(dx, dy);
-      newWidth = Math.max(this.minSize, Math.min(this.maxSize, this.startWidth + delta));
-      newHeight = (newWidth / this.startWidth) * this.startHeight;
-    } else {
-      newWidth = Math.max(this.minSize, Math.min(this.maxSize, this.startWidth + dx));
-      newHeight = Math.max(this.minSize, Math.min(this.maxSize, this.startHeight + dy));
+      const ratio = this.startWidth / this.startHeight;
+      newHeight = newWidth / ratio;
     }
 
-    // Apply changes without adjusting position (let draggable handle positioning)
-    const host = this.el.nativeElement;
-    this.renderer.setStyle(host, 'width', `${newWidth}px`);
-    this.renderer.setStyle(host, 'height', `${newHeight}px`);
+    newWidth = Math.max(this.minSize, Math.min(this.maxSize, newWidth));
+    newHeight = Math.max(this.minSize, Math.min(this.maxSize, newHeight));
+
+    this.renderer.setStyle(this.el.nativeElement, 'width', `${newWidth}px`);
+    this.renderer.setStyle(this.el.nativeElement, 'height', `${newHeight}px`);
   }
 
   private onDocumentMouseUp(event: MouseEvent): void {
     if (!this.isResizing) return;
 
-    event.preventDefault();
-    event.stopPropagation();
-
     this.isResizing = false;
     this.renderer.removeClass(document.body, 'resizing-active');
     this.removeGlobalListeners();
-  }
-
-  private onResizerMouseDown(event: MouseEvent): void {
-    // Only handle if the target is specifically the resize handle
-    if (event.target !== this.resizer) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    this.isResizing = true;
-    this.startX = event.clientX;
-    this.startY = event.clientY;
-
-    const host = this.el.nativeElement;
-    const rect = host.getBoundingClientRect();
-
-    this.startWidth = rect.width;
-    this.startHeight = rect.height;
-
-    // Get current position from computed styles
-    const computedStyle = window.getComputedStyle(host);
-    this.startLeft = parseFloat(computedStyle.left) || 0;
-    this.startTop = parseFloat(computedStyle.top) || 0;
-
-    this.renderer.addClass(document.body, 'resizing-active');
-    this.addGlobalListeners();
-  }
-
-  // Remove the @HostListener decorators and use direct event binding
-  ngAfterViewInit(): void {
-    // Bind mousedown directly to the resizer element to avoid conflicts
-    this.renderer.listen(this.resizer, 'mousedown', (event: MouseEvent) => {
-      this.onResizerMouseDown(event);
-    });
   }
 }

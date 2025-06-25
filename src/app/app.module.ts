@@ -1,3 +1,4 @@
+import { DirectiveModule } from './directives/index';
 import { PlaylistComponent } from './components/playlist/playlist.component';
 import { InjectionToken, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
@@ -18,8 +19,9 @@ import { ResizableDirective } from './directives/resizable/resizable.directive';
 export const HTTP_CLIENT = new InjectionToken('HttpClient');
 
 @NgModule({
-  declarations: [AppComponent, PlaylistComponent, PlaylistTrackComponent, SortableDirective, DraggableDirective, ResizableDirective],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, ShrinkNumberPipe, ToFriendlyDurationPipe, YoutubePlayerComponent],
+  declarations: [AppComponent, PlaylistComponent, PlaylistTrackComponent],
+  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, DirectiveModule, ShrinkNumberPipe, ToFriendlyDurationPipe, YoutubePlayerComponent],
+  exports: [AppComponent, PlaylistComponent, PlaylistTrackComponent],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: HTTP_CLIENT, useFactory: () => createHttpClient() },
