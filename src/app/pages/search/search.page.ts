@@ -14,6 +14,8 @@ import { YoutubeVideoComponent } from 'src/app/components/youtube-video/youtube-
 import { YoutubePlaylistComponent } from 'src/app/components/youtube-playlist/youtube-playlist.component';
 import { YoutubeChannelComponent } from 'src/app/components/youtube-channel/youtube-channel.component';
 import { FilterComponent } from 'src/app/components/filter/filter.component';
+import { NgLetDirective } from 'src/app/directives/let/let.directive';
+import { DirectiveModule } from 'src/app/directives';
 
 @Component({
   selector: 'app-search',
@@ -130,9 +132,9 @@ import { FilterComponent } from 'src/app/components/filter/filter.component';
               </ion-button>
 
               <ion-button fill="clear" size="small"(click)="togglePlayer()">
-                <svg *ngIf="!isHidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off-icon lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
-                <svg *ngIf="isHidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
-            </ion-button>
+                <svg *ngIf="!hidden$.value" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off-icon lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
+                <svg *ngIf="hidden$.value" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+              </ion-button>
 
               <ng-container *ngIf="auth$ | async as auth; else loginButton">
                 <ion-avatar *ngIf="auth" (click)="openPopover($event)">
@@ -259,11 +261,12 @@ import { FilterComponent } from 'src/app/components/filter/filter.component';
     CommonModule,
     FormsModule,
     IonicModule,
+    DirectiveModule,
     StreamixModule,
     YoutubeVideoComponent,
     YoutubePlaylistComponent,
     YoutubeChannelComponent,
-    FilterComponent
+    FilterComponent,
   ]
 })
 export class SearchPage {
@@ -299,9 +302,6 @@ export class SearchPage {
   @ViewChild('googleButtonContainer', { static: false })
   googleButtonContainer!: ElementRef;
 
-  auth$ = this.authorization.authSubject;
-  playbackState$ = this.playlistService.playbackState;
-
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
     private youtubeDataService: YoutubeDataService,
@@ -309,6 +309,10 @@ export class SearchPage {
     private playerService: PlayerService,
     private authorization: Authorization
   ) {}
+
+  auth$ = this.authorization.authSubject;
+  playbackState$ = this.playlistService.playbackState;
+  hidden$ = this.playerService.isHidden;
 
   ngAfterViewInit() {
     const container = document.getElementById('google-signin-btn');
@@ -589,8 +593,8 @@ export class SearchPage {
     this.playlistService.addToPlaylist(video);
   }
 
+
   togglePlayer() {
-    this.isHidden ? this.playerService.show() : this.playerService.hide();
-    this.isHidden = !this.isHidden;
+    this.hidden$.value ? this.playerService.show() : this.playerService.hide();
   }
 }

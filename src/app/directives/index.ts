@@ -1,3 +1,4 @@
+import { NgLetDirective } from './let/let.directive';
 import { ResizableDirective } from './resizable/resizable.directive';
 import { DraggableDirective } from './draggable/draggable.directive';
 import { NgModule, Directive } from '@angular/core';
@@ -10,7 +11,7 @@ export * from './grid/dense-layout.directive';
 export * from './grid/masonry-layout.directive';
 
 @NgModule({
-  declarations: [SortableDirective, DraggableDirective, ResizableDirective],
-  exports: [SortableDirective, DraggableDirective, ResizableDirective],
+  declarations: [SortableDirective, DraggableDirective, ResizableDirective, NgLetDirective],
+  exports: [SortableDirective, DraggableDirective, ResizableDirective, NgLetDirective],
 })
 export class DirectiveModule {}
