@@ -201,7 +201,7 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
 
         // Auto-select first track if none is selected but playlist has items
         if (playlist.length > 0 && !this.selectedTrack) {
-          this.selectTrack(playlist[0]);
+          this.playlistService.selectTrack(0, false, false);
         }
       })
     );
@@ -242,17 +242,36 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
   }
 
   onTrackClick(index: number, event: MouseEvent): void {
-    this.playlistService.selectTrack(index, event.ctrlKey, event.shiftKey);
+    const isCtrl = event.ctrlKey || event.metaKey;
+    const isShift = event.shiftKey;
+    const wasSelected = this.playlistService.selectedTrackIndexes.value.has(index);
+
+    // Handle selection first
+    this.playlistService.selectTrack(index, isCtrl, isShift);
     this.trackSelected.emit(this.playlist[index]);
 
-    if (!event.ctrlKey && !event.shiftKey) {
-      this.playlistService.setCurrentTrackIndex(index);
-      this.playlistService.play();
+    // Check if current playing track was deselected
+    if (this.currentTrackIndex === index &&
+        !this.playlistService.selectedTrackIndexes.value.has(index)) {
+        this.playlistService.stop();
+        this.playlistService.setCurrentTrackIndex(-1);
+        return;
+    }
+
+    // Only change playback if:
+    // 1. It's a single click (no modifiers)
+    // 2. The clicked track isn't already the current track
+    // 3. Or if it is the current track but paused
+    if (!isCtrl && !isShift) {
+        if (this.currentTrackIndex !== index || !this.isPlaying) {
+            this.playlistService.setCurrentTrackIndex(index);
+            this.playlistService.play();
+        }
     }
   }
 
   isTrackSelectedByIndex(index: number): boolean {
-    return this.playlistService.currentTrackIndex.value === index || this.playlistService.selectedTrackIndexes.value.has(index);
+    return this.playlistService.selectedTrackIndexes.value.has(index);
   }
 
   isTouchableDevice(): boolean {
@@ -312,15 +331,6 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
 
   playPrevious(): void {
     this.playlistService.previous();
-  }
-
-  selectTrack(track: any): void {
-    const trackIndex = this.playlist.indexOf(track);
-    if (trackIndex >= 0) {
-      this.playlistService.setCurrentTrackIndex(trackIndex);
-      this.playlistService.play();
-      this.trackSelected.emit(track);
-    }
   }
 
   getTrackThumbnail(track: any): string {

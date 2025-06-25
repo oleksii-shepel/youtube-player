@@ -22,7 +22,6 @@ declare const YT: any;
         <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
           <div class="content">
             <app-playlist
-              (trackSelected)="onTrackSelected($event)"
               class="expandable-list"
             ></app-playlist>
           </div>
@@ -74,19 +73,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   disableDragOverlay() {
     this.isDragOverlayActive = false;
-  }
-
-  onTrackSelected(track: any): void {
-
-    setTimeout(() => {
-      const playlist = this.playlistService.getPlaylist();
-      const trackIndex = playlist.findIndex((t) => t.id === track.id);
-
-      if (trackIndex >= 0) {
-        this.playlistService.setCurrentTrackIndex(trackIndex);
-        this.playlistService.play();
-      }
-    }, 500);
   }
 
   onPlayerVideoEnded(): void {

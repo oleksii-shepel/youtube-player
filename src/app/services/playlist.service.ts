@@ -78,12 +78,22 @@ export class PlaylistService {
       this.originalPlaylist = this.originalPlaylist.filter(t => t.id !== track.id);
     }
 
-    // Remove track from selection if selected
+    // Remove track from selection if selected and update indexes
     const selected = new Set(this.selectedTrackIndexes.value);
-    if (selected.has(index)) {
-      selected.delete(index);
-      this.selectedTrackIndexes.set(selected);
-    }
+    const updatedSelection = new Set<number>();
+
+    selected.forEach(selectedIndex => {
+      if (selectedIndex < index) {
+        // Keep indexes that are before the removed track
+        updatedSelection.add(selectedIndex);
+      } else if (selectedIndex > index) {
+        // Shift down indexes that are after the removed track
+        updatedSelection.add(selectedIndex - 1);
+      }
+      // Skip the removed track index (don't add it to updatedSelection)
+    });
+
+    this.selectedTrackIndexes.set(updatedSelection);
   }
 
   removeSelectedTracks(): void {
@@ -91,7 +101,6 @@ export class PlaylistService {
     if (selected.size === 0) return;
 
     const wasPlaying = this.playbackState.value === 'playing';
-
     const currentIndex = this.currentTrackIndex.value;
     const isCurrentRemoved = selected.has(currentIndex);
 
@@ -123,7 +132,6 @@ export class PlaylistService {
 
     this.clearSelection();
   }
-
 
   updatePlaylistOrder(newOrder: any[]): void {
     if (this.isShuffled.value) {
@@ -231,8 +239,16 @@ export class PlaylistService {
   }
 
   /**
-   * Multi-selection logic: select tracks only if Ctrl or Shift pressed.
-   * Otherwise, normal click selects single track clearing selection.
+   * Play a specific track by index (separate from selection)
+   */
+  playTrack(index: number): void {
+    this.setCurrentTrackIndex(index);
+    this.playCurrentTrack();
+  }
+
+  /**
+   * Handle track selection for UI (does NOT change currently playing track)
+   * Use this for all playlist UI interactions
    *
    * @param index Index clicked
    * @param ctrlKey true if Ctrl (or Cmd on Mac) pressed
@@ -242,10 +258,10 @@ export class PlaylistService {
     const selected = new Set(this.selectedTrackIndexes.value);
 
     if (shiftKey) {
-      // Select range from last selected or current track to clicked index
+      // Select range from last selected to clicked index
       const lastSelected = [...selected].length
-        ? [...selected][[...selected].length - 1]
-        : this.currentTrackIndex.value;
+        ? Math.max(...selected)
+        : index;
 
       const start = Math.min(lastSelected, index);
       const end = Math.max(lastSelected, index);
@@ -261,7 +277,7 @@ export class PlaylistService {
         selected.add(index);
       }
     } else {
-      // No modifier: clear multi-selection and select only clicked index
+      // No modifier: select only this track (but don't play it)
       selected.clear();
       selected.add(index);
     }
@@ -276,6 +292,10 @@ export class PlaylistService {
   getSelectedTracks(): any[] {
     const selected = this.selectedTrackIndexes.value;
     return this.playlist.value.filter((_, idx) => selected.has(idx));
+  }
+
+  isTrackSelected(index: number): boolean {
+    return this.selectedTrackIndexes.value.has(index);
   }
 
   // ========== Private helper methods ==========
