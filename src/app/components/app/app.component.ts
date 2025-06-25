@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit, OnDestroy, ElementRef, ViewContainerRef, Injector, ComponentRef } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, OnDestroy, ElementRef, ViewContainerRef, Injector, ComponentRef, AfterContentInit } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../youtube-player/youtube-player.component';
 import { Subscription } from '@actioncrew/streamix';
@@ -10,17 +10,13 @@ declare const YT: any;
   selector: 'app-root',
   template: `
     <ion-app id="mainContainer">
-      <ng-template #playerModalTemplate>
-        <youtube-player
-          [isHidden]="isHidden"
-            #youtubePlayer
-            [videoId]="selectedVideoId"
-          (videoEnded)="onPlayerVideoEnded()"
-          (change)="onPlayerStateChange($event)"
-        ></youtube-player>
-      </ng-template>
-
-      <ng-container [ngTemplateOutlet]="playerModalTemplate"></ng-container>
+      <youtube-player
+        #youtubePlayer
+        [isHidden]="isHidden"
+        [videoId]="selectedVideoId"
+        (videoEnded)="onPlayerVideoEnded()"
+        (change)="onPlayerStateChange($event)"
+      ></youtube-player>
 
       <ion-split-pane contentId="main-content">
         <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
@@ -82,8 +78,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   onTrackSelected(track: any): void {
 
-    this.openModalWithTrack();
-
     setTimeout(() => {
       const playlist = this.playlistService.getPlaylist();
       const trackIndex = playlist.findIndex((t) => t.id === track.id);
@@ -93,14 +87,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         this.playlistService.play();
       }
     }, 500);
-  }
-
-  openModalWithTrack(): void {
-    this.playerService.show();
-  }
-
-  closeModal(): void {
-    this.playerService.hide();
   }
 
   onPlayerVideoEnded(): void {

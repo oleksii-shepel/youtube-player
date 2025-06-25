@@ -198,6 +198,11 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
       this.playlistService.playlist.subscribe((playlist) => {
         this.playlist = playlist;
         this.updateNavigationState();
+
+        // Auto-select first track if none is selected but playlist has items
+        if (playlist.length > 0 && !this.selectedTrack) {
+          this.selectTrack(playlist[0]);
+        }
       })
     );
 

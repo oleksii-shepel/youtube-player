@@ -14,7 +14,7 @@ import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/co
       >
        <ion-thumbnail slot="start" class="thumbnail-container">
           <img [src]="thumbnailUrl" [alt]="track.snippet?.title || 'Track thumbnail'" />
-          <div class="playing-overlay" *ngIf="isPlaying" aria-hidden="true">
+          <div class="playing-overlay" [style.visibility]="isPlaying ? 'visible': 'hidden'" aria-hidden="true">
             <svg width="50" height="50" xmlns="http://www.w3.org/2000/svg">
               <circle cx="25" cy="25" r="20" fill="#a14a4a" opacity="0.8">
                 <animate attributeName="r"

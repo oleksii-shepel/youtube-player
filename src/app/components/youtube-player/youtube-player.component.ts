@@ -1,3 +1,4 @@
+import { PlayerService } from 'src/app/services/player.service';
 import {
   AfterContentInit,
   ChangeDetectionStrategy,
@@ -12,11 +13,9 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { createReplaySubject, ReplaySubject, Subscription } from '@actioncrew/streamix';
+import { createReplaySubject, ReplaySubject, Stream, Subscription, take } from '@actioncrew/streamix';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { DraggableDirective } from 'src/app/directives/draggable/draggable.directive';
-import { AppModule } from 'src/app/app.module';
 import { DirectiveModule } from 'src/app/directives';
 
 @Component({
@@ -30,7 +29,7 @@ import { DirectiveModule } from 'src/app/directives';
     [appResizable]="resizable"
     [preserveAspectRatio]="false"
     [class.with-border]="showBorder"
-    [class.hidden]="!isHidden"
+    [class.hidden]="isHidden"
   >
     <div
       class="drag-overlay"
@@ -81,7 +80,7 @@ import { DirectiveModule } from 'src/app/directives';
           />
         </svg>
       </ion-button>
-      <ion-button expand="block" size="small">Close</ion-button>
+      <ion-button expand="block" size="small" (click)="closeModal()">Close</ion-button>
       <!-- Add more buttons here if needed -->
     </div>
   </div>`,
@@ -102,28 +101,20 @@ import { DirectiveModule } from 'src/app/directives';
       flex-direction: column;
       align-items: stretch;
       justify-content: stretch;
-      box-sizing: border-box;
+      box-sizing: content-box;
 
       &.with-border {
         border: 2px solid #888;
       }
-    }
 
-    .modal-container.hidden {
-      position: absolute;
-      height: 1px;
-      width: 1px;
-      opacity: 0.01;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    #playerContainer {
-      width: 100%;
-      height: 100%;
-      min-width: 0;
-      min-height: 0;
-      aspect-ratio: 16/9;
+      &.hidden {
+        position: absolute;
+        height: 1px;
+        width: 1px;
+        opacity: 0.01;
+        pointer-events: none;
+        overflow: hidden;
+      }
     }
 
     .drag-overlay {
@@ -141,6 +132,12 @@ import { DirectiveModule } from 'src/app/directives';
       display: flex;
       justify-content: flex-end;
       gap: 8px;
+    }
+
+    #playerContainer {
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 16 / 9;
     }
   `],
 })
@@ -173,7 +170,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   private api: ReplaySubject<any> = createReplaySubject(1);
   private subs: Subscription[] = [];
 
-  constructor(private renderer: Renderer2, private zone: NgZone) {
+  constructor(private renderer: Renderer2, private zone: NgZone, private playerService: PlayerService) {
     this.setupYouTubeApi();
   }
 
@@ -187,11 +184,9 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
     this.resizable = !this.resizable;
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['videoId'] && !changes['videoId'].firstChange) {
-      this.cleanupPlayer();
-      this.initializePlayer();
-    }
+  closeModal(): void {
+    this.isHidden = true;
+    this.playerService.hide();
   }
 
   ngOnDestroy() {
@@ -207,12 +202,15 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
 
   private setupYouTubeApi() {
     const win = window as any;
-    win['onYouTubeIframeAPIReady'] = () => {
-      win['onYouTubeIframeAPIReadyCalled'] = true;
-      this.api.next(win['YT']);
-    };
 
-    if (win['onYouTubeIframeAPIReadyCalled']) {
+    if (!win['onYouTubeIframeAPIReady']) {
+      win['onYouTubeIframeAPIReady'] = () => {
+        win['onYouTubeIframeAPIReadyCalled'] = true;
+        this.api.next(win['YT']);
+      };
+    }
+
+    if (win['onYouTubeIframeAPIReadyCalled'] && win['YT']) {
       this.api.next(win['YT']);
     }
   }
@@ -246,7 +244,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
     };
 
     this.subs.push(
-      this.api.subscribe((YT: typeof window.YT) => {
+      this.api.pipe(take(1)).subscribe((YT: typeof window.YT) => {
         const Player = YT.Player;
         this.player = new Player(this.playerId, {
           ...playerSize,
@@ -300,7 +298,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   // Public methods
   playVideo(videoId: string) {
     if (this.player) {
-      const currentVideoId = this.player.getVideoData()?.video_id;
+      const currentVideoId = this.getVideoData()?.video_id;
       if (currentVideoId === videoId) {
         this.player.playVideo();
       } else {
@@ -333,13 +331,11 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   }
 
   hide() {
-    if (this.isHidden) return;
     this.isHidden = true;
     this.renderer.addClass(this.container.nativeElement, 'hidden');
   }
 
   show() {
-    if (!this.isHidden) return;
     this.isHidden = false;
     this.renderer.removeClass(this.container.nativeElement, 'hidden');
   }
