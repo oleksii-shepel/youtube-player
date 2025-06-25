@@ -96,7 +96,7 @@ import {
         </ion-thumbnail>
         <ion-label>
           <h2 class="track-title">
-            {{ track.snippet?.title || 'Unknown Title' }}
+            {{ (track.snippet?.title || 'Unknown Title') | slice:0:70 }}{{ (track.snippet?.title?.length || 0) > 70 ? '…' : '' }}
           </h2>
           <p class="duration">{{ formattedDuration | toFriendlyDuration }}</p>
         </ion-label>

@@ -39,7 +39,11 @@ import { DirectiveModule } from 'src/app/directives';
     <div #playerContainer id="playerContainer"></div>
 
     <div class="custom-buttons" *ngIf="showButtons">
-      <ion-button expand="block" size="small" (click)="tooglePin()">
+      <ion-button expand="block" size="small" (click)="toggleMode()">
+        <svg *ngIf="mode === 'youtube'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-projector-icon lucide-projector"><path d="M5 7 3 5"/><path d="M9 6V3"/><path d="m13 7 2-2"/><circle cx="9" cy="13" r="3"/><path d="M11.83 12H20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2.17"/><path d="M16 16h2"/></svg>
+        <svg *ngIf="mode === 'buttlechurn'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
+      </ion-button>
+      <ion-button expand="block" size="small" (click)="togglePin()">
         <svg
           *ngIf="draggable && resizable"
           xmlns="http://www.w3.org/2000/svg"
@@ -91,6 +95,7 @@ import { DirectiveModule } from 'src/app/directives';
       left: 50%;
       transform: translate(-50%, -50%);
       width: 600px;
+      height: 375px;
       background: #1a1a1a;
       padding: 16px;
       border-radius: 12px;
@@ -149,6 +154,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   @Input() showButtons = true;
   @Input() showBorder = true;
   @Input() isHidden = true;
+  @Input() mode: 'youtube' | 'buttlechurn' = 'youtube';
 
   @Output() close = new EventEmitter<void>();
 
@@ -180,7 +186,11 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
     this.initializePlayer();
   }
 
-  tooglePin() {
+  toggleMode() {
+    this.mode = this.mode === 'youtube' ? 'buttlechurn' : 'youtube';
+  }
+
+  togglePin() {
     this.draggable = !this.draggable;
     this.resizable = !this.resizable;
   }
