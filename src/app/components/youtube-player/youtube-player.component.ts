@@ -10,10 +10,9 @@ import {
   OnDestroy,
   Output,
   Renderer2,
-  SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { createReplaySubject, ReplaySubject, Stream, Subscription, take } from '@actioncrew/streamix';
+import { createReplaySubject, ReplaySubject, Subscription, take } from '@actioncrew/streamix';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { DirectiveModule } from 'src/app/directives';
@@ -102,6 +101,8 @@ import { DirectiveModule } from 'src/app/directives';
       align-items: stretch;
       justify-content: stretch;
       box-sizing: content-box;
+      min-width: 232px;
+      min-height: 232px;
 
       &.with-border {
         border: 2px solid #888;
