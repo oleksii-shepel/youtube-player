@@ -327,10 +327,22 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
 
   playNext(): void {
     this.playlistService.next();
+    // After moving to next track, select it
+    const newIndex = this.playlistService.currentTrackIndex.value;
+    if (newIndex !== -1) {
+      this.playlistService.selectTrack(newIndex, false, false);
+      this.trackSelected.emit(this.playlist[newIndex]);
+    }
   }
 
   playPrevious(): void {
     this.playlistService.previous();
+    // After moving to previous track, select it
+    const newIndex = this.playlistService.currentTrackIndex.value;
+    if (newIndex !== -1) {
+      this.playlistService.selectTrack(newIndex, false, false);
+      this.trackSelected.emit(this.playlist[newIndex]);
+    }
   }
 
   getTrackThumbnail(track: any): string {
