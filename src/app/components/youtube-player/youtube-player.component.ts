@@ -143,16 +143,16 @@ import { DirectiveModule } from 'src/app/directives';
   `],
 })
 export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
-  @Input() draggable = true;
-  @Input() resizable = true;
+  @Input() draggable = false;
+  @Input() resizable = false;
 
   @Input() showButtons = true;
   @Input() showBorder = true;
-  @Input() isHidden = false;
+  @Input() isHidden = true;
 
   @Output() close = new EventEmitter<void>();
 
-  isDragOverlayActive = true;
+  isDragOverlayActive = false;
 
   @Input() videoId = '';
   @Input() protocol: 'http' | 'https' = this.getProtocol();
@@ -240,8 +240,8 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
 
     const container = this.container.nativeElement;
     const playerSize = {
-      width: container.offsetWidth,
-      height: Math.min(container.offsetHeight || 270, 270),
+      width: "100%",
+      height: "100%",
     };
 
     this.subs.push(

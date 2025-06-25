@@ -35,8 +35,9 @@ export class DraggableDirective implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['enabled']) {
+    if (changes['enabled'] && !changes['enabled'].firstChange) {
       this.updateCursor();
+      this.cleanupDragState();
     }
   }
 
@@ -164,12 +165,23 @@ export class DraggableDirective implements AfterViewInit, OnDestroy, OnChanges {
     this.renderer.removeClass(element, 'being-dragged');
 
     this.updateCursor(); // Reset cursor
-
     this.removeGlobalListeners();
 
     if (!wasDrag) {
       const clickEvent = new CustomEvent('draggableClick', { bubbles: true, cancelable: true });
       element.dispatchEvent(clickEvent);
+    }
+  }
+
+  private cleanupDragState(): void {
+    if (this.isDragging) {
+      this.isDragging = false;
+      this.movedDistance = 0;
+
+      const element = this.el.nativeElement;
+      this.renderer.removeClass(document.body, 'dragging-active');
+      this.renderer.removeClass(element, 'being-dragged');
+      this.removeGlobalListeners();
     }
   }
 }
