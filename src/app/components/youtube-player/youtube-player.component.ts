@@ -189,7 +189,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   toggleMode() {
     if (!this.playerId) return;
 
-    const iframe = document.querySelector<HTMLIFrameElement>(`iframe`);
+    const iframe = document.getElementById(`${this.playerId}`) as HTMLIFrameElement;
     if (iframe && iframe.contentWindow) {
       this.mode = this.mode === 'youtube' ? 'butterchurn' : 'youtube';
       iframe.contentWindow.postMessage(
@@ -303,7 +303,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   private waitForIframeReady(): Promise<void> {
     return new Promise((resolve) => {
       const checkIframe = () => {
-        const iframe = document.querySelector<HTMLIFrameElement>(`iframe`);
+        const iframe = document.getElementById(`${this.playerId}`) as HTMLIFrameElement;
         if (iframe && iframe.contentWindow) {
           resolve();
         } else {
