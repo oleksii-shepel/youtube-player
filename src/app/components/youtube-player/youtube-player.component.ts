@@ -187,12 +187,19 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   }
 
   toggleMode() {
-    this.mode = this.mode === 'youtube' ? 'butterchurn' : 'youtube';
+    if (!this.playerId) return;
 
-    const iframe = document.querySelector<HTMLIFrameElement>(`iframe#${this.playerId}`);
-
-    if(iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ type: 'CONTROL', action: 'setMode', mode: this.mode }, '*');
+    const iframe = document.querySelector<HTMLIFrameElement>(`iframe`);
+    if (iframe && iframe.contentWindow) {
+      this.mode = this.mode === 'youtube' ? 'butterchurn' : 'youtube';
+      iframe.contentWindow.postMessage(
+        {
+          type: 'CONTROL',
+          action: 'setMode',
+          mode: this.mode
+        },
+        '*'
+      );
     }
   }
 
@@ -274,6 +281,11 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
                 if (this.videoId && this.playerVars.autoplay !== 0) {
                   ev.target.playVideo();
                 }
+
+                // Wait for iframe to be fully ready before toggling mode
+                this.waitForIframeReady().then(() => {
+                  this.toggleMode();
+                });
               });
             },
             onStateChange: (ev: YT.OnStateChangeEvent) => {
@@ -286,6 +298,20 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
         });
       })
     );
+  }
+
+  private waitForIframeReady(): Promise<void> {
+    return new Promise((resolve) => {
+      const checkIframe = () => {
+        const iframe = document.querySelector<HTMLIFrameElement>(`iframe`);
+        if (iframe && iframe.contentWindow) {
+          resolve();
+        } else {
+          setTimeout(checkIframe, 50);
+        }
+      };
+      checkIframe();
+    });
   }
 
   private cleanupPlayer() {
