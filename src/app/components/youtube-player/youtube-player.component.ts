@@ -116,12 +116,13 @@ import { DirectiveModule } from 'src/app/directives';
 
       &.hidden {
         position: absolute;
+        top: -10000px;
+        left: -10000px;
         height: 1px;
         width: 1px;
         opacity: 0.01;
         pointer-events: none;
         overflow: hidden;
-        z-index: -1;
       }
     }
 
