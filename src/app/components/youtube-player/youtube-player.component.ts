@@ -121,6 +121,7 @@ import { DirectiveModule } from 'src/app/directives';
         opacity: 0.01;
         pointer-events: none;
         overflow: hidden;
+        z-index: -1;
       }
     }
 
