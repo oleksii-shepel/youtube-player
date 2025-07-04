@@ -25,6 +25,10 @@ import { DirectiveModule } from 'src/app/directives';
         <div class="toolbar-inner">
           <div class="toolbar">
             <div class="toolbar-left">
+              <ion-button fill="clear" size="large">
+                <ion-icon name="menu-outline"></ion-icon>
+              </ion-button>
+
               <ion-title>YouTube Search</ion-title>
             </div>
 

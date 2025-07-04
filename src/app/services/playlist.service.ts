@@ -42,7 +42,6 @@ export class PlaylistService {
       // If playlist was empty before adding, start playing the new track
       if (this.playlist.value.length === 1) {
         this.setCurrentTrackIndex(0);
-        this.play();
       }
     }
   }
@@ -149,6 +148,8 @@ export class PlaylistService {
     ) {
       this.setCurrentTrackIndex(0);
     }
+
+    this.playerService.show();
     this.playCurrentTrack();
   }
 

@@ -36,12 +36,13 @@ import { DirectiveModule } from 'src/app/directives';
       (click)="$event.stopPropagation()"
     ></div>
 
-    <div #playerContainer id="playerContainer"></div>
+    <div #playerContainer id="playerContainer" (click)="selectVisualPreset()"></div>
 
     <div class="custom-buttons" *ngIf="showButtons">
       <ion-button expand="block" size="small" (click)="toggleMode()">
         <svg *ngIf="mode === 'youtube'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-projector-icon lucide-projector"><path d="M5 7 3 5"/><path d="M9 6V3"/><path d="m13 7 2-2"/><circle cx="9" cy="13" r="3"/><path d="M11.83 12H20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2.17"/><path d="M16 16h2"/></svg>
-        <svg *ngIf="mode === 'butterchurn'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
+        <svg *ngIf="mode === 'butterchurn'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-no-axes-column-icon lucide-chart-no-axes-column"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+        <svg *ngIf="mode === 'bars'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
       </ion-button>
       <ion-button expand="block" size="small" (click)="togglePin()">
         <svg
@@ -154,7 +155,7 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   @Input() showButtons = true;
   @Input() showBorder = true;
   @Input() isHidden = true;
-  @Input() mode: 'youtube' | 'butterchurn' = 'butterchurn';
+  @Input() mode: 'youtube' | 'butterchurn' | 'bars' = 'bars';
 
   @Output() close = new EventEmitter<void>();
 
@@ -186,12 +187,39 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
     this.initializePlayer();
   }
 
+  selectVisualPreset() {
+    if(this.mode === 'butterchurn') {
+      const iframe = document.getElementById(`${this.playerId}`) as HTMLIFrameElement;
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage(
+          {
+            type: 'CONTROL',
+            action: 'loadRandomPreset'
+          },
+          '*'
+        );
+      }
+    }
+  }
+
   toggleMode() {
     if (!this.playerId) return;
 
     const iframe = document.getElementById(`${this.playerId}`) as HTMLIFrameElement;
     if (iframe && iframe.contentWindow) {
-      this.mode = this.mode === 'youtube' ? 'butterchurn' : 'youtube';
+
+      switch (this.mode) {
+        case 'youtube':
+          this.mode = 'butterchurn';
+          break;
+        case 'butterchurn':
+          this.mode = 'bars';
+          break;
+        case 'bars':
+          this.mode = 'youtube';
+          break;
+      }
+
       iframe.contentWindow.postMessage(
         {
           type: 'CONTROL',
