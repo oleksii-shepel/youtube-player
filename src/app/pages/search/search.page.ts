@@ -470,12 +470,25 @@ export class SearchPage {
             map((detailedItems: any) => {
               this.updatePageToken(response); // Update the correct page token
 
-              const mergedResults = results.map((result) => {
-                const detailedItem = detailedItems.items.find(
-                  (item: any) => item.id === result.id
-                );
-                return { ...result, ...detailedItem };
-              });
+              const requiredFields = {
+                videos: ['snippet', 'contentDetails', 'statistics'],
+                playlists: ['snippet', 'contentDetails'],
+                channels: ['snippet', 'contentDetails', 'statistics'],
+              }[this.searchType]!;
+
+              const filteredItems = detailedItems.items.filter((item: any) =>
+                requiredFields.every((field) => field in item)
+              );
+
+              const mergedResults = results
+                .map((result) => {
+                  const detailedItem = filteredItems.find(
+                    (item: any) => item.id === result.id
+                  );
+                  return detailedItem ? { ...result, ...detailedItem } : null;
+                })
+                .filter((item) => item !== null);
+
               return mergedResults;
             })
           );
@@ -514,12 +527,25 @@ export class SearchPage {
           return detailedResults$.pipe(
             map((detailedItems: any) => {
               this.updatePageToken(response); // Update the correct page token
-              const mergedResults = results.map((result) => {
-                const detailedItem = detailedItems.items.find(
-                  (item: any) => item.id === result.id
-                );
-                return { ...result, ...detailedItem };
-              });
+              const requiredFields = {
+                videos: ['snippet', 'contentDetails', 'statistics'],
+                playlists: ['snippet', 'contentDetails'],
+                channels: ['snippet', 'contentDetails', 'statistics'],
+              }[this.searchType]!;
+
+              const filteredItems = detailedItems.items.filter((item: any) =>
+                requiredFields.every((field) => field in item)
+              );
+
+              const mergedResults = results
+                .map((result) => {
+                  const detailedItem = filteredItems.find(
+                    (item: any) => item.id === result.id
+                  );
+                  return detailedItem ? { ...result, ...detailedItem } : null;
+                })
+                .filter((item) => item !== null);
+
               return mergedResults;
             }),
             // Handle the correct page token for pagination
