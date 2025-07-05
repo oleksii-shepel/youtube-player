@@ -1,3 +1,10 @@
+#mainContainer {
+  background: var(--background);
+  --background:
+    linear-gradient(#1e0f0f7d, #2d19197d),
+    url('/assets/background.png') no-repeat center center / cover;
+}
+
 .menu-inner {
   width: 400px !important;
 }
