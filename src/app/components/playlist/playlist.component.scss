@@ -3,8 +3,18 @@
   flex-direction: column;
   height: 100%;
   max-height: 100%;
-  background-color: var(--ion-background-color);
+  background: transparent;
   overflow: hidden; // Prevent double scrollbars
+
+  background-image:
+    url('/assets/logo-styled.png');
+
+  background-color: var(--ion-background-color-100);
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 65%;
+
+  background-blend-mode: darken;
 }
 
 .list-header {
@@ -20,7 +30,7 @@
 #playlist {
   flex: 1 1 auto;
   padding: 5px 5px 5px 9px;
-  background-color: var(--ion-background-color);
+  background: transparent;
   display: flex;
   flex-direction: column;
   overflow: auto;
