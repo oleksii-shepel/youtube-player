@@ -12,6 +12,7 @@
 .chip-group {
   display: flex;
   background-color: var(--ion-toolbar-background); /* from your theme: #2d1919 */
+  opacity: 0.8;
   border-radius: 16px;
   padding: 6px;
   align-items: center;
@@ -22,7 +23,7 @@
   margin: 0 4px;
   font-size: 14px;
   background-color: var(--ion-card-background); /* #2a1717 */
-  color: var(--ion-text-color-step-850); /* muted secondary text */
+  color: var(--ion-text-color); /* muted secondary text */
   border: 1px solid var(--ion-border-color); /* #392424 */
   --color: var(--ion-text-color-step-850); /* ensure text uses correct var */
 }
