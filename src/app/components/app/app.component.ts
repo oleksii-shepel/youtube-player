@@ -3,6 +3,7 @@ import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../youtube-player/youtube-player.component';
 import { Subscription } from '@actioncrew/streamix';
 import { PlayerService } from 'src/app/services/player.service';
+import { IonSplitPane } from '@ionic/angular';
 
 declare const YT: any;
 
@@ -18,8 +19,8 @@ declare const YT: any;
         (change)="onPlayerStateChange($event)"
       ></youtube-player>
 
-      <ion-split-pane contentId="main-content">
-        <ion-menu contentId="main-content" type="overlay" menuId="main-menu">
+      <ion-split-pane contentId="main-content" #splitPane>
+        <ion-menu contentId="main-content" type="overlay" menuId="main-menu" [class.overlay-active]="isOverlayMenuVisible">
           <div class="content">
             <app-playlist
               class="expandable-list"
@@ -44,6 +45,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   isDragOverlayActive = true;
 
   @ViewChild('youtubePlayer', { static: true }) youtubePlayer: YoutubePlayerComponent | undefined;
+  @ViewChild('splitPane', { read: ElementRef }) splitPaneRef!: ElementRef;
+  isOverlayMenuVisible = false;
+
   private currentTrackSubscription: Subscription | null = null;
   private isHiddenSubscription: Subscription | null = null;
 
@@ -69,6 +73,19 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         }
       }
     });
+
+    const menu = document.querySelector('ion-menu');
+
+    if (menu) {
+      menu.addEventListener('ionMenuDidOpen', async () => {
+        const isSplit = await this.splitPaneRef.nativeElement.when();
+        this.isOverlayMenuVisible = !isSplit;
+      });
+
+      menu.addEventListener('ionMenuDidClose', () => {
+        this.isOverlayMenuVisible = false;
+      });
+    }
   }
 
   disableDragOverlay() {

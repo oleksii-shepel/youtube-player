@@ -6,10 +6,6 @@
   width: 400px !important;
 }
 
-ion-menu {
-  --background: transparent;
-}
-
 .content {
   display: flex;
   flex-direction: column;
@@ -31,6 +27,15 @@ ion-menu {
 #main-content {
   width: 100%;
   height: 100%;
+}
+
+.menu-type-overlay {
+  --background: transparent;
+
+  &.show-menu {
+    --background: var(--ion-background-color-750); // or any visible color
+    backdrop-filter: none; // optional for glassy effect
+  }
 }
 
 .modal-overlay {
