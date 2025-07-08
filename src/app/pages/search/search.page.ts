@@ -14,7 +14,6 @@ import { YoutubeVideoComponent } from 'src/app/components/youtube-video/youtube-
 import { YoutubePlaylistComponent } from 'src/app/components/youtube-playlist/youtube-playlist.component';
 import { YoutubeChannelComponent } from 'src/app/components/youtube-channel/youtube-channel.component';
 import { FilterComponent } from 'src/app/components/filter/filter.component';
-import { NgLetDirective } from 'src/app/directives/let/let.directive';
 import { DirectiveModule } from 'src/app/directives';
 
 @Component({
@@ -25,7 +24,7 @@ import { DirectiveModule } from 'src/app/directives';
         <div class="toolbar-inner">
           <div class="toolbar">
             <div class="toolbar-left">
-              <ion-button fill="clear" size="large">
+              <ion-button fill="clear" size="large" (click)="toggleMenu()">
                 <ion-icon name="menu-outline"></ion-icon>
               </ion-button>
 
@@ -298,10 +297,9 @@ export class SearchPage {
   sortOrder: string = '';
 
   isHidden = true;
+
   showPopover = false;
   popoverEvent: any;
-
-  @Output() addToPlaylist = new EventEmitter<any>();
 
   @ViewChild('googleButtonContainer', { static: false })
   googleButtonContainer!: ElementRef;
@@ -373,6 +371,10 @@ export class SearchPage {
   logout() {
     this.showPopover = false;
     this.authorization.signOut();
+  }
+
+  toggleMenu() {
+    this.playlistService.toggleMenu();
   }
 
   toggleSearchInput(show: boolean) {

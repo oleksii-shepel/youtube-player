@@ -2,6 +2,7 @@ import { HostListener, Injectable } from '@angular/core';
 import { createUpdater } from '../utils/stateUpdater';
 import { PlayerService } from './player.service';
 import { YoutubePlayerComponent } from '../components/youtube-player/youtube-player.component';
+import { createSubject } from '@actioncrew/streamix';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,8 @@ export class PlaylistService {
 
   isShuffled = createUpdater<boolean>(false);
   repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
+  menuButtonPressed = createSubject<void>();
+
   originalPlaylist: any[] = [];
 
   // Multi-selection state: holds indexes of selected tracks
@@ -233,6 +236,10 @@ export class PlaylistService {
       if (newIndex >= 0) this.setCurrentTrackIndex(newIndex);
       this.isShuffled.set(false);
     }
+  }
+
+  toggleMenu() {
+    this.menuButtonPressed.next();
   }
 
   isPlaylistShuffled(): boolean {

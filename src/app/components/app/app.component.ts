@@ -1,9 +1,8 @@
-import { Component, ViewChild, AfterViewInit, OnDestroy, ElementRef, ViewContainerRef, Injector, ComponentRef, AfterContentInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../youtube-player/youtube-player.component';
 import { Subscription } from '@actioncrew/streamix';
 import { PlayerService } from 'src/app/services/player.service';
-import { IonSplitPane } from '@ionic/angular';
 
 declare const YT: any;
 
@@ -50,6 +49,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   private currentTrackSubscription: Subscription | null = null;
   private isHiddenSubscription: Subscription | null = null;
+  private isMenuButtonPressedSubscription: Subscription | null = null;
 
   constructor(
     public playlistService: PlaylistService,
@@ -63,6 +63,19 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.isHiddenSubscription = this.playerService.isHidden.subscribe((value) => {
       this.isHidden = value;
     })
+
+    this.isMenuButtonPressedSubscription = this.playlistService.menuButtonPressed.subscribe(async () => {
+      const menu = document.querySelector('ion-menu')!;
+      const splitPane = document.querySelector('ion-split-pane.split-pane-visible')!;
+
+      if (splitPane) {
+        menu.classList.contains('menu-pane-visible') ?
+        menu.classList.remove('menu-pane-visible') :
+        menu.classList.add('menu-pane-visible');
+      } else {
+        menu.toggle();
+      }
+    });
 
     this.currentTrackSubscription = this.playlistService.currentTrackIndex.subscribe(index => {
       const track = this.playlistService.getPlaylist()[index];
@@ -113,6 +126,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
     if (this.isHiddenSubscription) {
       this.isHiddenSubscription.unsubscribe();
+    }
+
+    if (this.isMenuButtonPressedSubscription) {
+      this.isMenuButtonPressedSubscription.unsubscribe();
     }
   }
 }

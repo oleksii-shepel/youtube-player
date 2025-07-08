@@ -12,16 +12,13 @@ import { createHttpClient } from '@actioncrew/streamix/http';
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from './pipes';
 import { YoutubePlayerComponent } from './components/youtube-player/youtube-player.component';
 import { PlaylistTrackComponent } from './components/playlist-track/playlist-track.component';
-import { SortableDirective } from './directives/sortable/sortable.directive';
-import { DraggableDirective } from './directives/draggable/draggable.directive';
-import { ResizableDirective } from './directives/resizable/resizable.directive';
 
 export const HTTP_CLIENT = new InjectionToken('HttpClient');
 
 @NgModule({
-  declarations: [AppComponent, PlaylistComponent, PlaylistTrackComponent],
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, DirectiveModule, ShrinkNumberPipe, ToFriendlyDurationPipe, YoutubePlayerComponent],
   exports: [AppComponent, PlaylistComponent, PlaylistTrackComponent],
+  declarations: [AppComponent, PlaylistComponent, PlaylistTrackComponent],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: HTTP_CLIENT, useFactory: () => createHttpClient() },
