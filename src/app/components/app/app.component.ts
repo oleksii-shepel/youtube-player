@@ -69,9 +69,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       const splitPane = document.querySelector('ion-split-pane.split-pane-visible')!;
 
       if (splitPane) {
-        menu.classList.contains('menu-pane-visible') ?
-        menu.classList.remove('menu-pane-visible') :
-        menu.classList.add('menu-pane-visible');
+        menu.classList.toggle('hide-menu');
       } else {
         menu.toggle();
       }

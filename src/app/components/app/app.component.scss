@@ -38,6 +38,22 @@
   }
 }
 
+ion-split-pane.split-pane-visible ion-menu {
+  transition: all 0.3s ease-in-out;
+  transform: translateX(0);
+  will-change: transform;
+  z-index: 1;
+  width: var(--side-max-width);
+  min-width: var(--side-max-width);
+}
+
+ion-split-pane.split-pane-visible ion-menu.hide-menu {
+  width: 0 !important;
+  min-width: 0 !important;
+  transform: translateX(-100%);
+  pointer-events: none;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
