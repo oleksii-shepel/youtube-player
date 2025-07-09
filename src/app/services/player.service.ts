@@ -1,14 +1,14 @@
 import { Injectable } from "@angular/core";
 import { YoutubePlayerComponent } from "../components/youtube-player/youtube-player.component";
-import { createUpdater } from "../utils/stateUpdater";
+import { createBehaviorSubject } from "@actioncrew/streamix";
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlayerService {
-  playbackState = createUpdater<'playing' | 'paused' | 'stopped'>('stopped');
-  repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
-  isHidden = createUpdater<boolean>(true);
+  playbackState = createBehaviorSubject<'playing' | 'paused' | 'stopped'>('stopped');
+  repeatMode = createBehaviorSubject<'none' | 'all' | 'one'>('none');
+  isHidden = createBehaviorSubject<boolean>(true);
 
   private player: YoutubePlayerComponent | null = null;
 
@@ -24,22 +24,22 @@ export class PlayerService {
   playVideo(videoId: string): void {
     if (this.player) {
       this.player.playVideo(videoId);
-      this.playbackState.set('playing');
+      this.playbackState.next('playing');
     }
   }
 
   pause(): void {
-    this.playbackState.set('paused');
+    this.playbackState.next('paused');
     this.player?.pauseVideo();
   }
 
   stop(): void {
-    this.playbackState.set('stopped');
+    this.playbackState.next('stopped');
     this.player?.stopVideo();
   }
 
   setRepeatMode(mode: 'none' | 'all' | 'one'): void {
-    this.repeatMode.set(mode);
+    this.repeatMode.next(mode);
   }
 
   getRepeatMode(): 'none' | 'all' | 'one' {
@@ -48,13 +48,13 @@ export class PlayerService {
 
   hide(): void {
     if(this.isHidden.value !== true) {
-      this.isHidden.set(true);
+      this.isHidden.next(true);
     }
   }
 
   show(): void {
     if(this.isHidden.value !== false) {
-      this.isHidden.set(false);
+      this.isHidden.next(false);
     }
   }
 }

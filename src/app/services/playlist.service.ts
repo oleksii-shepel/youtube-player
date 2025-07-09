@@ -1,34 +1,33 @@
-import { HostListener, Injectable } from '@angular/core';
-import { createUpdater } from '../utils/stateUpdater';
+import { Injectable } from '@angular/core';
 import { PlayerService } from './player.service';
 import { YoutubePlayerComponent } from '../components/youtube-player/youtube-player.component';
-import { createSubject } from '@actioncrew/streamix';
+import { createBehaviorSubject, createSubject } from '@actioncrew/streamix';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlaylistService {
   // Reactive state
-  playlist = createUpdater<any[]>([]);
-  currentTrackIndex = createUpdater<number>(-1);
-  playbackState = createUpdater<'playing' | 'paused' | 'stopped'>('stopped');
+  playlist = createBehaviorSubject<any[]>([]);
+  currentTrackIndex = createBehaviorSubject<number>(-1);
+  playbackState = createBehaviorSubject<'playing' | 'paused' | 'stopped'>('stopped');
 
-  isShuffled = createUpdater<boolean>(false);
-  repeatMode = createUpdater<'none' | 'all' | 'one'>('none');
+  isShuffled = createBehaviorSubject<boolean>(false);
+  repeatMode = createBehaviorSubject<'none' | 'all' | 'one'>('none');
   menuButtonPressed = createSubject<void>();
 
   originalPlaylist: any[] = [];
 
   // Multi-selection state: holds indexes of selected tracks
-  selectedTrackIndexes = createUpdater<Set<number>>(new Set());
+  selectedTrackIndexes = createBehaviorSubject<Set<number>>(new Set());
 
   constructor(private playerService: PlayerService) {
     this.playerService.playbackState.subscribe(state => {
-      this.playbackState.set(state);
+      this.playbackState.next(state);
     });
 
     this.playerService.repeatMode.subscribe(mode => {
-      this.repeatMode.set(mode);
+      this.repeatMode.next(mode);
     });
   }
 
@@ -40,7 +39,7 @@ export class PlaylistService {
     if (!this.playlist.value.some(v => v.id === video.id)) {
       const newPlaylist = [...this.playlist.value, video];
       if (!this.isShuffled.value) this.originalPlaylist = [...newPlaylist];
-      this.playlist.set(newPlaylist);
+      this.playlist.next(newPlaylist);
 
       // If playlist was empty before adding, start playing the new track
       if (this.playlist.value.length === 1) {
@@ -50,9 +49,9 @@ export class PlaylistService {
   }
 
   clearPlaylist(): void {
-    this.playlist.set([]);
+    this.playlist.next([]);
     this.originalPlaylist = [];
-    this.currentTrackIndex.set(-1);
+    this.currentTrackIndex.next(-1);
     this.clearSelection();
     this.playerService.stop();
   }
@@ -65,7 +64,7 @@ export class PlaylistService {
       ...this.playlist.value.slice(0, index),
       ...this.playlist.value.slice(index + 1),
     ];
-    this.playlist.set(newPlaylist);
+    this.playlist.next(newPlaylist);
 
     if (this.currentTrackIndex.value === index) {
       this.playerService.stop();
@@ -95,7 +94,7 @@ export class PlaylistService {
       // Skip the removed track index (don't add it to updatedSelection)
     });
 
-    this.selectedTrackIndexes.set(updatedSelection);
+    this.selectedTrackIndexes.next(updatedSelection);
   }
 
   removeSelectedTracks(): void {
@@ -107,7 +106,7 @@ export class PlaylistService {
     const isCurrentRemoved = selected.has(currentIndex);
 
     const newPlaylist = this.playlist.value.filter((_, idx) => !selected.has(idx));
-    this.playlist.set(newPlaylist);
+    this.playlist.next(newPlaylist);
 
     this.originalPlaylist = this.originalPlaylist.filter(t =>
       newPlaylist.some(nt => nt.id === t.id)
@@ -139,7 +138,7 @@ export class PlaylistService {
     if (this.isShuffled.value) {
       this.originalPlaylist = newOrder;
     }
-    this.playlist.set(newOrder);
+    this.playlist.next(newOrder);
   }
 
   play(): void {
@@ -201,7 +200,7 @@ export class PlaylistService {
   }
 
   setCurrentTrackIndex(index: number): void {
-    this.currentTrackIndex.set(index);
+    this.currentTrackIndex.next(index);
   }
 
   getCurrentTrack(): any | null {
@@ -227,14 +226,14 @@ export class PlaylistService {
   setShuffleState(shuffled: boolean): void {
     if (shuffled && !this.isShuffled.value) {
       this.originalPlaylist = [...this.playlist.value];
-      this.playlist.set(this.shuffleArray([...this.playlist.value]));
-      this.isShuffled.set(true);
+      this.playlist.next(this.shuffleArray([...this.playlist.value]));
+      this.isShuffled.next(true);
     } else if (!shuffled && this.isShuffled.value) {
       const currentTrack = this.playlist.value[this.currentTrackIndex.value];
       const newIndex = this.originalPlaylist.findIndex(t => t.id === currentTrack.id);
-      this.playlist.set([...this.originalPlaylist]);
+      this.playlist.next([...this.originalPlaylist]);
       if (newIndex >= 0) this.setCurrentTrackIndex(newIndex);
-      this.isShuffled.set(false);
+      this.isShuffled.next(false);
     }
   }
 
@@ -290,11 +289,11 @@ export class PlaylistService {
       selected.add(index);
     }
 
-    this.selectedTrackIndexes.set(selected);
+    this.selectedTrackIndexes.next(selected);
   }
 
   clearSelection(): void {
-    this.selectedTrackIndexes.set(new Set());
+    this.selectedTrackIndexes.next(new Set());
   }
 
   getSelectedTracks(): any[] {
