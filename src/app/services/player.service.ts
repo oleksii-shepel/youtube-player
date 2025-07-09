@@ -47,10 +47,14 @@ export class PlayerService {
   }
 
   hide(): void {
-    this.isHidden.set(true);
+    if(this.isHidden.value !== true) {
+      this.isHidden.set(true);
+    }
   }
 
   show(): void {
-    this.isHidden.set(false);
+    if(this.isHidden.value !== false) {
+      this.isHidden.set(false);
+    }
   }
 }
