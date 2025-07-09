@@ -263,10 +263,8 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
     // 2. The clicked track isn't already the current track
     // 3. Or if it is the current track but paused
     if (!isCtrl && !isShift) {
-        if (this.currentTrackIndex !== index || !this.isPlaying) {
-            this.playlistService.setCurrentTrackIndex(index);
-            this.playlistService.play();
-        }
+      this.playlistService.setCurrentTrackIndex(index);
+      this.playlistService.play();
     }
   }
 
