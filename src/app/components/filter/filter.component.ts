@@ -3,42 +3,81 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
+type SimpleFilterCategory = 'quality' | 'status' | 'duration' | 'playlist';
+
+interface FilterSubtopics {
+  [topicId: string]: string[];
+}
+
+export interface SelectedFilters {
+  quality: 'HD' | 'SD' | null;
+  status: 'Live' | 'Upcoming' | 'Archived' | null;
+  duration: 'Short' | 'Medium' | 'Long' | null;
+  topic: string | null;
+  subtopics: FilterSubtopics;
+  playlist: string | null;
+}
+
 @Component({
   selector: 'app-filter',
   template: `
     <ng-container>
       <!-- Duration Group -->
       <div class="chip-group" *ngIf="searchType === 'videos'">
-        <ion-chip [color]="selectedFilters.duration === 'Short' ? 'primary' : 'light'" (click)="selectFilter('duration', 'Short')">
+        <ion-chip
+          [color]="selectedFilters.duration === 'Short' ? 'primary' : 'light'"
+          (click)="selectFilter('duration', 'Short')"
+        >
           <ion-label>Short</ion-label>
         </ion-chip>
-        <ion-chip [color]="selectedFilters.duration === 'Medium' ? 'primary' : 'light'" (click)="selectFilter('duration', 'Medium')">
+        <ion-chip
+          [color]="selectedFilters.duration === 'Medium' ? 'primary' : 'light'"
+          (click)="selectFilter('duration', 'Medium')"
+        >
           <ion-label>Medium</ion-label>
         </ion-chip>
-        <ion-chip [color]="selectedFilters.duration === 'Long' ? 'primary' : 'light'" (click)="selectFilter('duration', 'Long')">
+        <ion-chip
+          [color]="selectedFilters.duration === 'Long' ? 'primary' : 'light'"
+          (click)="selectFilter('duration', 'Long')"
+        >
           <ion-label>Long</ion-label>
         </ion-chip>
       </div>
 
       <!-- HD/SD Group -->
       <div class="chip-group" *ngIf="searchType === 'videos'">
-        <ion-chip [color]="selectedFilters.quality === 'HD' ? 'primary' : 'light'" (click)="selectFilter('quality', 'HD')">
+        <ion-chip
+          [color]="selectedFilters.quality === 'HD' ? 'primary' : 'light'"
+          (click)="selectFilter('quality', 'HD')"
+        >
           <ion-label>HD</ion-label>
         </ion-chip>
-        <ion-chip [color]="selectedFilters.quality === 'SD' ? 'primary' : 'light'" (click)="selectFilter('quality', 'SD')">
+        <ion-chip
+          [color]="selectedFilters.quality === 'SD' ? 'primary' : 'light'"
+          (click)="selectFilter('quality', 'SD')"
+        >
           <ion-label>SD</ion-label>
         </ion-chip>
       </div>
 
       <!-- Live/Upcoming/Archived Group -->
       <div class="chip-group" *ngIf="searchType === 'videos'">
-        <ion-chip [color]="selectedFilters.status === 'Live' ? 'primary' : 'light'" (click)="selectFilter('status', 'Live')">
+        <ion-chip
+          [color]="selectedFilters.status === 'Live' ? 'primary' : 'light'"
+          (click)="selectFilter('status', 'Live')"
+        >
           <ion-label>Live</ion-label>
         </ion-chip>
-        <ion-chip [color]="selectedFilters.status === 'Upcoming' ? 'primary' : 'light'" (click)="selectFilter('status', 'Upcoming')">
+        <ion-chip
+          [color]="selectedFilters.status === 'Upcoming' ? 'primary' : 'light'"
+          (click)="selectFilter('status', 'Upcoming')"
+        >
           <ion-label>Upcoming</ion-label>
         </ion-chip>
-        <ion-chip [color]="selectedFilters.status === 'Archived' ? 'primary' : 'light'" (click)="selectFilter('status', 'Archived')">
+        <ion-chip
+          [color]="selectedFilters.status === 'Archived' ? 'primary' : 'light'"
+          (click)="selectFilter('status', 'Archived')"
+        >
           <ion-label>Archived</ion-label>
         </ion-chip>
       </div>
@@ -47,7 +86,9 @@ import { IonicModule } from '@ionic/angular';
       <div class="chip-group" *ngIf="searchType === 'playlists'">
         <ion-chip
           *ngFor="let playlist of playlists"
-          [color]="selectedFilters.playlist === playlist.value ? 'primary' : 'light'"
+          [color]="
+            selectedFilters.playlist === playlist.value ? 'primary' : 'light'
+          "
           (click)="selectFilter('playlist', playlist.value)"
         >
           <ion-label>{{ playlist.label }}</ion-label>
@@ -55,157 +96,309 @@ import { IonicModule } from '@ionic/angular';
       </div>
 
       <!-- Topics Group -->
-      <div class="chip-group" *ngIf="searchType === 'channels'">
-        <ion-chip
-          *ngFor="let topic of topics"
-          [color]="selectedFilters.topics.includes(topic.value) ? 'primary' : 'light'"
-          (click)="selectFilter('topic', topic.value)"
+      <!-- Topics Bar -->
+      <div class="channels-filter">
+        <div class="chip-group" *ngIf="searchType === 'channels'">
+          <ion-chip
+            *ngFor="let topic of topics"
+            [color]="isTopicSelected(topic.value) ? 'primary' : 'light'"
+            (click)="selectFilter('topic', topic.value)"
+          >
+            <ion-label>{{ topic.label }}</ion-label>
+          </ion-chip>
+        </div>
+
+        <!-- Subtopics Bar (visible only if expandedTopic has subtopics) -->
+        <div
+          class="chip-group subtopics"
+          *ngIf="
+            searchType === 'channels' &&
+            expandedTopic &&
+            getSubtopics(expandedTopic)?.length
+          "
         >
-          <ion-label>{{ topic.label }}</ion-label>
-        </ion-chip>
+          <ion-chip
+            *ngFor="let sub of getSubtopics(expandedTopic)"
+            [color]="
+              isSubtopicSelected(expandedTopic, sub.value) ? 'primary' : 'light'
+            "
+            (click)="selectSubtopic(expandedTopic, sub.value)"
+          >
+            <ion-label>{{ sub.label }}</ion-label>
+          </ion-chip>
+        </div>
       </div>
     </ng-container>
   `,
   styleUrls: ['./filter.component.scss'],
-  imports: [CommonModule, FormsModule, IonicModule]
+  imports: [CommonModule, FormsModule, IonicModule],
 })
 export class FilterComponent {
-  resolutions = [
-    { label: 'HD', value: 'hd' },
-    { label: 'SD', value: 'sd' }
-  ];
-
-  liveStatuses = [
-    { label: 'Live', value: 'live' },
-    { label: 'Upcoming', value: 'upcoming' },
-    { label: 'Archived', value: 'archived' }
-  ];
-
-  durations = [
-    { label: 'Short', value: 'short' },
-    { label: 'Medium', value: 'medium' },
-    { label: 'Long', value: 'long' }
-  ];
-
-  topics = [
-    { label: 'Music', value: '/m/04rlf' },
-    { label: 'Gaming', value: '/m/0bzvm2' },
-    { label: 'Sports', value: '/m/06ntj' },
-    { label: 'Education', value: '/m/02jjt' },
-    { label: 'News', value: '/m/0k4d' },
-    { label: 'Technology', value: '/m/0k4d' },
-    { label: 'Movies', value: '/m/01mjl' },
-    { label: 'Comedies', value: '/m/02kz58' },
-    { label: 'Lifestyle', value: '/m/019_rr' }
-  ];
-
-  playlists = [
-    { label: 'All', value: 'all' },
-    { label: 'Favorites', value: 'favorites' },
-    { label: 'Recent', value: 'recent' }
-  ];
-
-  selectedResolution: string = '';
-  selectedLiveStatus: string = '';
-  selectedDuration: string = '';
-
-  selectedFilters = {
-    quality: null,
-    status: null,
-    duration: null,
-    topics: [],
-    playlist: null
-  } as any;
-
-  @Input() searchType: string = 'videos'; // Change to 'channel' or 'video' to test dynamic filters
+  @Input() searchType: string = 'videos';
   @Input() channelFilters: any = [];
   @Input() playlistFilters: any = [];
   @Input() videoFilters: any = [];
   @Output() filtersChanged = new EventEmitter<any>();
 
-  // Select a filter in a group
-  selectFilter(category: string, value: string) {
-    switch (category) {
-      case 'topic':
-        if (this.selectedFilters.topics.includes(value)) {
-          this.selectedFilters.topics = this.selectedFilters.topics.filter((item: any) => item !== value);
-        } else {
-          this.selectedFilters.topics.push(value);
-        }
-        break;
+  selectedFilters: SelectedFilters = {
+    quality: null,
+    status: null,
+    duration: null,
+    topic: null,
+    subtopics: {},
+    playlist: null,
+  };
 
-      case 'playlist':
-        if(this.selectedFilters.playlist !== value) {
-          this.selectedFilters.playlist = value;
-        } else {
-          this.selectedFilters.playlist = null;
-        }
-        break;
-      case 'duration':
-        if(this.selectedFilters.duration !== value) {
-          this.selectedFilters.duration = value;
-        } else {
-          this.selectedFilters.duration = null;
-        }
-        break;
-      case 'quality':
-        if(this.selectedFilters.quality !== value) {
-          this.selectedFilters.quality = value;
-        } else {
-          this.selectedFilters.quality = null;
-        }
-        break;
-      case 'status':
-        if(this.selectedFilters.status !== value) {
-          this.selectedFilters.status = value;
-        } else {
-          this.selectedFilters.status = null;
-        }
-        break;
+  expandedTopic: string | null = null;
+
+  playlists = [
+    { label: 'All', value: 'all' },
+    { label: 'Favorites', value: 'favorites' },
+    { label: 'Recent', value: 'recent' },
+  ];
+
+  topics = [
+    {
+      label: 'Music',
+      value: '/m/04rlf',
+      subtopics: [
+        { label: 'Christian', value: '/m/02mscn' },
+        { label: 'Classical', value: '/m/0ggq0m' },
+        { label: 'Country', value: '/m/01lyv' },
+        { label: 'Electronic', value: '/m/02lkt' },
+        { label: 'Hip-hop', value: '/m/0glt670' },
+        { label: 'Independent', value: '/m/05rwpb' },
+        { label: 'Jazz', value: '/m/03_d0' },
+        { label: 'Asian', value: '/m/028sqc' }, // Renamed for clarity
+        { label: 'Latin American', value: '/m/0g293' }, // Renamed for clarity
+        { label: 'Pop', value: '/m/064t9' },
+        { label: 'Reggae', value: '/m/06cqb' },
+        { label: 'Rhythm and blues', value: '/m/06j6l' },
+        { label: 'Rock', value: '/m/06by7' },
+        { label: 'Soul', value: '/m/0gywn' },
+        { label: 'Folk', value: '/m/0gnn_q' }, // Added
+        { label: 'Metal', value: '/m/0hgs8' }, // Added
+        { label: 'Soundtrack', value: '/m/02qg1' }, // Added
+      ],
+    },
+    {
+      label: 'Gaming',
+      value: '/m/0bzvm2',
+      subtopics: [
+        { label: 'Action', value: '/m/025zzc' },
+        { label: 'Adventure', value: '/m/02ntfj' },
+        { label: 'Casual', value: '/m/0b1vjn' },
+        { label: 'Music Games', value: '/m/02hygl' }, // Renamed for clarity
+        { label: 'Puzzle', value: '/m/04q1x3q' },
+        { label: 'Racing', value: '/m/01sjng' },
+        { label: 'Role-playing', value: '/m/0403l3g' },
+        { label: 'Simulation', value: '/m/021bp2' },
+        { label: 'Sports', value: '/m/022dc6' },
+        { label: 'Strategy', value: '/m/03hf_rm' },
+        { label: 'Fighting', value: '/m/02chyl' }, // Added
+        { label: 'Horror', value: '/m/0c_fw0' }, // Added (often a subgenre within action/adventure)
+        { label: 'Open World', value: '/m/052_h' }, // Added (often a subgenre)
+      ],
+    },
+    {
+      label: 'Sports',
+      value: '/m/06ntj',
+      subtopics: [
+        { label: 'American Football', value: '/m/0jm_' },
+        { label: 'Baseball', value: '/m/018jz' },
+        { label: 'Basketball', value: '/m/018w8' },
+        { label: 'Boxing', value: '/m/01cgz' },
+        { label: 'Cricket', value: '/m/09xp_' },
+        { label: 'Football (Soccer)', value: '/m/02vx4' },
+        { label: 'Golf', value: '/m/037hz' },
+        { label: 'Ice Hockey', value: '/m/03tmr' },
+        { label: 'MMA', value: '/m/01h7lh' },
+        { label: 'Motorsport', value: '/m/0410tth' },
+        { label: 'Tennis', value: '/m/07bs0' },
+        { label: 'Volleyball', value: '/m/07_53' },
+        { label: 'Athletics', value: '/m/02b2by' }, // Added (Track & Field)
+        { label: 'Cycling', value: '/m/02_n6y' }, // Added
+        { label: 'Winter Sports', value: '/m/081q4' }, // Added
+        { label: 'Water Sports', value: '/m/0b40g' }, // Added
+        { label: 'Extreme Sports', value: '/m/027k4' }, // Added
+      ],
+    },
+    {
+      label: 'Lifestyle',
+      value: '/m/019_rr',
+      subtopics: [
+        { label: 'Fashion', value: '/m/032tl' },
+        { label: 'Fitness', value: '/m/027x7n' },
+        { label: 'Food', value: '/m/02wbm' },
+        { label: 'Hobby', value: '/m/03glg' },
+        { label: 'Pets', value: '/m/068hy' },
+        { label: 'Beauty', value: '/m/041xxh' },
+        { label: 'Technology', value: '/m/07c1v' },
+        { label: 'Tourism', value: '/m/07bxq' },
+        { label: 'Vehicles', value: '/m/07yv9' },
+        { label: 'DIY', value: '/m/02_kt' }, // Added (Do It Yourself)
+        { label: 'Home & Garden', value: '/m/02yjr' }, // Added
+        { label: 'Parenting', value: '/m/04w0j' }, // Added
+        { label: 'Travel', value: '/m/06bm2' }, // Added (more general than Tourism)
+      ],
+    },
+    {
+      label: 'Knowledge',
+      value: '/m/01k8wb', // This is a good general Freebase ID for "Knowledge" or "Education"
+      subtopics: [
+        { label: 'Science', value: '/m/06mkb' }, // General science
+        { label: 'History', value: '/m/03_d0b' },
+        { label: 'Education', value: '/m/02l_c' },
+        { label: 'DIY & How-to', value: '/m/07pr_n' }, // Often overlaps with Lifestyle
+        { label: 'Finance', value: '/m/02g_f' },
+        { label: 'Health', value: '/m/0kt51' },
+        { label: 'Language Learning', value: '/m/033_f' },
+        { label: 'Nature', value: '/m/05qv0' }, // Includes wildlife, environment
+        { label: 'Philosophy', value: '/m/05lp6' },
+        { label: 'Psychology', value: '/m/06n9d' },
+        { label: 'Space', value: '/m/06_y' },
+        { label: 'Current Events', value: '/m/098wr' }, // News and analysis
+        { label: 'Politics', value: '/m/05qt0' },
+        { label: 'Arts & Culture', value: '/m/01s_55' }, // Covers broad cultural topics
+        { label: 'Literature', value: '/m/04j1j' },
+        { label: 'Mathematics', value: '/m/04_t0' },
+        { label: 'Engineering', value: '/m/0cgh4' },
+        { label: 'Business', value: '/m/016_4x' },
+      ],
+    },
+    {
+      label: 'Film & Animation', // Added common top-level category
+      value: '/m/02vxn',
+      subtopics: [
+        { label: 'Action & Adventure', value: '/m/02l7c' },
+        { label: 'Comedy', value: '/m/02jds' },
+        { label: 'Documentary', value: '/m/032d80' },
+        { label: 'Drama', value: '/m/02rtx' },
+        { label: 'Family', value: '/m/01k3g' },
+        { label: 'Horror', value: '/m/02n4r' },
+        { label: 'Science Fiction', value: '/m/02xzz' },
+        { label: 'Thriller', value: '/m/05_50' },
+        { label: 'Animation', value: '/m/01sj3' },
+        { label: 'Trailers', value: '/m/0p8qg' },
+        { label: 'Reviews', value: '/m/0ggql' },
+      ],
+    },
+    {
+      label: 'Comedy', // Often a standalone category on YouTube
+      value: '/m/0h66_y',
+      subtopics: [
+        { label: 'Sketch', value: '/m/02qg1n0' },
+        { label: 'Stand-up', value: '/m/06cpw' },
+        { label: 'Parody', value: '/m/081q4' }, // Often overlaps with music/film
+        { label: 'Vlogs (Comedy)', value: '/m/02jds0' }, // Comedy vlogs
+      ],
+    },
+    {
+      label: 'Vlogs', // General vlogging
+      value: '/m/0g4b3l', // Often mapped to a broader "People & Blogs" or similar
+      subtopics: [
+        { label: 'Daily', value: '/m/01k8wb' }, // Can be general life vlogs
+        { label: 'Travel', value: '/m/07bxq' },
+        { label: 'Beauty', value: '/m/041xxh' },
+        { label: 'Gaming', value: '/m/0bzvm2' },
+        { label: 'Family', value: '/m/04w0j' },
+      ],
+    },
+  ];
+
+  selectFilter(category: 'topic' | SimpleFilterCategory, value: string) {
+    if (category === 'topic') {
+      if (this.selectedFilters.topic === value) {
+        // Deselect topic and reset subtopics
+        this.selectedFilters.topic = null;
+        this.expandedTopic = null;
+        this.selectedFilters.subtopics = {};
+      } else {
+        // Select new topic and initialize subtopics
+        this.selectedFilters.topic = value;
+        this.expandedTopic = value;
+        this.selectedFilters.subtopics = { [value]: [] };
+      }
+    } else {
+      // Handle simple filter categories
+      const currentValue = this.selectedFilters[category];
+      this.selectedFilters[category] =
+        currentValue !== value ? (value as any) : null;
     }
+
     this.emitFiltersChange();
   }
 
-  // Emit the selected filters to parent component
-  emitFiltersChange() {
-    this.filtersChanged.emit(this.selectedFilters);
-  }
-
-  toggleResolution(value: string) {
-    this.selectedResolution = this.selectedResolution === value ? '' : value;
-    this.applyFilters();
-  }
-
-  toggleLiveStatus(value: string) {
-    this.selectedLiveStatus = this.selectedLiveStatus === value ? '' : value;
-    this.applyFilters();
-  }
-
-  toggleDuration(value: string) {
-    this.selectedDuration = this.selectedDuration === value ? '' : value;
-    this.applyFilters();
-  }
-
-  toggleTopic(topic: string) {
-    const index = this.selectedFilters.topics.indexOf(topic);
-    if (index === -1) {
-      this.selectedFilters.topics.push(topic);
-    } else {
-      this.selectedFilters.topics.splice(index, 1);
+  selectSubtopic(parent: string, subtopic: string) {
+    // Ensure subtopics object exists
+    if (!this.selectedFilters.subtopics) {
+      this.selectedFilters.subtopics = {};
     }
-    this.applyFilters();
+
+    // Ensure parent array exists
+    if (!this.selectedFilters.subtopics[parent]) {
+      this.selectedFilters.subtopics[parent] = [];
+    }
+
+    const list = this.selectedFilters.subtopics[parent];
+    const index = list.indexOf(subtopic);
+
+    if (index === -1) {
+      // Add subtopic if not already selected
+      list.push(subtopic);
+    } else {
+      // Remove subtopic if already selected
+      list.splice(index, 1);
+    }
+
+    this.emitFiltersChange();
   }
 
-  isTopicSelected(topic: string): boolean {
-    return this.selectedFilters.topics.includes(topic);
+  isTopicSelected(value: string): boolean {
+    return this.selectedFilters.topic === value;
   }
 
-  applyFilters() {
-    console.log({
-      resolution: this.selectedResolution,
-      liveStatus: this.selectedLiveStatus,
-      duration: this.selectedDuration,
-      topics: this.selectedFilters.topics
-    });
+  isSubtopicSelected(parent: string, subtopic: string): boolean {
+    return (
+      this.selectedFilters.subtopics?.[parent]?.includes(subtopic) || false
+    );
+  }
+
+  getSubtopics(topicValue: string) {
+    const topic = this.topics.find((t) => t.value === topicValue);
+    return topic?.subtopics || [];
+  }
+
+  emitFiltersChange() {
+    this.filtersChanged.emit({ ...this.selectedFilters });
+  }
+
+  // Helper method to reset all filters
+  resetFilters() {
+    this.selectedFilters = {
+      quality: null,
+      status: null,
+      duration: null,
+      topic: null,
+      subtopics: {},
+      playlist: null,
+    };
+    this.expandedTopic = null;
+    this.emitFiltersChange();
+  }
+
+  // Helper method to check if any filters are active
+  hasActiveFilters(): boolean {
+    return !!(
+      this.selectedFilters.quality ||
+      this.selectedFilters.status ||
+      this.selectedFilters.duration ||
+      this.selectedFilters.topic ||
+      this.selectedFilters.playlist ||
+      (this.selectedFilters.subtopics &&
+        Object.keys(this.selectedFilters.subtopics).some(
+          (key) => this.selectedFilters.subtopics[key].length > 0
+        ))
+    );
   }
 }

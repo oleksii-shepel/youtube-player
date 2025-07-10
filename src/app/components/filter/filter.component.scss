@@ -45,3 +45,27 @@
   --color: var(--ion-text-color-step-850);
   opacity: 1;
 }
+
+.channels-filter {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: inherit;
+  gap: 6px;
+}
+
+.subtopics {
+  margin-top: 4px;
+  margin-left: 0;
+  padding-left: 0;
+  border-left: none;
+  flex-wrap: wrap;
+  max-height: unset; // allow wrapping naturally
+  gap: 4px;
+}
+
+ion-chip ion-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
