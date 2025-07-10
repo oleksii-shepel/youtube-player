@@ -309,18 +309,15 @@ export class FilterComponent {
   selectFilter(category: 'topic' | SimpleFilterCategory, value: string) {
     if (category === 'topic') {
       if (this.selectedFilters.topic === value) {
-        // Deselect topic and reset subtopics
         this.selectedFilters.topic = null;
         this.expandedTopic = null;
         this.selectedFilters.subtopics = {};
       } else {
-        // Select new topic and initialize subtopics
         this.selectedFilters.topic = value;
         this.expandedTopic = value;
         this.selectedFilters.subtopics = { [value]: [] };
       }
     } else {
-      // Handle simple filter categories
       const currentValue = this.selectedFilters[category];
       this.selectedFilters[category] =
         currentValue !== value ? (value as any) : null;
@@ -330,12 +327,10 @@ export class FilterComponent {
   }
 
   selectSubtopic(parent: string, subtopic: string) {
-    // Ensure subtopics object exists
     if (!this.selectedFilters.subtopics) {
       this.selectedFilters.subtopics = {};
     }
 
-    // Ensure parent array exists
     if (!this.selectedFilters.subtopics[parent]) {
       this.selectedFilters.subtopics[parent] = [];
     }
@@ -344,10 +339,8 @@ export class FilterComponent {
     const index = list.indexOf(subtopic);
 
     if (index === -1) {
-      // Add subtopic if not already selected
       list.push(subtopic);
     } else {
-      // Remove subtopic if already selected
       list.splice(index, 1);
     }
 
@@ -369,11 +362,21 @@ export class FilterComponent {
     return topic?.subtopics || [];
   }
 
-  emitFiltersChange() {
-    this.filtersChanged.emit({ ...this.selectedFilters });
+  /** 🔥 New: Flatten selected topic + subtopics into array */
+  get flattenedTopics(): string[] {
+    const { topic, subtopics } = this.selectedFilters;
+    if (!topic) return [];
+    const selectedSubs = subtopics[topic];
+    return selectedSubs && selectedSubs.length > 0 ? selectedSubs : [topic];
   }
 
-  // Helper method to reset all filters
+  emitFiltersChange() {
+    this.filtersChanged.emit({
+      ...this.selectedFilters,
+      flattenedTopics: this.flattenedTopics,
+    });
+  }
+
   resetFilters() {
     this.selectedFilters = {
       quality: null,
@@ -387,7 +390,6 @@ export class FilterComponent {
     this.emitFiltersChange();
   }
 
-  // Helper method to check if any filters are active
   hasActiveFilters(): boolean {
     return !!(
       this.selectedFilters.quality ||
@@ -395,10 +397,7 @@ export class FilterComponent {
       this.selectedFilters.duration ||
       this.selectedFilters.topic ||
       this.selectedFilters.playlist ||
-      (this.selectedFilters.subtopics &&
-        Object.keys(this.selectedFilters.subtopics).some(
-          (key) => this.selectedFilters.subtopics[key].length > 0
-        ))
+      Object.values(this.selectedFilters.subtopics).some((list) => list.length)
     );
   }
 }
