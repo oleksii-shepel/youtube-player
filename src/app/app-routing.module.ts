@@ -1,3 +1,4 @@
+import { PlaylistPage } from './pages/playlist/playlist.page';
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
@@ -14,6 +15,14 @@ const routes: Routes = [
   {
     path: 'settings',
     loadComponent: () => import('./pages/settings/settings.page').then(m => m.SettingsPage)
+  },
+  {
+    path: 'playlist/:id',
+    loadComponent: () => import('./pages/playlist/playlist.page').then(m => m.PlaylistPage)
+  },
+  {
+    path: 'channel/:id',
+    loadComponent: () => import('./pages/channel/channel.page').then(m => m.ChannelPage)
   }
 ];
 

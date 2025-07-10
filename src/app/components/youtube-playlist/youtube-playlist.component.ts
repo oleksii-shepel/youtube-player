@@ -3,6 +3,30 @@ import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
+import { Router } from '@angular/router';
+
+export interface YouTubePlaylist {
+  id: string;
+  snippet: {
+    publishedAt: string;
+    channelId: string;
+    title: string;
+    description: string;
+    thumbnails: {
+      default: { url: string; width?: number; height?: number };
+      medium: { url: string; width?: number; height?: number };
+      high: { url: string; width?: number; height?: number };
+    };
+    channelTitle: string;
+    localized?: {
+      title: string;
+      description: string;
+    };
+  };
+  contentDetails: {
+    itemCount: number;
+  };
+}
 
 @Component({
   selector: 'app-youtube-playlist',
@@ -27,7 +51,7 @@ import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component'
           </p>
         </section>
         <div class="action-buttons">
-          <ion-button [href]="getPlaylistUrl()" target="_blank" rel="noopener noreferrer" size="small">
+          <ion-button (click)="goToPlaylist(playlist.id)" size="small">
             View Playlist
           </ion-button>
           <ion-button (click)="toggleVideos()" size="small">
@@ -51,15 +75,15 @@ import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component'
   imports: [CommonModule, IonicModule, YoutubeVideoComponent],
 })
 export class YoutubePlaylistComponent {
-  @Input('playlistData') playlist: any;
+  @Input('playlistData') playlist!: YouTubePlaylist;
   showVideosList: boolean = false;
   videosResponse: any = '';
 
-  constructor(private data: YoutubeDataService) {
+  constructor(private router: Router) {
   }
 
-  getPlaylistUrl(): string {
-    return `https://www.youtube.com/playlist?list=${this.playlist.id}`;
+  goToPlaylist(playlistId: string) {
+    this.router.navigate(['/playlist', playlistId]);
   }
 
   toggleVideos(): void {

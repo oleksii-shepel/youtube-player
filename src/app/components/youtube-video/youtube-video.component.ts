@@ -4,6 +4,45 @@ import { ChangeDetectionStrategy, Component, Input, OnInit, OnDestroy, ElementRe
 
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
 
+export interface YouTubeVideo {
+  id: string;
+  snippet: {
+    publishedAt: string;
+    channelId: string;
+    title: string;
+    description: string;
+    thumbnails: {
+      default: { url: string; width?: number; height?: number };
+      medium: { url: string; width?: number; height?: number };
+      high: { url: string; width?: number; height?: number };
+      standard?: { url: string; width?: number; height?: number };
+      maxres?: { url: string; width?: number; height?: number };
+    };
+    channelTitle: string;
+    categoryId?: string;
+    liveBroadcastContent?: 'none' | 'live' | 'upcoming';
+    localized?: {
+      title: string;
+      description: string;
+    };
+  };
+  contentDetails: {
+    duration: string; // ISO 8601 duration format, e.g. "PT15M33S"
+    dimension: '2d' | '3d';
+    definition: 'hd' | 'sd';
+    caption: 'true' | 'false';
+    licensedContent: boolean;
+    projection: 'rectangular' | '360';
+  };
+  statistics: {
+    viewCount: string; // numbers as strings in YouTube API
+    likeCount?: string;
+    dislikeCount?: string;
+    favoriteCount: string;
+    commentCount?: string;
+  };
+}
+
 @Component({
   selector: 'app-youtube-video',
   template: `
@@ -12,7 +51,7 @@ import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
         <ion-img [src]="thumbnailUrl" alt="{{ video.snippet.title }} thumbnail" class="video-image"></ion-img>
         <span class="video-duration">{{ video.contentDetails.duration | toFriendlyDuration }}</span>
         <div class="video-info-overlay">
-          <span class="view-count">{{ video.statistics.viewCount | shrink }} views</span>
+          <span class="view-count">{{ +video.statistics.viewCount | shrink }} views</span>
           <span class="publish-date">{{ video.snippet.publishedAt | date }}</span>
         </div>
         <div *ngIf="isCompact" class="video-duration-overlay">
@@ -46,7 +85,7 @@ import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
   imports: [CommonModule, IonicModule, ToFriendlyDurationPipe, ShrinkNumberPipe],
 })
 export class YoutubeVideoComponent implements OnInit, OnDestroy {
-  @Input('videoData') video: any;
+  @Input('videoData') video!: YouTubeVideo;
   @Input() isCompact: boolean = false;
 
   @Output() addTrackToPlaylist = new EventEmitter<any>();

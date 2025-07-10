@@ -1,11 +1,40 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output } from '@angular/core';
-import { tap } from 'rxjs/operators';
 
 import { ShrinkNumberPipe } from '../../pipes/shrink-number.pipe';
 import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
-import { YoutubeDataService } from 'src/app/services/data.service';
-import { IonicModule } from '@ionic/angular'; // Import IonicModule
+import { IonicModule } from '@ionic/angular';
+import { Router } from '@angular/router';
+
+export interface YouTubeChannel {
+  id: string;
+  snippet: {
+    title: string;
+    description: string;
+    publishedAt: string;
+    thumbnails: {
+      default: { url: string; width?: number; height?: number };
+      medium: { url: string; width?: number; height?: number };
+      high: { url: string; width?: number; height?: number };
+    };
+    country?: string;
+  };
+  contentDetails: {
+    relatedPlaylists: {
+      likes?: string;
+      uploads?: string;
+      favorites?: string;
+      watchHistory?: string;
+      watchLater?: string;
+    };
+  };
+  statistics: {
+    viewCount: string;
+    subscriberCount: string;
+    hiddenSubscriberCount: boolean;
+    videoCount: string;
+  };
+}
 
 @Component({
   selector: 'app-youtube-channel',
@@ -19,7 +48,7 @@ import { IonicModule } from '@ionic/angular'; // Import IonicModule
           </h5>
           <div class="channel-stats-overlay">
             <span class="published-date"><small>Published: {{ channel.snippet.publishedAt | date }}</small></span>
-            <span class="subscriber-count">{{ channel.statistics.subscriberCount | shrink }} Subscribers</span>
+            <span class="subscriber-count">{{ +channel.statistics.subscriberCount | shrink }} Subscribers</span>
             <span class="video-count">{{ channel.statistics.videoCount }} Videos</span>
           </div>
         </div>
@@ -28,7 +57,7 @@ import { IonicModule } from '@ionic/angular'; // Import IonicModule
         <p class="card-description">{{ channel.snippet.description | slice: 0:150 }}</p>
       </div>
       <div class="action-buttons">
-        <ion-button [href]="getChannelUrl()" target="_blank" rel="noopener noreferrer" size="small" color="primary" outline>
+        <ion-button (click)="goToChannel(channel.id)" size="small" color="primary" outline>
           Visit Channel
         </ion-button>
         <ion-button (click)="subscribeToChannel()" size="small" color="danger" outline>
@@ -54,18 +83,16 @@ import { IonicModule } from '@ionic/angular'; // Import IonicModule
   imports: [CommonModule, ShrinkNumberPipe, YoutubeVideoComponent, IonicModule]
 })
 export class YoutubeChannelComponent {
-  @Input('channelData') channel: any;
+  @Input('channelData') channel!: YouTubeChannel;
   @Output() toggle = new EventEmitter<boolean>();
 
   showUploadsList: boolean = false;
   videosResponse: any = '';
 
-  constructor(private youtubeSearch: YoutubeDataService, public elRef: ElementRef) {}
+  constructor(private router: Router, public elRef: ElementRef) {}
 
-  getChannelUrl(): string {
-    return this.channel.snippet.customUrl
-      ? `https://www.youtube.com/${this.channel.snippet.customUrl}`
-      : `https://www.youtube.com/channel/${this.channel.id}`;
+  goToChannel(channelId: string) {
+    this.router.navigate(['/channel', channelId]);
   }
 
   subscribeToChannel(): void {
