@@ -1,4 +1,4 @@
-import { Stream } from '@actioncrew/streamix';
+import { catchError, createSubject, Stream } from '@actioncrew/streamix';
 import { HttpClient, readJson } from '@actioncrew/streamix/http';
 
 import { IYoutubeQueryParams } from '../interfaces/search-parameters';
@@ -15,6 +15,7 @@ export class YoutubeDataService {
   private readonly apiKey = environment.youtube.apiKey;
   private readonly maxResults = environment.youtube.maxResults;
   private http: HttpClient;
+  searchError$ = createSubject<string>();
 
   constructor() {
     this.http = inject<HttpClient>(HTTP_CLIENT);
@@ -24,20 +25,46 @@ export class YoutubeDataService {
    * Perform a generic search for the specified endpoint.
    */
   search(endpoint: string, queryParams: IYoutubeQueryParams): Stream<any> {
-
     const params = this.buildHttpParams(queryParams);
-
-    // Ensure the correct URL and parameters are being used
-    let url = `${this.baseUrl}/${endpoint}`;
+    const url = `${this.baseUrl}/${endpoint}`;
 
     return this.http.get(url, readJson, { params }).pipe(
       map((response: any) => ({
         ...response,
         nextPageToken: response.nextPageToken,
         prevPageToken: response.prevPageToken,
-      }))
+      })),
+      catchError((err) => {
+        this.searchError$.next(this.parseErrorMessage(err));
+      })
     );
   }
+
+  private parseErrorMessage(err: any): string {
+    const rawMsg = err?.message ?? '';
+
+    if (rawMsg.includes('403')) {
+      return 'Access denied (403). Possibly over quota or restricted key.';
+    }
+    if (rawMsg.includes('404')) {
+      return 'Resource not found (404).';
+    }
+    if (rawMsg.includes('400')) {
+      return 'Bad request (400). Check query parameters.';
+    }
+    if (rawMsg.includes('401')) {
+      return 'Unauthorized (401). Invalid API key?';
+    }
+    if (rawMsg.includes('500')) {
+      return 'Internal server error (500). Try again later.';
+    }
+    if (rawMsg.includes('HTTP Error')) {
+      return `YouTube API: ${rawMsg}`;
+    }
+
+    return 'Unknown error during search. Please try again.';
+  }
+
 
   /**
    * Fetch detailed video information.

@@ -1,6 +1,6 @@
 import { PlayerService } from './../../services/player.service';
 import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
-import { Stream, switchMap } from '@actioncrew/streamix';
+import { Stream, Subscription, switchMap } from '@actioncrew/streamix';
 import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { PlaylistService } from 'src/app/services/playlist.service';
@@ -15,6 +15,7 @@ import { YoutubePlaylistComponent } from 'src/app/components/youtube-playlist/yo
 import { YoutubeChannelComponent } from 'src/app/components/youtube-channel/youtube-channel.component';
 import { FilterComponent } from 'src/app/components/filter/filter.component';
 import { DirectiveModule } from 'src/app/directives';
+import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-search',
@@ -309,12 +310,14 @@ export class SearchPage {
     private youtubeDataService: YoutubeDataService,
     private playlistService: PlaylistService,
     private playerService: PlayerService,
-    private authorization: Authorization
+    private authorization: Authorization,
+    private toastCtrl: ToastController
   ) {}
 
   auth$ = this.authorization.authSubject;
   playbackState$ = this.playlistService.playbackState;
   hidden$ = this.playerService.isHidden;
+  errorSub: Subscription | undefined;
 
   ngAfterViewInit() {
     const container = document.getElementById('google-signin-btn');
@@ -323,6 +326,20 @@ export class SearchPage {
     } else {
       this.authorization.initializeGsiButton();
     }
+
+    this.errorSub = this.youtubeDataService.searchError$.subscribe(async msg => {
+       const toast = await this.toastCtrl.create({
+        message: msg,
+        duration: 3000, // 3 seconds
+        position: 'bottom',
+        color: 'danger',
+      });
+      toast.present();
+    });
+  }
+
+  ngOnDestroy() {
+    this.errorSub?.unsubscribe();
   }
 
   addActivated(event: Event) {
