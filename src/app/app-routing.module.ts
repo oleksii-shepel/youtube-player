@@ -23,6 +23,10 @@ const routes: Routes = [
   {
     path: 'channel/:id',
     loadComponent: () => import('./pages/channel/channel.page').then(m => m.ChannelPage)
+  },
+  {
+    path: 'video/:id',
+    loadComponent: () => import('./pages/video/video.page').then(m => m.VideoPage)
   }
 ];
 

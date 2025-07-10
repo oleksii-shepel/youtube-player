@@ -34,7 +34,7 @@ import { YoutubeVideoComponent } from '../../components/youtube-video/youtube-vi
 
       <ion-list>
         <ion-list-header>
-          Playlist Videos ({{ videos?.length || 0 }})
+          Playlist Videos ({{ videos.length || 0 }})
         </ion-list-header>
         <ion-item *ngFor="let video of videos">
           <app-youtube-video
@@ -45,6 +45,7 @@ import { YoutubeVideoComponent } from '../../components/youtube-video/youtube-vi
       </ion-list>
     </ion-content>
   `,
+  styleUrls: ["playlist.page.scss"],
   standalone: true,
   imports: [CommonModule, IonicModule, YoutubeVideoComponent],
 })

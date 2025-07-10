@@ -40,6 +40,7 @@ import { YoutubePlaylistComponent } from '../../components/youtube-playlist/yout
       </ion-list>
     </ion-content>
   `,
+  styleUrls: ["channel.page.scss"],
   standalone: true,
   imports: [CommonModule, IonicModule, YoutubePlaylistComponent],
 })
