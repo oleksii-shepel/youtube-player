@@ -153,8 +153,7 @@ import { Options } from 'sortablejs';
     </ion-list>
   `,
   styleUrls: ['playlist.component.scss'],
-  standalone: false,
-  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class PlaylistComponent implements OnInit { // Implement AfterViewInit
   @Input() playlist: any[] = [];

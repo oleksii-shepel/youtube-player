@@ -18,7 +18,7 @@ import { DirectiveModule } from 'src/app/directives';
 import { ToastController } from '@ionic/angular';
 
 @Component({
-  selector: 'app-search',
+  selector: 'app-search-page',
   template: `
     <ion-header>
       <div class="scrollable">

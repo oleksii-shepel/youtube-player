@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 
 @Component({
-  selector: 'app-settings',
+  selector: 'app-settings-page',
   standalone: true,
   template: `
      <ion-header>

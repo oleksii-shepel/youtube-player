@@ -4,29 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
 import { Router } from '@angular/router';
-
-export interface YouTubePlaylist {
-  id: string;
-  snippet: {
-    publishedAt: string;
-    channelId: string;
-    title: string;
-    description: string;
-    thumbnails: {
-      default: { url: string; width?: number; height?: number };
-      medium: { url: string; width?: number; height?: number };
-      high: { url: string; width?: number; height?: number };
-    };
-    channelTitle: string;
-    localized?: {
-      title: string;
-      description: string;
-    };
-  };
-  contentDetails: {
-    itemCount: number;
-  };
-}
+import { YouTubePlaylist } from 'src/app/interfaces/youtube-playlist-data';
 
 @Component({
   selector: 'app-youtube-playlist',

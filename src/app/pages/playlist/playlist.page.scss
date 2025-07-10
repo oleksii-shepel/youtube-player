@@ -1,0 +1,253 @@
+.scrollable {
+  width: 100%;
+  height: 100%;
+}
+
+.playlist-page {
+  --background: transparent;
+  --color: var(--ion-text-color-step-950, #ffffff);
+  background: var(--background);
+  color: var(--color);
+  opacity: 0.8;
+}
+
+ion-header ion-toolbar {
+  --background: transparent;
+  background: var(--background);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+ion-card {
+  background: rgba(42, 23, 23, 0.75);
+  /* Semi-transparent card bg */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  color: var(--color);
+}
+
+.playlist-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Playlist Header Card */
+.playlist-header-card {
+  background: var(--ion-card-background);
+  border: 1px solid var(--ion-card-border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--ion-box-shadow-color);
+  margin: 0 0 24px 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+
+  ion-card-header {
+    padding-bottom: 0;
+
+    ion-card-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--ion-text-color-step-950);
+      margin-bottom: 8px;
+    }
+
+    ion-card-subtitle {
+      display: flex;
+      gap: 8px;
+      color: var(--ion-text-color-step-850);
+      font-size: 0.9rem;
+    }
+  }
+
+  ion-card-content {
+    padding-top: 0;
+
+    .description-truncated {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      color: var(--ion-text-color);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .description-full {
+      color: var(--ion-text-color);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .description-toggle {
+      --color: var(--ion-color-primary);
+      --color-activated: var(--ion-color-primary-tint);
+      font-size: 0.9rem;
+      margin: 0;
+      height: auto;
+    }
+  }
+}
+
+/* Playlist Actions */
+.playlist-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px 16px;
+
+  ion-button {
+    flex: 1;
+    --border-color: var(--ion-color-medium);
+    --color: var(--ion-text-color-step-850);
+    --color-activated: var(--ion-text-color-step-950);
+    --background-activated: var(--ion-background-color-500);
+    font-weight: 500;
+
+    ion-icon {
+      margin-right: 8px;
+    }
+  }
+
+  .play-all {
+    --background: var(--ion-color-primary);
+    --background-activated: var(--ion-color-primary-tint);
+    --color: var(--ion-color-primary-contrast);
+    --border-width: 0;
+  }
+}
+
+/* Videos Grid */
+.videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+
+  .video-item {
+    background: var(--ion-card-background);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--ion-card-border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+/* Skeleton Styles */
+.skeleton-card {
+  background: var(--ion-card-background);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  ion-thumbnail {
+    width: 100%;
+    height: 180px;
+    margin-bottom: 16px;
+  }
+
+  .skeleton-title {
+    width: 70%;
+    height: 24px;
+    margin-bottom: 12px;
+  }
+
+  .skeleton-subtitle {
+    width: 50%;
+    height: 16px;
+    margin-bottom: 16px;
+  }
+
+  .skeleton-description {
+    width: 100%;
+    height: 14px;
+    margin-bottom: 8px;
+  }
+
+  .skeleton-button {
+    width: 100px;
+    height: 36px;
+    margin-top: 8px;
+  }
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+
+  .video-item-skeleton {
+    background: var(--ion-card-background);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+
+    ion-thumbnail {
+      width: 120px;
+      height: 68px;
+    }
+
+    .skeleton-text-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+    }
+  }
+}
+
+/* Empty States */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ion-text-color-step-850);
+
+  ion-icon {
+    font-size: 48px;
+    opacity: 0.7;
+  }
+
+  ion-text {
+    font-size: 1.1rem;
+  }
+
+  &.error-state {
+    color: var(--ion-color-danger);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .videos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 576px) {
+  .playlist-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .videos-grid {
+    grid-template-columns: 1fr;
+  }
+}
