@@ -1,3 +1,12 @@
+export interface VideoComment {
+  id: string;
+  author: string;
+  authorAvatar: string;
+  text: string;
+  timestamp: string;
+  likes: number;
+}
+
 export interface YouTubeVideo {
   id: string;
   snippet: {

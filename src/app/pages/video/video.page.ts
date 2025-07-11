@@ -3,16 +3,8 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { createSubject } from '@actioncrew/streamix';
-import { YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
+import { VideoComment, YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
 
-interface VideoComment {
-  id: string;
-  author: string;
-  authorAvatar: string;
-  text: string;
-  timestamp: string;
-  likes: number;
-}
 
 @Component({
   selector: 'app-video-page',
