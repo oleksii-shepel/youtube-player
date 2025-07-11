@@ -61,7 +61,12 @@ import { map, switchMap } from '@actioncrew/streamix';
 
         <!-- Videos Grid -->
         <div *ngIf="videos.length > 0" class="videos-grid">
-          <div *ngFor="let video of videos" class="video-item">
+          <div
+            *ngFor="let video of videos"
+            class="video-item"
+            [class.selected]="isSelected(video.contentDetails.videoId || video.id)"
+            (click)="toggleSelection(video.contentDetails.videoId || video.id)"
+          >
             <app-youtube-video
               [videoData]="video"
               (addTrackToPlaylist)="onAddTrackToPlaylist(video)"
@@ -78,6 +83,21 @@ import { map, switchMap } from '@actioncrew/streamix';
         </ion-infinite-scroll>
       </div>
     </ion-content>
+
+    <ion-footer *ngIf="selectedVideoIds.size > 0">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="clearSelection()">Clear</ion-button>
+        </ion-buttons>
+        <ion-title>{{ selectedVideoIds.size }} selected</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="addSelectedToPlaylist()">
+            <ion-icon name="add" slot="start"></ion-icon>
+            Add to Playlist
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
   `,
   styleUrls: ['playlist.page.scss'],
   standalone: true,
@@ -91,6 +111,7 @@ export class PlaylistPage implements OnInit, OnDestroy {
   nextPageToken: string | null = null;
   allLoaded = false;
   loadingVideos = false;
+  selectedVideoIds = new Set<string>();
 
   private subscriptions: Subscription[] = [];
 
@@ -125,9 +146,7 @@ export class PlaylistPage implements OnInit, OnDestroy {
     this.allLoaded = false;
     this.nextPageToken = null;
 
-    const playlistId = this.playlistId;
-
-    this.subscriptions.push(this.dataService.fetchPlaylistById(playlistId).subscribe((res) => {
+    this.subscriptions.push(this.dataService.fetchPlaylistById(this.playlistId).subscribe((res) => {
       this.playlist = res.items?.[0] || null;
     }));
 
@@ -158,22 +177,15 @@ export class PlaylistPage implements OnInit, OnDestroy {
           return this.dataService.fetchVideos(videoIds).pipe(
             map((videoRes: any) => {
               const detailedItems = videoRes.items || [];
-
-              // Required fields for each video
               const requiredFields = ['snippet', 'contentDetails', 'statistics'];
-
-              // Filter detailed videos with all required fields
               const filtered = detailedItems.filter((v: any) =>
                 requiredFields.every((key) => key in v)
               );
 
-              // Merge basic + detailed data
               const merged = items
                 .map((item: any) => {
                   const full = filtered.find((v: any) => v.id === item.contentDetails?.videoId);
-                  return full
-                    ? { ...item, ...full }
-                    : null;
+                  return full ? { ...item, ...full } : null;
                 })
                 .filter(Boolean);
 
@@ -193,6 +205,30 @@ export class PlaylistPage implements OnInit, OnDestroy {
           this.loadingVideos = false;
         },
       }));
+  }
+
+  toggleSelection(videoId: string) {
+    if (this.selectedVideoIds.has(videoId)) {
+      this.selectedVideoIds.delete(videoId);
+    } else {
+      this.selectedVideoIds.add(videoId);
+    }
+  }
+
+  isSelected(videoId: string): boolean {
+    return this.selectedVideoIds.has(videoId);
+  }
+
+  clearSelection() {
+    this.selectedVideoIds.clear();
+  }
+
+  addSelectedToPlaylist() {
+    const selected = this.videos.filter((video) =>
+      this.selectedVideoIds.has(video.contentDetails.videoId || video.id)
+    );
+    selected.forEach((video) => this.playlistService.addToPlaylist(video));
+    this.clearSelection();
   }
 
   onAddTrackToPlaylist(video: any) {

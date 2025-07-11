@@ -136,6 +136,12 @@ ion-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
 
+    &.selected {
+      outline: 2px solid var(--ion-color-primary);
+      border-radius: 8px;
+      background-color: rgba(var(--ion-color-primary-rgb), 0.1);
+    }
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);

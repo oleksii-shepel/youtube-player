@@ -5,10 +5,11 @@ import {
   EventEmitter,
   ViewEncapsulation,
   OnInit,
+  OnDestroy,
   HostListener,
 } from '@angular/core';
 import { PlaylistService } from 'src/app/services/playlist.service';
-import { Subscription } from '@actioncrew/streamix'; // Use rxjs for Subscription as @actioncrew/streamix is not standard
+import { Subscription } from '@actioncrew/streamix';
 import { Options } from 'sortablejs';
 
 @Component({
@@ -138,27 +139,95 @@ import { Options } from 'sortablejs';
         </div>
       </div>
 
-      <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" (sortUpdate)="onPlaylistSort($event)">
-        <app-playlist-track
-          *ngFor="let track of playlist; let i = index"
-          [track]="track"
-          [thumbnailUrl]="getTrackThumbnail(track)"
-          [formattedDuration]="getTrackFormattedDuration(track)"
-          (click)="onTrackClick(i, $event)"
-          (trackDeleted)="deleteTrack(track)"
-          [isSelected]="isTrackSelectedByIndex(i)"
-          [isPlaying]="i === currentTrackIndex && isPlaying"
-        ></app-playlist-track>
+      <div class="scrollable">
+        <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" (sortUpdate)="onPlaylistSort($event)">
+          <app-playlist-track
+            *ngFor="let track of playlist; let i = index"
+            [track]="track"
+            [thumbnailUrl]="getTrackThumbnail(track)"
+            [formattedDuration]="getTrackFormattedDuration(track)"
+            (click)="onTrackClick(i, $event)"
+            (trackDeleted)="deleteTrack(track)"
+            [isSelected]="isTrackSelectedByIndex(i)"
+            [isPlaying]="i === currentTrackIndex && isPlaying"
+          ></app-playlist-track>
+        </div>
       </div>
+
+      <!-- Playlist Action Buttons -->
+      <ion-footer class="playlist-footer-actions">
+        <ion-toolbar>
+          <div class="action-buttons-row">
+            <!-- Clear Selected Button -->
+            <ion-button
+              fill="clear"
+              color="warning"
+              (click)="clearSelectedTracks()"
+              [disabled]="selectedTrackIndexes.size === 0"
+              size="small"
+            >
+              <ion-icon name="remove-circle-outline" slot="start"></ion-icon>
+              Clear Selected ({{ selectedTrackIndexes.size }})
+            </ion-button>
+
+            <!-- Clear All Button -->
+            <ion-button
+              fill="clear"
+              color="danger"
+              (click)="clearAllTracks()"
+              size="small"
+            >
+              <ion-icon name="trash-outline" slot="start"></ion-icon>
+              Clear All
+            </ion-button>
+
+            <!-- Invert Selection Button -->
+            <ion-button
+              fill="clear"
+              color="medium"
+              (click)="invertSelection()"
+              [disabled]="playlist.length === 0"
+              size="small"
+            >
+              <ion-icon name="swap-horizontal-outline" slot="start"></ion-icon>
+              Invert
+            </ion-button>
+
+            <!-- Save Playlist Button -->
+            <ion-button
+              fill="solid"
+              color="primary"
+              (click)="savePlaylist()"
+              [disabled]="playlist.length === 0"
+              size="small"
+            >
+              <ion-icon name="save-outline" slot="start"></ion-icon>
+              Save
+            </ion-button>
+          </div>
+
+          <div
+            class="selection-info"
+            *ngIf="selectedTrackIndexes.size > 0"
+            style="text-align: center; margin-top: 4px"
+          >
+            <ion-text color="medium">
+              {{ selectedTrackIndexes.size }} of {{ playlist.length }} tracks selected
+            </ion-text>
+          </div>
+        </ion-toolbar>
+      </ion-footer>
     </ion-list>
   `,
   styleUrls: ['playlist.component.scss'],
   standalone: false
 })
-export class PlaylistComponent implements OnInit { // Implement AfterViewInit
+export class PlaylistComponent implements OnInit, OnDestroy {
   @Input() playlist: any[] = [];
   @Output() trackSelected = new EventEmitter<any>();
   @Output() stateChanged = new EventEmitter<boolean>();
+  @Output() playlistSaved = new EventEmitter<any[]>();
+  @Output() playlistCleared = new EventEmitter<void>();
 
   isShuffled: boolean = false;
   isPlaying: boolean = false;
@@ -167,6 +236,7 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
   repeatMode: 'none' | 'all' | 'one' = 'none';
   hasPrevious: boolean = false;
   hasNext: boolean = false;
+  selectedTrackIndexes: Set<number> = new Set();
 
   private subscriptions: Subscription[] = [];
 
@@ -177,15 +247,21 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
     chosenClass: 'sortable-chosen',
     dragClass: 'sortable-drag',
     forceFallback: true,
-    delay: 200, // Wait before drag starts (in ms)
-    delayOnTouchOnly: true, // Only apply delay for touch devices
-    touchStartThreshold: 10, // Minimum px move before drag starts (on touch)
+    delay: 200,
+    delayOnTouchOnly: true,
+    touchStartThreshold: 10,
   };
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Delete' || event.key === 'Del') {
       this.deleteSelectedTracks();
+      event.preventDefault();
+    } else if (event.key === 'a' && (event.ctrlKey || event.metaKey)) {
+      this.selectAllTracks();
+      event.preventDefault();
+    } else if (event.key === 'i' && (event.ctrlKey || event.metaKey)) {
+      this.invertSelection();
       event.preventDefault();
     }
   }
@@ -197,6 +273,7 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
       this.playlistService.playlist.subscribe((playlist) => {
         this.playlist = playlist;
         this.updateNavigationState();
+        this.validateSelection();
 
         // Auto-select first track if none is selected but playlist has items
         if (playlist.length > 0 && !this.selectedTrack) {
@@ -232,18 +309,137 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
       })
     );
 
+    // Subscribe to selected track indexes
+    this.subscriptions.push(
+      this.playlistService.selectedTrackIndexes.subscribe((indexes) => {
+        this.selectedTrackIndexes = new Set(indexes);
+      })
+    );
+
     this.isShuffled = this.playlistService.isPlaylistShuffled();
     this.repeatMode = this.playlistService.getRepeatMode();
   }
 
-  deleteSelectedTracks(): void {
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
+
+  private updateNavigationState(): void {
+    this.hasPrevious = this.currentTrackIndex > 0 || this.isShuffled;
+    this.hasNext = this.currentTrackIndex < this.playlist.length - 1 || this.isShuffled;
+  }
+
+  private validateSelection(): void {
+    // Remove selected indexes that are out of bounds
+    const validIndexes = new Set<number>();
+    this.selectedTrackIndexes.forEach(index => {
+      if (index >= 0 && index < this.playlist.length) {
+        validIndexes.add(index);
+      }
+    });
+
+    if (validIndexes.size !== this.selectedTrackIndexes.size) {
+      this.selectedTrackIndexes = validIndexes;
+    }
+  }
+
+  // Selection Methods
+  selectAllTracks(): void {
+    const allIndexes = Array.from({ length: this.playlist.length }, (_, i) => i);
+    this.selectedTrackIndexes = new Set(allIndexes);
+    this.playlistService.selectedTrackIndexes.next(this.selectedTrackIndexes);
+  }
+
+  clearSelectedTracks(): void {
     this.playlistService.removeSelectedTracks();
+    this.selectedTrackIndexes.clear();
+  }
+
+  invertSelection(): void {
+    const allIndexes = new Set(Array.from({ length: this.playlist.length }, (_, i) => i));
+    const currentSelected = this.selectedTrackIndexes;
+    const inverted = new Set<number>();
+
+    allIndexes.forEach(index => {
+      if (!currentSelected.has(index)) {
+        inverted.add(index);
+      }
+    });
+
+    this.selectedTrackIndexes = inverted;
+    this.playlistService.selectedTrackIndexes.next(this.selectedTrackIndexes);
+  }
+
+  // Action Methods
+  clearAllTracks(): void {
+    if (this.playlist.length === 0) return;
+
+    // Show confirmation dialog
+    const confirmed = confirm(`Are you sure you want to clear all ${this.playlist.length} tracks from the playlist?`);
+
+    if (confirmed) {
+      this.playlist = [];
+      this.selectedTrackIndexes.clear();
+      this.currentTrackIndex = -1;
+      this.selectedTrack = null;
+      this.isPlaying = false;
+
+      this.playlistService.clearPlaylist();
+      this.playlistCleared.emit();
+    }
+  }
+
+  deleteSelectedTracks(): void {
+    if (this.selectedTrackIndexes.size === 0) return;
+
+    const confirmed = confirm(`Are you sure you want to delete ${this.selectedTrackIndexes.size} selected track(s)?`);
+
+    if (confirmed) {
+      this.playlistService.removeSelectedTracks();
+      this.selectedTrackIndexes.clear();
+    }
+  }
+
+  savePlaylist(): void {
+    if (this.playlist.length === 0) return;
+
+    const playlistName = prompt('Enter playlist name:', 'My Playlist');
+
+    if (playlistName && playlistName.trim()) {
+      const playlistData = {
+        name: playlistName.trim(),
+        tracks: this.playlist,
+        createdAt: new Date().toISOString(),
+        trackCount: this.playlist.length
+      };
+
+      this.playlistService.savePlaylist(playlistData);
+      this.playlistSaved.emit(this.playlist);
+
+      // Show success message
+      alert(`Playlist "${playlistName}" saved successfully!`);
+    }
+  }
+
+  // Existing Methods
+  deleteTrack(track: any): void {
+    const index = this.playlist.indexOf(track);
+    if (index !== -1) {
+      this.playlist.splice(index, 1);
+      this.playlistService.removeTrack(track);
+      this.updateNavigationState();
+      this.validateSelection();
+
+      if (this.selectedTrack === track) {
+        this.selectedTrack = null;
+        this.playlistService.setCurrentTrackIndex(-1);
+      }
+    }
   }
 
   onTrackClick(index: number, event: MouseEvent): void {
     const isCtrl = event.ctrlKey || event.metaKey;
     const isShift = event.shiftKey;
-    const wasSelected = this.playlistService.selectedTrackIndexes.value.has(index);
 
     // Handle selection first
     this.playlistService.selectTrack(index, isCtrl, isShift);
@@ -257,10 +453,7 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
         return;
     }
 
-    // Only change playback if:
-    // 1. It's a single click (no modifiers)
-    // 2. The clicked track isn't already the current track
-    // 3. Or if it is the current track but paused
+    // Only change playback if it's a single click (no modifiers)
     if (!isCtrl && !isShift) {
       this.playlistService.setCurrentTrackIndex(index);
       this.playlistService.play();
@@ -268,25 +461,7 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
   }
 
   isTrackSelectedByIndex(index: number): boolean {
-    return this.playlistService.selectedTrackIndexes.value.has(index);
-  }
-
-  isTouchableDevice(): boolean {
-    return (
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      (navigator as any).msMaxTouchPoints > 0
-    );
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
-  }
-
-  private updateNavigationState(): void {
-    this.hasPrevious = this.currentTrackIndex > 0 || this.isShuffled;
-    this.hasNext =
-      this.currentTrackIndex < this.playlist.length - 1 || this.isShuffled;
+    return this.selectedTrackIndexes.has(index);
   }
 
   toggleShuffle(): void {
@@ -324,7 +499,6 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
 
   playNext(): void {
     this.playlistService.next();
-    // After moving to next track, select it
     const newIndex = this.playlistService.currentTrackIndex.value;
     if (newIndex !== -1) {
       this.playlistService.selectTrack(newIndex, false, false);
@@ -334,7 +508,6 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
 
   playPrevious(): void {
     this.playlistService.previous();
-    // After moving to previous track, select it
     const newIndex = this.playlistService.currentTrackIndex.value;
     if (newIndex !== -1) {
       this.playlistService.selectTrack(newIndex, false, false);
@@ -370,17 +543,11 @@ export class PlaylistComponent implements OnInit { // Implement AfterViewInit
     }
   }
 
-  deleteTrack(track: any): void {
-    const index = this.playlist.indexOf(track);
-    if (index !== -1) {
-      this.playlist.splice(index, 1);
-      this.playlistService.removeTrack(track);
-      this.updateNavigationState();
-
-      if (this.selectedTrack === track) {
-        this.selectedTrack = null;
-        this.playlistService.setCurrentTrackIndex(-1);
-      }
-    }
+  isTouchableDevice(): boolean {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      (navigator as any).msMaxTouchPoints > 0
+    );
   }
 }

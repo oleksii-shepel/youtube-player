@@ -48,6 +48,10 @@ export class PlaylistService {
     }
   }
 
+  savePlaylist(playlistData: any) {
+
+  }
+
   clearPlaylist(): void {
     this.playlist.next([]);
     this.originalPlaylist = [];
