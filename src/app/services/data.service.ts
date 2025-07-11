@@ -134,6 +134,16 @@ export class YoutubeDataService {
     return this.search('playlistItems', params);
   }
 
+  fetchPlaylistsByChannel(channelId: string, pageToken?: string): Stream<any> {
+    const params: IYoutubeQueryParams = {
+      part: 'snippet,contentDetails',
+      channelId,
+      ...(pageToken ? { pageToken } : {})
+    };
+
+    return this.search('playlists', params);
+  }
+
   fetchTrendingVideos(
   ): Stream<any> {
     const params: IYoutubeQueryParams = {

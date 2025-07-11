@@ -142,6 +142,7 @@ export interface IYoutubeQueryParams {
   playlistType?: YouTubePlaylistType; // all | favorites | recent
 
   // Channel-specific parameters
+  channelId?: string;
   topics?: string[]; // List of channel topics
 }
 

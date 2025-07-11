@@ -4,6 +4,7 @@ import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { YoutubePlaylistComponent } from '../../components/youtube-playlist/youtube-playlist.component';
+import { Subscription } from '@actioncrew/streamix';
 
 @Component({
   selector: 'app-channel-page',
@@ -58,10 +59,12 @@ import { YoutubePlaylistComponent } from '../../components/youtube-playlist/yout
           </ng-container>
 
           <ng-template #playlistsContent>
-            <app-youtube-playlist
-              *ngFor="let playlist of playlists"
-              [playlistData]="playlist"
-            ></app-youtube-playlist>
+            <div class="adaptive-grid">
+              <app-youtube-playlist
+                *ngFor="let playlist of playlists"
+                [playlistData]="playlist"
+              ></app-youtube-playlist>
+            </div>
           </ng-template>
 
         </ion-list>
@@ -78,6 +81,7 @@ export class ChannelPage implements OnInit {
   playlists: any[] = [];
   isLoadingChannel = true;
   isLoadingPlaylists = true;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -98,93 +102,43 @@ export class ChannelPage implements OnInit {
   }
 
   loadChannel() {
-    // Simulate async fetch with timeout and mock data
     this.isLoadingChannel = true;
-    setTimeout(() => {
-      this.channel = {
-        id: this.channelId,
-        snippet: {
-          title: 'Ocean Explorer Channel',
-          description: 'Explore the wonders of the ocean with amazing videos on marine life, underwater exploration, and more.',
-          thumbnails: {
-            default: { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=120&h=90&fit=crop' },
-            medium: { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=320&h=180&fit=crop' },
-            high: { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=480&h=360&fit=crop' },
-          },
-        },
-        statistics: {
-          subscriberCount: 123456,
-          videoCount: 48,
-          viewCount: 3456789,
-        },
-      };
-      this.isLoadingChannel = false;
-    }, 1000);
 
-    // Uncomment for real API call:
-    /*
-    this.dataService.fetchChannels([this.channelId]).subscribe(res => {
-      if (res.items.length > 0) {
-        this.channel = res.items[0];
-      }
-      this.isLoadingChannel = false;
-    });
-    */
+    this.subscriptions.push(this.dataService.fetchChannels([this.channelId]).subscribe({
+      next: (res) => {
+        const item = res.items?.[0];
+
+        if (item && item.snippet && item.statistics) {
+          this.channel = item;
+        }
+
+        this.isLoadingChannel = false;
+      },
+      error: (err) => {
+        console.error('Failed to load channel info:', err);
+        this.isLoadingChannel = false;
+      },
+    }));
   }
 
   loadPlaylists() {
     this.isLoadingPlaylists = true;
-    setTimeout(() => {
-      this.playlists = [
-        {
-          id: 'playlist1',
-          snippet: {
-            title: 'Amazing Ocean Adventures',
-            description: 'A curated collection of stunning ocean exploration videos.',
-            thumbnails: {
-              medium: { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=320&h=180&fit=crop' },
-            },
-          },
-          contentDetails: {
-            itemCount: 10
-          }
-        },
-        {
-          id: 'playlist2',
-          snippet: {
-            title: 'Coral Reef Life',
-            description: 'Discover the beauty of coral reefs with these amazing videos.',
-            thumbnails: {
-              medium: { url: 'https://images.unsplash.com/photo-1526647927077-1a47ee7ef8be?w=320&h=180&fit=crop' },
-            },
-          },
-          contentDetails: {
-            itemCount: 15
-          }
-        },
-        {
-          id: 'playlist3',
-          snippet: {
-            title: 'Whale Watching',
-            description: 'Exciting videos featuring whales and other marine giants.',
-            thumbnails: {
-              medium: { url: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?w=320&h=180&fit=crop' },
-            },
-          },
-          contentDetails: {
-            itemCount: 8
-          }
-        }
-      ];
-      this.isLoadingPlaylists = false;
-    }, 1200);
 
-    // Uncomment for real API call:
-    /*
-    this.dataService.fetchPlaylistsByChannel(this.channelId).subscribe(res => {
-      this.playlists = res.items || [];
-      this.isLoadingPlaylists = false;
-    });
-    */
+    this.subscriptions.push(this.dataService.fetchPlaylistsByChannel(this.channelId).subscribe({
+      next: (res) => {
+        const items = res.items || [];
+
+        const filtered = items.filter((item: any) =>
+          item.snippet && item.contentDetails
+        );
+
+        this.playlists = filtered;
+        this.isLoadingPlaylists = false;
+      },
+      error: (err) => {
+        console.error('Failed to load channel playlists:', err);
+        this.isLoadingPlaylists = false;
+      },
+    }));
   }
 }

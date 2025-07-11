@@ -155,7 +155,7 @@ import { Options } from 'sortablejs';
       </div>
 
       <!-- Playlist Action Buttons -->
-      <ion-footer class="playlist-footer-actions">
+      <ion-footer class="playlist-footer-actions" *ngIf="playlist.length > 0">
         <ion-toolbar>
           <div class="action-buttons-row">
             <!-- Clear Selected Button -->
