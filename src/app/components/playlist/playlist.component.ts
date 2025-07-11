@@ -291,7 +291,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.push(
-      this.playlistService.playbackState.subscribe((state) => {
+      this.playlistService.playbackState$.subscribe((state) => {
         this.isPlaying = state === 'playing';
         this.stateChanged.emit(this.isPlaying);
       })

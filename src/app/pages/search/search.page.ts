@@ -16,6 +16,7 @@ import { YoutubeChannelComponent } from 'src/app/components/youtube-channel/yout
 import { FilterComponent } from 'src/app/components/filter/filter.component';
 import { DirectiveModule } from 'src/app/directives';
 import { ToastController } from '@ionic/angular';
+import { RecorderService } from 'src/app/services/recorder.service';
 
 @Component({
   selector: 'app-search-page',
@@ -131,13 +132,13 @@ import { ToastController } from '@ionic/angular';
                 </ng-template>
               </ion-popover>
 
-              <ion-button fill="clear" size="small">
+              <ion-button fill="clear" size="small" (click)="toggleRecorder()">
                 <ion-icon name="videocam-outline"></ion-icon>
               </ion-button>
 
-              <ion-button fill="clear" size="small"(click)="togglePlayer()">
-                <svg *ngIf="!hidden$.value" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off-icon lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
-                <svg *ngIf="hidden$.value" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+              <ion-button fill="clear" size="small" (click)="togglePlayer()">
+                <svg *ngIf="!playerHidden$.value" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off-icon lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
+                <svg *ngIf="playerHidden$.value" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
               </ion-button>
 
               <ng-container *ngIf="auth$ | async as auth; else loginButton">
@@ -310,14 +311,17 @@ export class SearchPage {
     private dataService: YoutubeDataService,
     private playlistService: PlaylistService,
     private playerService: PlayerService,
+    private recorderService: RecorderService,
     private authorization: Authorization,
     private toastCtrl: ToastController
   ) {}
 
   auth$ = this.authorization.authSubject;
-  playbackState$ = this.playlistService.playbackState;
-  hidden$ = this.playerService.isHidden;
-  errorSub: Subscription | undefined;
+  playbackState$ = this.playlistService.playbackState$;
+  playerHidden$ = this.playerService.isHidden$;
+  recorderHidden$ = this.recorderService.isHidden$;
+
+  private subscriptions: Subscription[] = [];
 
   ngAfterViewInit() {
     const container = document.getElementById('google-signin-btn');
@@ -327,7 +331,7 @@ export class SearchPage {
       this.authorization.initializeGsiButton();
     }
 
-    this.errorSub = this.dataService.searchError$.subscribe(async msg => {
+    this.subscriptions.push(this.dataService.searchError$.subscribe(async msg => {
        const toast = await this.toastCtrl.create({
         message: msg,
         duration: 3000, // 3 seconds
@@ -335,11 +339,11 @@ export class SearchPage {
         color: 'danger',
       });
       toast.present();
-    });
+    }));
   }
 
   ngOnDestroy() {
-    this.errorSub?.unsubscribe();
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   addActivated(event: Event) {
@@ -644,6 +648,10 @@ export class SearchPage {
 
 
   togglePlayer() {
-    this.hidden$.value ? this.playerService.show() : this.playerService.hide();
+    this.playerHidden$.value ? this.playerService.show() : this.playerService.hide();
+  }
+
+  toggleRecorder() {
+    this.recorderHidden$.value ? this.recorderService.show() : this.recorderService.hide();
   }
 }

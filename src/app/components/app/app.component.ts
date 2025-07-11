@@ -3,6 +3,7 @@ import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../youtube-player/youtube-player.component';
 import { Subscription } from '@actioncrew/streamix';
 import { PlayerService } from 'src/app/services/player.service';
+import { RecorderService } from 'src/app/services/recorder.service';
 
 declare const YT: any;
 
@@ -12,11 +13,13 @@ declare const YT: any;
     <ion-app id="mainContainer">
       <youtube-player
         #youtubePlayer
-        [isHidden]="isHidden"
+        [isHidden]="isPlayerHidden"
         [videoId]="selectedVideoId"
         (videoEnded)="onPlayerVideoEnded()"
         (change)="onPlayerStateChange($event)"
       ></youtube-player>
+
+      <app-recorder [isHidden]="isRecorderHidden"></app-recorder>
 
       <ion-split-pane contentId="main-content" #splitPane>
         <ion-menu contentId="main-content" type="overlay" menuId="main-menu" [class.overlay-active]="isOverlayMenuVisible">
@@ -39,7 +42,8 @@ declare const YT: any;
 export class AppComponent implements AfterViewInit, OnDestroy {
   selectedVideoId = '';
   isCompact = true;
-  isHidden = true;
+  isPlayerHidden = true;
+  isRecorderHidden = true;
   currentPlayerState: number = -1;
   isDragOverlayActive = true;
 
@@ -47,24 +51,27 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild('splitPane', { read: ElementRef }) splitPaneRef!: ElementRef;
   isOverlayMenuVisible = false;
 
-  private currentTrackSubscription: Subscription | null = null;
-  private isHiddenSubscription: Subscription | null = null;
-  private isMenuButtonPressedSubscription: Subscription | null = null;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     public playlistService: PlaylistService,
-    public playerService: PlayerService
+    public playerService: PlayerService,
+    public recorderService: RecorderService
   ) {
   }
 
   ngAfterViewInit(): void {
     this.playlistService.setPlayerComponent(this.youtubePlayer!);
 
-    this.isHiddenSubscription = this.playerService.isHidden.subscribe((value) => {
-      this.isHidden = value;
-    })
+    this.subscriptions.push(this.playerService.isHidden$.subscribe((value) => {
+      this.isPlayerHidden = value;
+    }));
 
-    this.isMenuButtonPressedSubscription = this.playlistService.menuButtonPressed.subscribe(async () => {
+    this.subscriptions.push(this.recorderService.isHidden$.subscribe((value) => {
+      this.isRecorderHidden = value;
+    }));
+
+    this.subscriptions.push(this.playlistService.menuButtonPressed.subscribe(async () => {
       const menu = document.querySelector('ion-menu')!;
       const splitPane = document.querySelector('ion-split-pane.split-pane-visible')!;
 
@@ -73,9 +80,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
       } else {
         menu.toggle();
       }
-    });
+    }));
 
-    this.currentTrackSubscription = this.playlistService.currentTrackIndex.subscribe(index => {
+    this.subscriptions.push(this.playlistService.currentTrackIndex.subscribe(index => {
       const track = this.playlistService.getPlaylist()[index];
       if (track && track.id !== this.selectedVideoId) {
         this.selectedVideoId = track.id;
@@ -83,7 +90,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
           this.youtubePlayer.videoId = this.selectedVideoId;
         }
       }
-    });
+    }));
 
     const menu = document.querySelector('ion-menu');
 
@@ -118,16 +125,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.currentTrackSubscription) {
-      this.currentTrackSubscription.unsubscribe();
-    }
-
-    if (this.isHiddenSubscription) {
-      this.isHiddenSubscription.unsubscribe();
-    }
-
-    if (this.isMenuButtonPressedSubscription) {
-      this.isMenuButtonPressedSubscription.unsubscribe();
-    }
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 }

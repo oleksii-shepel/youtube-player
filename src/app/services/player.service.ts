@@ -8,7 +8,7 @@ import { createBehaviorSubject } from "@actioncrew/streamix";
 export class PlayerService {
   playbackState = createBehaviorSubject<'playing' | 'paused' | 'stopped'>('stopped');
   repeatMode = createBehaviorSubject<'none' | 'all' | 'one'>('none');
-  isHidden = createBehaviorSubject<boolean>(true);
+  isHidden$ = createBehaviorSubject<boolean>(true);
 
   private player: YoutubePlayerComponent | null = null;
 
@@ -47,14 +47,14 @@ export class PlayerService {
   }
 
   hide(): void {
-    if(this.isHidden.value !== true) {
-      this.isHidden.next(true);
+    if(this.isHidden$.value !== true) {
+      this.isHidden$.next(true);
     }
   }
 
   show(): void {
-    if(this.isHidden.value !== false) {
-      this.isHidden.next(false);
+    if(this.isHidden$.value !== false) {
+      this.isHidden$.next(false);
     }
   }
 }

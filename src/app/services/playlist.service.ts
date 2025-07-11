@@ -10,7 +10,7 @@ export class PlaylistService {
   // Reactive state
   playlist = createBehaviorSubject<any[]>([]);
   currentTrackIndex = createBehaviorSubject<number>(-1);
-  playbackState = createBehaviorSubject<'playing' | 'paused' | 'stopped'>('stopped');
+  playbackState$ = createBehaviorSubject<'playing' | 'paused' | 'stopped'>('stopped');
 
   isShuffled = createBehaviorSubject<boolean>(false);
   repeatMode = createBehaviorSubject<'none' | 'all' | 'one'>('none');
@@ -23,7 +23,7 @@ export class PlaylistService {
 
   constructor(private playerService: PlayerService) {
     this.playerService.playbackState.subscribe(state => {
-      this.playbackState.next(state);
+      this.playbackState$.next(state);
     });
 
     this.playerService.repeatMode.subscribe(mode => {
@@ -105,7 +105,7 @@ export class PlaylistService {
     const selected = this.selectedTrackIndexes.value;
     if (selected.size === 0) return;
 
-    const wasPlaying = this.playbackState.value === 'playing';
+    const wasPlaying = this.playbackState$.value === 'playing';
     const currentIndex = this.currentTrackIndex.value;
     const isCurrentRemoved = selected.has(currentIndex);
 
