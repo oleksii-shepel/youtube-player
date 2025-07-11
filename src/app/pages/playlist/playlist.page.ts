@@ -61,7 +61,7 @@ import { map, switchMap } from '@actioncrew/streamix';
 
         <!-- Videos Grid -->
         <div *ngIf="videos.length > 0" class="videos-grid">
-          <div *ngFor="let video of videos" class="video-item" (click)="goToVideo(video.contentDetails.videoId || video.id)">
+          <div *ngFor="let video of videos" class="video-item">
             <app-youtube-video
               [videoData]="video"
               (addTrackToPlaylist)="onAddTrackToPlaylist(video)"
