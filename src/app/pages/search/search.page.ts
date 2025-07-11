@@ -307,7 +307,7 @@ export class SearchPage {
 
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
-    private youtubeDataService: YoutubeDataService,
+    private dataService: YoutubeDataService,
     private playlistService: PlaylistService,
     private playerService: PlayerService,
     private authorization: Authorization,
@@ -327,7 +327,7 @@ export class SearchPage {
       this.authorization.initializeGsiButton();
     }
 
-    this.errorSub = this.youtubeDataService.searchError$.subscribe(async msg => {
+    this.errorSub = this.dataService.searchError$.subscribe(async msg => {
        const toast = await this.toastCtrl.create({
         message: msg,
         duration: 3000, // 3 seconds
@@ -460,7 +460,7 @@ export class SearchPage {
     this.lastSearchQuery = this.searchQuery.trim();
     this.lastSearchType = this.searchType;
 
-    this.youtubeDataService
+    this.dataService
       .search('search', params)
       .pipe(
         switchMap((response: any) => {
@@ -471,15 +471,15 @@ export class SearchPage {
           // Fetch detailed data based on the search type
           if (this.searchType === 'videos') {
             const videoIds = results.map((item) => item.id);
-            detailedResults$ = this.youtubeDataService.fetchVideos(videoIds);
+            detailedResults$ = this.dataService.fetchVideos(videoIds);
           } else if (this.searchType === 'playlists') {
             const playlistIds = results.map((item) => item.id);
             detailedResults$ =
-              this.youtubeDataService.fetchPlaylists(playlistIds);
+              this.dataService.fetchPlaylists(playlistIds);
           } else if (this.searchType === 'channels') {
             const channelIds = results.map((item) => item.id);
             detailedResults$ =
-              this.youtubeDataService.fetchChannels(channelIds);
+              this.dataService.fetchChannels(channelIds);
           } else {
             throw new Error('Unknown search type.');
           }
@@ -521,7 +521,7 @@ export class SearchPage {
   loadMore(event: any) {
     const params = this.buildSearchParams();
 
-    this.youtubeDataService
+    this.dataService
       .search('search', params)
       .pipe(
         switchMap((response: any) => {
@@ -530,15 +530,15 @@ export class SearchPage {
 
           if (this.searchType === 'videos') {
             const videoIds = results.map((item) => item.id);
-            detailedResults$ = this.youtubeDataService.fetchVideos(videoIds);
+            detailedResults$ = this.dataService.fetchVideos(videoIds);
           } else if (this.searchType === 'playlists') {
             const playlistIds = results.map((item) => item.id);
             detailedResults$ =
-              this.youtubeDataService.fetchPlaylists(playlistIds);
+              this.dataService.fetchPlaylists(playlistIds);
           } else if (this.searchType === 'channels') {
             const channelIds = results.map((item) => item.id);
             detailedResults$ =
-              this.youtubeDataService.fetchChannels(channelIds);
+              this.dataService.fetchChannels(channelIds);
           } else {
             throw new Error('Unknown search type.');
           }

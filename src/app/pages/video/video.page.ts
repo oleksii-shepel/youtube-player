@@ -2,8 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
-import { createSubject } from '@actioncrew/streamix';
+import { createSubject, takeUntil } from '@actioncrew/streamix';
 import { VideoComment, YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
+import { YoutubeDataService } from 'src/app/services/data.service';
 
 
 @Component({
@@ -148,208 +149,62 @@ export class VideoPage implements OnInit, OnDestroy {
   isLiked = false;
   isDisliked = false;
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private dataService: YoutubeDataService) {}
 
   ngOnInit(): void {
-    this.loadVideoData();
-    this.loadComments();
-    this.loadRelatedVideos();
+    const videoId = this.route.snapshot.paramMap.get('id');
+    if (videoId) {
+      this.loadVideoData(videoId);
+      this.loadComments(videoId);
+      this.loadRelatedVideos(videoId);
+    }
   }
+
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private loadVideoData(): void {
-    // Mock data - replace with actual API call
-    this.currentVideo = {
-      id: 'ocean-depths-123',
-      snippet: {
-        publishedAt: '2025-07-08T10:00:00Z',
-        channelId: 'ocean-channel',
-        title: 'Exploring the Depths of the Ocean',
-        description:
-          'Join us on an incredible journey to explore the mysterious depths of our oceans. Discover fascinating marine life and underwater landscapes.',
-        thumbnails: {
-          default: {
-            url:
-              'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=120&h=90&fit=crop',
-          },
-          medium: {
-            url:
-              'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=320&h=180&fit=crop',
-          },
-          high: {
-            url:
-              'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=480&h=360&fit=crop',
-          },
-          maxres: {
-            url:
-              'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1280&h=720&fit=crop',
-          },
-        },
-        channelTitle: 'Ocean Explorer',
-      },
-      contentDetails: {
-        duration: 'PT15M30S',
-        dimension: '2d',
-        definition: 'hd',
-        caption: 'true',
-        licensedContent: false,
-        projection: 'rectangular',
-      },
-      statistics: {
-        viewCount: '12000',
-        likeCount: '1200',
-        favoriteCount: '0',
-        commentCount: '45',
-      },
-    };
+  private loadVideoData(videoId: string): void {
+    this.dataService.fetchVideos([videoId]).pipe(
+      takeUntil(this.destroy$))
+      .subscribe((res) => {
+        this.currentVideo = res.items?.[0] || null;
+      });
   }
 
-  private loadComments(): void {
-    // Mock comments data
-    this.comments = [
-      {
-        id: '1',
-        author: 'Sophia Clark',
-        authorAvatar:
-          'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face',
-        text: 'This video is incredibly informative and beautifully shot. The underwater footage is breathtaking!',
-        timestamp: '2 days ago',
-        likes: 15,
-      },
-      {
-        id: '2',
-        author: 'Ethan Bennett',
-        authorAvatar:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
-        text: 'I learned so much about marine life from this. Thank you for sharing!',
-        timestamp: '1 day ago',
-        likes: 8,
-      },
-    ];
+  private loadComments(videoId: string): void {
+    this.dataService.fetchVideoComments(videoId).pipe(
+      takeUntil(this.destroy$))
+      .subscribe((res) => {
+        this.comments = res.items?.map((item: any) => {
+          const snippet = item.snippet.topLevelComment.snippet;
+          return {
+            id: item.id,
+            author: snippet.authorDisplayName,
+            authorAvatar: snippet.authorProfileImageUrl,
+            text: snippet.textDisplay,
+            timestamp: snippet.publishedAt,
+            likes: snippet.likeCount,
+          };
+        }) || [];
+      });
   }
 
-  private loadRelatedVideos(): void {
-    // Mock related videos data
-    this.relatedVideos = [
-      {
-        id: 'reef-wonder-456',
-        snippet: {
-          publishedAt: '2025-07-05T14:30:00Z',
-          channelId: 'ocean-channel',
-          title: 'The Great Barrier Reef: A Natural Wonder',
-          description: 'Explore the magnificent Great Barrier Reef and its diverse ecosystem.',
-          thumbnails: {
-            default: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=120&h=90&fit=crop',
-            },
-            medium: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=320&h=180&fit=crop',
-            },
-            high: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=480&h=360&fit=crop',
-            },
-          },
-          channelTitle: 'Ocean Explorer',
-        },
-        contentDetails: {
-          duration: 'PT12M45S',
-          dimension: '2d',
-          definition: 'hd',
-          caption: 'true',
-          licensedContent: false,
-          projection: 'rectangular',
-        },
-        statistics: {
-          viewCount: '15000',
-          likeCount: '1500',
-          favoriteCount: '0',
-          commentCount: '62',
-        },
-      },
-      {
-        id: 'deep-sea-789',
-        snippet: {
-          publishedAt: '2025-07-03T09:15:00Z',
-          channelId: 'ocean-channel',
-          title: 'Deep Sea Exploration: Unveiling the Mysteries',
-          description: 'Dive deep into the ocean to uncover its hidden mysteries and unique creatures.',
-          thumbnails: {
-            default: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=120&h=90&fit=crop',
-            },
-            medium: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=320&h=180&fit=crop',
-            },
-            high: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=480&h=360&fit=crop',
-            },
-          },
-          channelTitle: 'Ocean Explorer',
-        },
-        contentDetails: {
-          duration: 'PT18M22S',
-          dimension: '2d',
-          definition: 'hd',
-          caption: 'true',
-          licensedContent: false,
-          projection: 'rectangular',
-        },
-        statistics: {
-          viewCount: '8000',
-          likeCount: '750',
-          favoriteCount: '0',
-          commentCount: '28',
-        },
-      },
-      {
-        id: 'marine-conservation-101',
-        snippet: {
-          publishedAt: '2025-07-01T16:45:00Z',
-          channelId: 'ocean-channel',
-          title: 'Marine Conservation Efforts: Protecting Our Oceans',
-          description: 'Learn about ongoing efforts to protect and preserve our marine ecosystems.',
-          thumbnails: {
-            default: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=120&h=90&fit=crop',
-            },
-            medium: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=320&h=180&fit=crop',
-            },
-            high: {
-              url:
-                'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=480&h=360&fit=crop',
-            },
-          },
-          channelTitle: 'Ocean Explorer',
-        },
-        contentDetails: {
-          duration: 'PT22M10S',
-          dimension: '2d',
-          definition: 'hd',
-          caption: 'true',
-          licensedContent: false,
-          projection: 'rectangular',
-        },
-        statistics: {
-          viewCount: '10000',
-          likeCount: '950',
-          favoriteCount: '0',
-          commentCount: '35',
-        },
-      },
-    ];
+  private loadRelatedVideos(videoId: string): void {
+    this.dataService.fetchRelatedVideos(videoId).pipe(
+      takeUntil(this.destroy$))
+      .subscribe((res) => {
+        const relatedIds = res.items?.map((item: any) => item.id.videoId).filter(Boolean);
+        if (relatedIds?.length) {
+          this.dataService.fetchVideos(relatedIds).pipe(
+            takeUntil(this.destroy$))
+            .subscribe((detailedRes) => {
+              this.relatedVideos = detailedRes.items || [];
+            });
+        }
+      });
   }
 
   formatViewCount(viewCount: string | undefined): string {

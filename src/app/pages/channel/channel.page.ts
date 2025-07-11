@@ -82,7 +82,7 @@ export class ChannelPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private youtubeDataService: YoutubeDataService
+    private dataService: YoutubeDataService
   ) {}
 
   ngOnInit() {
@@ -123,7 +123,7 @@ export class ChannelPage implements OnInit {
 
     // Uncomment for real API call:
     /*
-    this.youtubeDataService.fetchChannels([this.channelId]).subscribe(res => {
+    this.dataService.fetchChannels([this.channelId]).subscribe(res => {
       if (res.items.length > 0) {
         this.channel = res.items[0];
       }
@@ -181,7 +181,7 @@ export class ChannelPage implements OnInit {
 
     // Uncomment for real API call:
     /*
-    this.youtubeDataService.fetchPlaylistsByChannel(this.channelId).subscribe(res => {
+    this.dataService.fetchPlaylistsByChannel(this.channelId).subscribe(res => {
       this.playlists = res.items || [];
       this.isLoadingPlaylists = false;
     });

@@ -2,9 +2,11 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
-import { IonicModule, LoadingController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
 import { YoutubeVideoComponent } from '../../components/youtube-video/youtube-video.component';
-import { Subscription } from 'rxjs';
+import { of, Subscription } from '@actioncrew/streamix';
+import { PlaylistService } from 'src/app/services/playlist.service';
+import { map, switchMap } from '@actioncrew/streamix';
 
 @Component({
   selector: 'app-playlist-page',
@@ -21,16 +23,7 @@ import { Subscription } from 'rxjs';
     <ion-content class="playlist-page">
       <div class="playlist-container scrollable">
         <!-- Playlist Header Section -->
-        <div *ngIf="isLoadingPlaylist" class="skeleton-card">
-          <ion-thumbnail class="ion-skeleton-text"></ion-thumbnail>
-          <ion-skeleton-text animated class="skeleton-title"></ion-skeleton-text>
-          <ion-skeleton-text animated class="skeleton-subtitle"></ion-skeleton-text>
-          <ion-skeleton-text animated class="skeleton-description"></ion-skeleton-text>
-          <ion-skeleton-text animated class="skeleton-description" style="width: 80%;"></ion-skeleton-text>
-          <ion-skeleton-text animated class="skeleton-button"></ion-skeleton-text>
-        </div>
-
-        <ion-card *ngIf="playlist && !isLoadingPlaylist" class="playlist-header-card">
+        <ion-card *ngIf="playlist" class="playlist-header-card">
           <img [src]="playlist.snippet.thumbnails.medium.url" alt="{{ playlist.snippet.title }}" />
           <ion-card-header>
             <ion-card-title>{{ playlist.snippet.title }}</ion-card-title>
@@ -67,15 +60,22 @@ import { Subscription } from 'rxjs';
         </ion-card>
 
         <!-- Videos Grid -->
-        <div *ngIf="!isLoadingVideos && videos.length > 0" class="videos-grid">
+        <div *ngIf="videos.length > 0" class="videos-grid">
           <div *ngFor="let video of videos" class="video-item" (click)="goToVideo(video.contentDetails.videoId || video.id)">
             <app-youtube-video
               [videoData]="video"
-              [isCompact]="true"
-              (addTrackToPlaylist)="onAddTrackToPlaylist($event)"
+              (addTrackToPlaylist)="onAddTrackToPlaylist(video)"
             ></app-youtube-video>
           </div>
         </div>
+
+        <ion-infinite-scroll (ionInfinite)="loadMore()">
+          <ion-infinite-scroll-content
+            loadingSpinner="bubbles"
+            loadingText="Loading more..."
+          >
+          </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
       </div>
     </ion-content>
   `,
@@ -87,16 +87,18 @@ export class PlaylistPage implements OnInit, OnDestroy {
   playlistId!: string;
   playlist: any = null;
   videos: any[] = [];
-  isLoadingPlaylist: boolean = true;
-  isLoadingVideos: boolean = true;
   showFullDescription: boolean = false;
-  private subscriptions = new Subscription();
+  nextPageToken: string | null = null;
+  allLoaded = false;
+  loadingVideos = false;
+
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private youtubeDataService: YoutubeDataService,
-    private loadingController: LoadingController
+    private dataService: YoutubeDataService,
+    private playlistService: PlaylistService
   ) {}
 
   ngOnInit() {
@@ -111,7 +113,7 @@ export class PlaylistPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
 
   toggleDescription() {
@@ -119,90 +121,82 @@ export class PlaylistPage implements OnInit, OnDestroy {
   }
 
   async loadPlaylistAndVideos() {
-
-    this.isLoadingPlaylist = true;
-    this.isLoadingVideos = true;
-    this.playlist = null;
     this.videos = [];
+    this.allLoaded = false;
+    this.nextPageToken = null;
 
-    // Your actual API calls would go here
-    // For now, using the mock data from your example
-    setTimeout(() => {
-      this.playlist = {
-        id: this.playlistId,
-        snippet: {
-          title: 'Amazing Ocean Adventures',
-          description: 'A curated collection of stunning ocean exploration videos. Dive deep into the mysteries of the underwater world with breathtaking footage of marine life, vibrant coral reefs, and thrilling encounters. This playlist is perfect for ocean lovers, aspiring marine biologists, or anyone looking to relax with beautiful aquatic scenes. Discover new species, explore sunken shipwrecks, and witness the majesty of the deep blue sea. From gentle giants to tiny creatures, every video is an adventure.',
-          publishedAt: '2025-05-15T08:30:00Z',
-          thumbnails: {
-            default: { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=120&h=90&fit=crop' },
-            medium: { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=320&h=180&fit=crop' },
-            high: { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=480&h=360&fit=crop' },
-          },
-          channelId: 'UC_CHANNEL_ID_MOCK',
-          channelTitle: 'Ocean Explorer',
-        },
-        contentDetails: {
-          itemCount: 3
-        }
-      };
-      this.isLoadingPlaylist = false;
-    }, 1000);
+    const playlistId = this.playlistId;
 
-    setTimeout(() => {
-      this.videos = [
-        {
-          id: 'mockVideo1',
-          contentDetails: { videoId: 'e2Q4L_g-xQk', duration: 'PT5M30S' },
-          snippet: {
-            title: 'Amazing Ocean Waves & Sunset',
-            publishedAt: '2025-06-20T12:00:00Z',
-            thumbnails: {
-              medium: { url: 'https://img.youtube.com/vi/e2Q4L_g-xQk/mqdefault.jpg' },
-            },
-            channelTitle: 'Ocean Explorer',
-          },
-          statistics: { viewCount: '12345', likeCount: '678' }
-        },
-        {
-          id: 'mockVideo2',
-          contentDetails: { videoId: 'tO0Rj8cWJkU', duration: 'PT8M15S' },
-          snippet: {
-            title: 'Underwater Coral Reefs Exploration',
-            publishedAt: '2025-05-18T09:30:00Z',
-            thumbnails: {
-              medium: { url: 'https://img.youtube.com/vi/tO0Rj8cWJkU/mqdefault.jpg' },
-            },
-            channelTitle: 'Ocean Explorer',
-          },
-          statistics: { viewCount: '9876', likeCount: '543' }
-        },
-        {
-          id: 'mockVideo3',
-          contentDetails: { videoId: 'P_VpX-MhF28', duration: 'PT12M0S' },
-          snippet: {
-            title: 'Diving with Gentle Giant Whale Sharks',
-            publishedAt: '2025-04-25T15:15:00Z',
-            thumbnails: {
-              medium: { url: 'https://img.youtube.com/vi/P_VpX-MhF28/mqdefault.jpg' },
-            },
-            channelTitle: 'Ocean Explorer',
-          },
-          statistics: { viewCount: '6789', likeCount: '321' }
-        }
-      ];
-      this.isLoadingVideos = false;
-    }, 1500);
+    this.subscriptions.push(this.dataService.fetchPlaylistById(playlistId).subscribe((res) => {
+      this.playlist = res.items?.[0] || null;
+    }));
+
+    this.loadMore();
   }
 
-  private async checkLoadingComplete(loading: HTMLIonLoadingElement) {
-    if (!this.isLoadingPlaylist && !this.isLoadingVideos) {
-      await loading.dismiss();
-    }
+  loadMore() {
+    if (this.loadingVideos || this.allLoaded) return;
+
+    this.loadingVideos = true;
+
+    this.subscriptions.push(this.dataService
+      .fetchPlaylistItems(this.playlistId, this.nextPageToken)
+      .pipe(
+        switchMap((res: any) => {
+          const items = res.items || [];
+          this.nextPageToken = res.nextPageToken || null;
+
+          const videoIds = items
+            .map((item: any) => item.contentDetails?.videoId)
+            .filter(Boolean);
+
+          if (videoIds.length === 0) {
+            this.allLoaded = true;
+            return of([]);
+          }
+
+          return this.dataService.fetchVideos(videoIds).pipe(
+            map((videoRes: any) => {
+              const detailedItems = videoRes.items || [];
+
+              // Required fields for each video
+              const requiredFields = ['snippet', 'contentDetails', 'statistics'];
+
+              // Filter detailed videos with all required fields
+              const filtered = detailedItems.filter((v: any) =>
+                requiredFields.every((key) => key in v)
+              );
+
+              // Merge basic + detailed data
+              const merged = items
+                .map((item: any) => {
+                  const full = filtered.find((v: any) => v.id === item.contentDetails?.videoId);
+                  return full
+                    ? { ...item, ...full }
+                    : null;
+                })
+                .filter(Boolean);
+
+              return merged;
+            })
+          );
+        })
+      )
+      .subscribe({
+        next: (newVideos: any[]) => {
+          this.videos.push(...newVideos);
+          this.allLoaded = !this.nextPageToken;
+          this.loadingVideos = false;
+        },
+        error: (err) => {
+          console.error('Error loading more videos:', err);
+          this.loadingVideos = false;
+        },
+      }));
   }
 
   onAddTrackToPlaylist(video: any) {
-    console.log('Add to Playlist:', video);
+    this.playlistService.addToPlaylist(video);
   }
 
   goToVideo(videoId: string) {

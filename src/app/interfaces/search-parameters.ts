@@ -135,8 +135,10 @@ export interface IYoutubeQueryParams {
   videoDefinition?: YouTubeVideoDefinition; // standard | high
   eventType?: YouTubeEventType; // live | completed | upcoming
   videoCategoryId?: YouTubeVideoCategory; // Video category ID
+  relatedToVideoId?: string;
 
   // Playlist-specific parameters
+  playlistId?: string;
   playlistType?: YouTubePlaylistType; // all | favorites | recent
 
   // Channel-specific parameters

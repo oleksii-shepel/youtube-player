@@ -96,7 +96,45 @@ export class YoutubeDataService {
     } as IYoutubeQueryParams & { id: string });
   }
 
-  getTrendingVideos(
+  fetchVideoComments(videoId: string): Stream<any> {
+    return this.search('commentThreads', {
+      part: 'snippet',
+      videoId,
+      maxResults: 50,
+      order: 'relevance',
+    } as IYoutubeQueryParams & { videoId: string });
+  }
+
+  fetchRelatedVideos(videoId: string): Stream<any> {
+    return this.search('search', {
+      part: 'snippet',
+      relatedToVideoId: videoId,
+      type: 'video',
+      maxResults: 10,
+    } as IYoutubeQueryParams);
+  }
+
+  /**
+   * Fetch full metadata for a specific playlist.
+   */
+  fetchPlaylistById(id: string): Stream<any> {
+    return this.fetchPlaylists([id]);
+  }
+
+  /**
+   * Fetch playlist items (videos in playlist).
+   */
+  fetchPlaylistItems(playlistId: string, pageToken?: string | null): Stream<any> {
+    const params: IYoutubeQueryParams = {
+      playlistId,
+      part: 'snippet,contentDetails',
+      maxResults: 50,
+      ...(pageToken ? { pageToken } : {})
+    };
+    return this.search('playlistItems', params);
+  }
+
+  fetchTrendingVideos(
   ): Stream<any> {
     const params: IYoutubeQueryParams = {
       part: 'snippet,contentDetails,statistics',
