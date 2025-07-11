@@ -25,7 +25,7 @@ import { ToastController } from '@ionic/angular';
         <div class="toolbar-inner">
           <div class="toolbar">
             <div class="toolbar-left">
-              <ion-button fill="clear" size="large" (click)="toggleMenu()">
+              <ion-button fill="clear" size="medium" (click)="toggleMenu()">
                 <ion-icon name="menu-outline"></ion-icon>
               </ion-button>
 
