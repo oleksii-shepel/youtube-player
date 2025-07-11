@@ -16,3 +16,10 @@ ion-header ion-toolbar {
   color: var(--color);
   opacity: 0.8;
 }
+
+.playlists {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px;
+}

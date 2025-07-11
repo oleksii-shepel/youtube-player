@@ -44,7 +44,7 @@ import { YoutubePlaylistComponent } from '../../components/youtube-playlist/yout
           </ion-card>
         </ng-template>
 
-        <ion-list>
+        <ion-list class="playlists">
           <ion-list-header>Playlists</ion-list-header>
 
           <ng-container *ngIf="isLoadingPlaylists; else playlistsContent">
