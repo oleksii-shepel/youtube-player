@@ -12,6 +12,7 @@
   /* Text Colors */
   --ion-text-color: #b4a0a0c4; // primary text
   --ion-text-color-rgb: #b4a0a0c4;
+  --ion-color-step-600: #c0c0c0c4;
   --ion-color-step-850: #b4a0a0c4; // secondary text
   --ion-color-step-950: #ffffffc4; // titles/headings
   --ion-text-color-step-850: #b4a0a0; // secondary text
@@ -32,15 +33,15 @@
 
   /* Buttons / Filters */
   --ion-color-primary: #a14a4a;
-  --ion-color-primary-contrast: #d8d8d8;
+  --ion-color-primary-contrast: #ddddd0;
   --ion-color-primary-shade: #893f3f;
-  --ion-color-primary-tint: #bb5a5a;
+  --ion-color-primary-tint: #B86666;
 
-  --ion-color-medium: #786060; // used in secondary UI elements
+  --ion-color-medium: #ddddd0; // used in secondary UI elements
 
   /* Accent */
-  --ion-color-success: #4ade80; // optional highlight color (e.g. tags)
-  --ion-color-danger: #ef4444;
+  --ion-color-success: #8FB866; // optional highlight color (e.g. tags)
+  --ion-color-danger: #B8668F;
 
   /* Border / Divider */
   --ion-border-color: #392424;
