@@ -103,8 +103,8 @@ import {
       </ion-item>
 
       <ion-item-options side="end">
-        <ion-item-option color="danger" (click)="deleteTrack()" expandable>
-          Delete
+        <ion-item-option color="danger" (click)="deleteTrack()">
+          <ion-icon name="trash-outline"></ion-icon>
         </ion-item-option>
       </ion-item-options>
     </ion-item-sliding>

@@ -237,6 +237,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
   hasPrevious: boolean = false;
   hasNext: boolean = false;
   selectedTrackIndexes: Set<number> = new Set();
+  previousPlaylist: any[] = [];
 
   private subscriptions: Subscription[] = [];
 
@@ -250,6 +251,9 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     delay: 200,
     delayOnTouchOnly: true,
     touchStartThreshold: 10,
+    onStart: () => {
+      this.previousPlaylist = [...this.playlist]; // Capture original before sorting
+    }
   };
 
   @HostListener('window:keydown', ['$event'])
@@ -530,17 +534,28 @@ export class PlaylistComponent implements OnInit, OnDestroy {
   }
 
   onPlaylistSort(event: { oldIndex: number; newIndex: number; item: any }): void {
-    console.log('Playlist sorted:', event);
     this.playlistService.updatePlaylistOrder(this.playlist);
 
-    if (this.selectedTrack === event.item) {
-      this.playlistService.setCurrentTrackIndex(event.newIndex);
-    } else {
-      const newIndex = this.playlist.findIndex(track => track === this.selectedTrack);
-      if (newIndex !== -1) {
-        this.playlistService.setCurrentTrackIndex(newIndex);
+    const newSelectedIndexes = new Set<number>();
+    this.previousPlaylist.forEach((track, oldIndex) => {
+      if (this.selectedTrackIndexes.has(oldIndex)) {
+        const newIndex = this.playlist.indexOf(track);
+        if (newIndex !== -1) {
+          newSelectedIndexes.add(newIndex);
+        }
       }
+    });
+
+    this.selectedTrackIndexes = newSelectedIndexes;
+    this.playlistService.selectedTrackIndexes.next(this.selectedTrackIndexes);
+
+    // Update current track index
+    const newIndex = this.playlist.indexOf(this.selectedTrack);
+    if (newIndex !== -1) {
+      this.playlistService.setCurrentTrackIndex(newIndex);
     }
+
+    this.previousPlaylist = []; // Clear to avoid stale state
   }
 
   isTouchableDevice(): boolean {

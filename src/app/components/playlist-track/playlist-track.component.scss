@@ -1,43 +1,65 @@
-/* Base styling remains the same */
+/* Base styling with dynamic heights */
 :host {
+  display: block;
+  /* No fixed height - let content determine it */
+
   & ion-item.track {
     --border-width: 0;
     --inner-border-width: 0;
     --border-color: transparent;
+    width: 100%;
 
     --background: var(--ion-item-background);
     --color: var(--ion-text-color);
 
     --padding-start: 10px;
     --padding-end: 10px;
-    --padding-top: 0px;
-    --padding-bottom: 0px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
 
     border-radius: 8px;
     overflow: hidden;
     transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     cursor: pointer;
+    /* No fixed height - let content determine it */
 
     ion-thumbnail {
       --size: 56px;
       --border-radius: 4px;
       margin: 0;
       margin-inline-end: 10px;
+      flex-shrink: 0;
     }
 
     ion-label {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
       h2 {
         font-weight: 500;
         font-size: 0.9rem;
         margin-bottom: 4px;
+        line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
       p {
         font-size: 0.75rem;
         opacity: 0.7;
+        line-height: 1.1;
       }
     }
   }
+}
 
+ion-item-sliding {
+  display: flex;
+  align-items: stretch;
+  /* No fixed height - let content determine it */
+  position: relative; /* Important for proper layering */
+  overflow: visible; /* Allow swipe animation to show */
 }
 
 :host:hover {
@@ -58,6 +80,17 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+ion-item-options {
+
+  & ion-item-option {
+    z-index: -1;
+    margin-left: -10px;
+    padding-left: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+}
+
 .playing-overlay svg path {
   stroke-dasharray: 15 45;
   stroke-dashoffset: 0;
@@ -71,99 +104,81 @@
 }
 
 .thumbnail-container {
-  position: relative; /* Make this the reference point for absolutely positioned children */
-  display: flex; /* Helps ensure the image fills the space */
+  position: relative;
+  display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden; /* Important to prevent the pulsing SVG from overflowing if it extends beyond the thumbnail bounds, though with 24px it might not */
+  overflow: hidden;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
 }
 
-/* Styles for the overlay containing the SVG */
 .playing-overlay {
-  position: absolute; /* Position it relative to .thumbnail-container */
-  top: 50%; /* Move top edge to vertical center */
-  left: 50%; /* Move left edge to horizontal center */
-  transform: translate(-50%, -50%); /* Pull it back by half its own width/height to truly center it */
-  z-index: 10; /* Ensure it's above the image */
-  /* Optional: Add a semi-transparent background if you want a slight dimming effect over the image */
-  /* background-color: rgba(0, 0, 0, 0.3); */
-  /* If the image fills the thumbnail, you can make the overlay fill it too for more precise centering */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
   width: 100%;
   height: 100%;
-  display: flex; /* Use flexbox to center the SVG within the overlay itself */
+  display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* If the SVG needs specific sizing within the overlay, you can target it directly */
 .playing-overlay svg {
-  /* The width/height attributes on the SVG itself are often enough,
-     but you can explicitly set them here if needed */
-  /* width: 24px;
-  height: 24px; */
-  display: block; /* Remove any extra space below the SVG */
+  display: block;
 }
-
-/* ... Your existing styles ... */
 
 /* ========== SortableJS-Specific States ========== */
 
-/* Reset base styles for the cloned/ghost elements to prevent interference */
-.sortable-chosen, /* This class is typically on the original element during drag, or sometimes on the clone itself */
-.sortable-ghost { /* This is the placeholder where the item will be dropped */
+.sortable-chosen,
+.sortable-ghost {
   border: none !important;
   box-shadow: none !important;
-  background: transparent !important; /* Ensure no background from parent */
-  margin: 0 !important; /* Remove any external margins */
-  padding: 0 !important; /* Remove any external padding */
-  box-sizing: border-box; /* Crucial for consistent sizing */
-  /* Remove height/min-height/max-height here if you want ion-item to control it */
-  height: auto !important; /* Allow content to dictate height initially */
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+  /* No fixed height - preserve dynamic sizing */
 }
 
-
-/* DRAGGED ELEMENT (the actual visual element being dragged) */
-/* SortableJS typically adds 'sortable-drag' to the actual element being dragged */
+/* DRAGGED ELEMENT */
 :host.sortable-drag {
-  /* This is the visual representation of the dragged item */
-  opacity: 0.9; /* Slight transparency for visual feedback */
-  z-index: 1000; /* Ensure it's on top */
-  transform: scale(1.01); /* Subtle visual lift */
-  border-radius: 8px; /* Maintain rounded corners */
-  box-sizing: border-box; /* Ensure padding/border are included in the width/height */
+  opacity: 0.9;
+  z-index: 1000;
+  transform: scale(1.01);
+  border-radius: 8px;
+  box-sizing: border-box;
+  /* No fixed height - preserve original dimensions */
 
-  /* Ensure the background is consistent with the non-dragged state or what you want for dragging */
   background: var(--ion-item-background) !important;
   color: var(--ion-text-color) !important;
-
-  /* If you want a shadow, apply it here */
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 
-  /* Make sure the internal ion-item has the correct dimensions */
   ion-item {
-    --background: var(--ion-item-background) !important; /* Inherit from :host.sortable-drag */
-    --color: var(--ion-text-color) !important; /* Inherit from :host.sortable-drag */
+    --background: var(--ion-item-background) !important;
+    --color: var(--ion-text-color) !important;
     --padding-start: 10px;
     --padding-end: 10px;
-    --padding-top: 0px;
-    --padding-bottom: 0px;
-    --min-height: 72px; /* Set to the exact height of your regular item */
+    --padding-top: 8px;
+    --padding-bottom: 8px;
     display: flex;
     align-items: center;
-    box-sizing: border-box; /* Important for ion-item too */
+    box-sizing: border-box;
+    /* No fixed height */
   }
 
-  /* Make sure content is visible */
   ion-thumbnail, ion-label {
     visibility: visible;
   }
 }
 
-/* If the dragged item is also 'selected' */
 :host.sortable-drag.selected {
   background: var(--ion-color-primary) !important;
   color: var(--ion-color-primary-contrast) !important;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Slightly stronger shadow */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 
   ion-item {
     --background: var(--ion-color-primary) !important;
@@ -171,35 +186,66 @@
   }
 }
 
-/* PLACEHOLDER ELEMENT (the empty space left behind) */
+/* PLACEHOLDER ELEMENT - Key fix for dynamic height */
 :host.sortable-ghost {
-  /* This represents the empty slot, so it should be purely visual */
-  background: transparent !important; /* Make sure it's fully transparent */
-  border: none !important; /* A dashed border is common for placeholders */
-  border-radius: 8px; /* Match the item's border-radius */
-  box-shadow: none !important; /* No shadow */
-  opacity: 1; /* It should be visible */
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px;
+  box-shadow: none !important;
+  opacity: 0.5;
+  /* No fixed height - let it maintain the original item's dimensions */
+  display: flex;
+  align-items: stretch; /* Stretch to match content */
 
-  /* Set its height explicitly to match your regular item's height */
-  /* This is crucial to prevent the "dark background" if it's due to ghost height mismatch */
+  & ion-item-options {
+    display: none;
+  }
 
-  /* Make sure internal content is completely hidden and doesn't affect layout */
+  ion-item-sliding {
+    /* Preserve the original layout structure */
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+  }
+
   ion-item {
     --background: transparent !important;
     --color: transparent !important;
-    /* Reset padding here if the --min-height on ion-item.track doesn't account for it */
-    --padding-start: 0px; /* Adjust if original ion-item has padding outside min-height */
-    --padding-end: 0px;
-    --padding-top: 0px;
-    --padding-bottom: 0px;
-    overflow: hidden; /* Hide any potential residual content */
+    display: flex;
+    align-items: center;
+    width: 100%;
+    /* Keep the original padding to maintain spacing */
+    --padding-start: 10px;
+    --padding-end: 10px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
   }
 
-  ion-thumbnail, ion-label {
-    visibility: hidden !important; /* Ensure contents are not rendered */
-    opacity: 0 !important; /* Also hide opacity */
-    height: 0 !important; /* Collapse content height */
-    margin: 0 !important; /* Remove any margins from hidden content */
-    padding: 0 !important; /* Remove any padding from hidden content */
+  /* Key insight: Don't collapse the content, just make it invisible */
+  ion-thumbnail {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    /* Maintain original dimensions and spacing */
+    width: 56px !important;
+    height: 56px !important;
+    margin: 0 !important;
+    margin-inline-end: 10px !important;
+    flex-shrink: 0;
+  }
+
+  ion-label {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    flex: 1;
+    /* Preserve the original label structure and spacing */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+
+    h2, p {
+      /* Make text invisible but preserve line height and spacing */
+      color: transparent !important;
+      /* Don't collapse - let the text maintain its natural height */
+    }
   }
 }
