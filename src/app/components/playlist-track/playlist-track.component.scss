@@ -12,7 +12,6 @@
     --padding-end: 10px;
     --padding-top: 0px;
     --padding-bottom: 0px;
-    --min-height: 72px;
 
     border-radius: 8px;
     overflow: hidden;
@@ -105,131 +104,102 @@
   display: block; /* Remove any extra space below the SVG */
 }
 
+/* ... Your existing styles ... */
+
 /* ========== SortableJS-Specific States ========== */
 
-.sortable-chosen,
-.sortable-ghost {
+/* Reset base styles for the cloned/ghost elements to prevent interference */
+.sortable-chosen, /* This class is typically on the original element during drag, or sometimes on the clone itself */
+.sortable-ghost { /* This is the placeholder where the item will be dropped */
   border: none !important;
   box-shadow: none !important;
-  background: transparent !important;
+  background: transparent !important; /* Ensure no background from parent */
+  margin: 0 !important; /* Remove any external margins */
+  padding: 0 !important; /* Remove any external padding */
+  box-sizing: border-box; /* Crucial for consistent sizing */
+  /* Remove height/min-height/max-height here if you want ion-item to control it */
+  height: auto !important; /* Allow content to dictate height initially */
 }
 
-/* DRAGGED ELEMENT */
-:host.sortable-chosen {
-  box-sizing: border-box;
-  border-radius: 8px;
-  opacity: 0.9;
-  z-index: 1000; /* On top of everything */
-  margin-bottom: 4px !important; /* Remove extra margin while dragging */
 
-  ion-item {
-    height: inherit !important;
-    min-height: inherit !important;
-    max-height: inherit !important;
-    --padding-start: 10px;
-    --padding-end: 10px;
-    --padding-top: 0px;
-    --padding-bottom: 0px;
-    --min-height: 72px;
-  }
-}
-
+/* DRAGGED ELEMENT (the actual visual element being dragged) */
+/* SortableJS typically adds 'sortable-drag' to the actual element being dragged */
 :host.sortable-drag {
-  opacity: 1 !important;
+  /* This is the visual representation of the dragged item */
+  opacity: 0.9; /* Slight transparency for visual feedback */
+  z-index: 1000; /* Ensure it's on top */
+  transform: scale(1.01); /* Subtle visual lift */
+  border-radius: 8px; /* Maintain rounded corners */
+  box-sizing: border-box; /* Ensure padding/border are included in the width/height */
+
+  /* Ensure the background is consistent with the non-dragged state or what you want for dragging */
   background: var(--ion-item-background) !important;
   color: var(--ion-text-color) !important;
-  z-index: 1000;
-  transform: scale(1.01);
-  border-radius: 8px;
 
+  /* If you want a shadow, apply it here */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+  /* Make sure the internal ion-item has the correct dimensions */
   ion-item {
-    --background: inherit;
-    --color: inherit;
+    --background: var(--ion-item-background) !important; /* Inherit from :host.sortable-drag */
+    --color: var(--ion-text-color) !important; /* Inherit from :host.sortable-drag */
     --padding-start: 10px;
     --padding-end: 10px;
     --padding-top: 0px;
     --padding-bottom: 0px;
-    --min-height: 72px;
+    --min-height: 72px; /* Set to the exact height of your regular item */
     display: flex;
     align-items: center;
+    box-sizing: border-box; /* Important for ion-item too */
   }
 
+  /* Make sure content is visible */
   ion-thumbnail, ion-label {
     visibility: visible;
   }
 }
 
+/* If the dragged item is also 'selected' */
 :host.sortable-drag.selected {
-  opacity: 1 !important;
-  --background: var(--ion-color-primary);
-  --color: var(--ion-color-primary-contrast);
-  z-index: 1000;
-  transform: scale(1.01);
-  border-radius: 8px;
+  background: var(--ion-color-primary) !important;
+  color: var(--ion-color-primary-contrast) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Slightly stronger shadow */
 
   ion-item {
-    --background: inherit;
-    --color: inherit;
-    --padding-start: 10px;
-    --padding-end: 10px;
-    --padding-top: 0px;
-    --padding-bottom: 0px;
-    --min-height: 72px;
-    display: flex;
-    align-items: center;
-  }
-
-  ion-thumbnail, ion-label {
-    visibility: visible;
+    --background: var(--ion-color-primary) !important;
+    --color: var(--ion-color-primary-contrast) !important;
   }
 }
 
-ion-item-option {
-  padding-left: 10px;
-  margin-left: -10px;
-  border-bottom-right-radius: 10px;
-  border-top-right-radius: 10px;
-}
-
-/* PLACEHOLDER ELEMENT (where the dragged item will drop) */
+/* PLACEHOLDER ELEMENT (the empty space left behind) */
 :host.sortable-ghost {
-  background: transparent !important;
-  border-radius: 8px;
-  border: none;
-  box-shadow: none;
-  opacity: 1;
-  margin-bottom: 8px !important;
+  /* This represents the empty slot, so it should be purely visual */
+  background: transparent !important; /* Make sure it's fully transparent */
+  border: none !important; /* A dashed border is common for placeholders */
+  border-radius: 8px; /* Match the item's border-radius */
+  box-shadow: none !important; /* No shadow */
+  opacity: 1; /* It should be visible */
 
-  height: auto !important;
-  min-height: inherit !important;
-  max-height: inherit !important;
+  /* Set its height explicitly to match your regular item's height */
+  /* This is crucial to prevent the "dark background" if it's due to ghost height mismatch */
 
+  /* Make sure internal content is completely hidden and doesn't affect layout */
   ion-item {
     --background: transparent !important;
     --color: transparent !important;
-
-    --padding-start: 12px;
-    --padding-end: 12px;
-    --padding-top: 4px;
-    --padding-bottom: 4px;
-    --min-height: 50px;
-
-    display: flex;
-    align-items: center;
+    /* Reset padding here if the --min-height on ion-item.track doesn't account for it */
+    --padding-start: 0px; /* Adjust if original ion-item has padding outside min-height */
+    --padding-end: 0px;
+    --padding-top: 0px;
+    --padding-bottom: 0px;
+    overflow: hidden; /* Hide any potential residual content */
   }
 
-  ion-thumbnail {
-    visibility: hidden;
-    width: var(--size, 56px);
-    height: var(--size, 56px);
-    min-width: var(--size, 56px);
-    min-height: var(--size, 56px);
-    margin-inline-end: 16px;
-    --border-radius: 4px;
-  }
-
-  ion-label {
-    visibility: hidden;
-    flex-grow: 1;
+  ion-thumbnail, ion-label {
+    visibility: hidden !important; /* Ensure contents are not rendered */
+    opacity: 0 !important; /* Also hide opacity */
+    height: 0 !important; /* Collapse content height */
+    margin: 0 !important; /* Remove any margins from hidden content */
+    padding: 0 !important; /* Remove any padding from hidden content */
   }
 }
