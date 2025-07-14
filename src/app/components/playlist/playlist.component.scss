@@ -101,13 +101,12 @@ button i {
   }
 
   .action-buttons-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); // 2 columns
+    grid-template-rows: repeat(2, auto);  // 2 rows
+    gap: 8px 12px; // spacing between buttons
+    padding: 12px;
     background: transparent;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
   }
 
   ion-button {
