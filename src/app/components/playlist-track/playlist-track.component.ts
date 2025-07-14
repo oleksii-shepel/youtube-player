@@ -1,3 +1,4 @@
+import { IonItemSliding } from '@ionic/angular';
 import { ToFriendlyDurationPipe } from './../../pipes/to-friendly-duration.pipe';
 import {
   Component,
@@ -5,12 +6,13 @@ import {
   HostBinding,
   Input,
   Output,
+  ViewChild,
 } from '@angular/core';
 
 @Component({
   selector: 'app-playlist-track',
   template: `
-    <ion-item-sliding>
+    <ion-item-sliding #sliding (ionDrag)="onSliding($event)">
       <ion-item
         (click)="selectTrack()"
         class="track"
@@ -119,6 +121,9 @@ export class PlaylistTrackComponent {
   @Input() isSelected: boolean = false;
   @Input() isPlaying: boolean = false;
 
+  @ViewChild('sliding', { static: true }) sliding!: IonItemSliding;
+  private deleteThreshold = 1.5; // 150% swipe
+
   @Output() trackSelected = new EventEmitter<any>();
   @Output() trackDeleted = new EventEmitter<any>();
 
@@ -133,5 +138,15 @@ export class PlaylistTrackComponent {
 
   deleteTrack(): void {
     this.trackDeleted.emit(this.track);
+  }
+
+  onSliding(event: CustomEvent) {
+    const ratio = event.detail.ratio;
+
+    if (ratio > this.deleteThreshold) {
+      // prevent re-triggering
+      this.sliding.close();
+      this.deleteTrack(); // emits trackDeleted
+    }
   }
 }

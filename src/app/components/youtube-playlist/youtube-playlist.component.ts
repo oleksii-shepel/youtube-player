@@ -48,7 +48,6 @@ import { YouTubePlaylist } from 'src/app/interfaces/youtube-playlist-data';
     </div>
   `,
   styleUrls: ['./youtube-playlist.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, IonicModule, YoutubeVideoComponent],
 })

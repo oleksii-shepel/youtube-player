@@ -42,7 +42,6 @@ import { YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
     </div>
   `,
   styleUrls: ['./youtube-video.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, IonicModule, ToFriendlyDurationPipe, ShrinkNumberPipe],
 })

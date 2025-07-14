@@ -49,7 +49,6 @@ import { YouTubeChannel } from 'src/app/interfaces/youtube-channel-data';
     </div>
   `,
   styleUrls: ['./youtube-channel.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, ShrinkNumberPipe, YoutubeVideoComponent, IonicModule]
 })
