@@ -36,13 +36,13 @@ export class PlaylistService {
   }
 
   addToPlaylist(video: any): void {
-    if (!this.playlist.value.some(v => v.id === video.id)) {
-      const newPlaylist = [...this.playlist.value, video];
-      if (!this.isShuffled.value) this.originalPlaylist = [...newPlaylist];
+    if (!this.playlist.snappy.some(v => v.id === video.id)) {
+      const newPlaylist = [...this.playlist.snappy, video];
+      if (!this.isShuffled.snappy) this.originalPlaylist = [...newPlaylist];
       this.playlist.next(newPlaylist);
 
       // If playlist was empty before adding, start playing the new track
-      if (this.playlist.value.length === 1) {
+      if (this.playlist.snappy.length === 1) {
         this.setCurrentTrackIndex(0);
       }
     }
@@ -61,30 +61,30 @@ export class PlaylistService {
   }
 
   removeTrack(track: any): void {
-    const index = this.playlist.value.findIndex(t => t.id === track.id);
+    const index = this.playlist.snappy.findIndex(t => t.id === track.id);
     if (index === -1) return;
 
     const newPlaylist = [
-      ...this.playlist.value.slice(0, index),
-      ...this.playlist.value.slice(index + 1),
+      ...this.playlist.snappy.slice(0, index),
+      ...this.playlist.snappy.slice(index + 1),
     ];
     this.playlist.next(newPlaylist);
 
-    if (this.currentTrackIndex.value === index) {
+    if (this.currentTrackIndex.snappy === index) {
       this.playerService.stop();
       this.setCurrentTrackIndex(-1);
-    } else if (this.currentTrackIndex.value > index) {
-      this.setCurrentTrackIndex(this.currentTrackIndex.value - 1);
+    } else if (this.currentTrackIndex.snappy > index) {
+      this.setCurrentTrackIndex(this.currentTrackIndex.snappy - 1);
     }
 
-    if (!this.isShuffled.value) {
+    if (!this.isShuffled.snappy) {
       this.originalPlaylist = [...newPlaylist];
     } else {
       this.originalPlaylist = this.originalPlaylist.filter(t => t.id !== track.id);
     }
 
     // Remove track from selection if selected and update indexes
-    const selected = new Set(this.selectedTrackIndexes.value);
+    const selected = new Set(this.selectedTrackIndexes.snappy);
     const updatedSelection = new Set<number>();
 
     selected.forEach(selectedIndex => {
@@ -102,14 +102,14 @@ export class PlaylistService {
   }
 
   removeSelectedTracks(): void {
-    const selected = this.selectedTrackIndexes.value;
+    const selected = this.selectedTrackIndexes.snappy;
     if (selected.size === 0) return;
 
-    const wasPlaying = this.playbackState$.value === 'playing';
-    const currentIndex = this.currentTrackIndex.value;
+    const wasPlaying = this.playbackState$.snappy === 'playing';
+    const currentIndex = this.currentTrackIndex.snappy;
     const isCurrentRemoved = selected.has(currentIndex);
 
-    const newPlaylist = this.playlist.value.filter((_, idx) => !selected.has(idx));
+    const newPlaylist = this.playlist.snappy.filter((_, idx) => !selected.has(idx));
     this.playlist.next(newPlaylist);
 
     this.originalPlaylist = this.originalPlaylist.filter(t =>
@@ -139,18 +139,18 @@ export class PlaylistService {
   }
 
   updatePlaylistOrder(newOrder: any[]): void {
-    if (this.isShuffled.value) {
+    if (this.isShuffled.snappy) {
       this.originalPlaylist = newOrder;
     }
     this.playlist.next(newOrder);
   }
 
   play(): void {
-    if (this.playlist.value.length === 0) return;
+    if (this.playlist.snappy.length === 0) return;
 
     if (
-      this.currentTrackIndex.value == null ||
-      this.currentTrackIndex.value >= this.playlist.value.length
+      this.currentTrackIndex.snappy == null ||
+      this.currentTrackIndex.snappy >= this.playlist.snappy.length
     ) {
       this.setCurrentTrackIndex(0);
     }
@@ -168,36 +168,36 @@ export class PlaylistService {
   }
 
   next(): void {
-    if (this.playlist.value.length === 0) return;
+    if (this.playlist.snappy.length === 0) return;
 
-    if (this.repeatMode.value === 'none' && this.currentTrackIndex.value >= this.playlist.value.length - 1) {
+    if (this.repeatMode.snappy === 'none' && this.currentTrackIndex.snappy >= this.playlist.snappy.length - 1) {
       this.stop();
       this.setCurrentTrackIndex(-1);
       return;
     }
 
     const nextIndex =
-      this.repeatMode.value === 'one'
-        ? this.currentTrackIndex.value
-        : this.getNextTrackIndex(this.currentTrackIndex.value);
+      this.repeatMode.snappy === 'one'
+        ? this.currentTrackIndex.snappy
+        : this.getNextTrackIndex(this.currentTrackIndex.snappy);
 
     this.setCurrentTrackIndex(nextIndex);
     this.playCurrentTrack();
   }
 
   previous(): void {
-    if (this.playlist.value.length === 0) return;
+    if (this.playlist.snappy.length === 0) return;
 
-    if (this.repeatMode.value === 'none' && this.currentTrackIndex.value <= 0) {
+    if (this.repeatMode.snappy === 'none' && this.currentTrackIndex.snappy <= 0) {
       this.stop();
       this.setCurrentTrackIndex(-1);
       return;
     }
 
     const prevIndex =
-      this.repeatMode.value === 'one'
-        ? this.currentTrackIndex.value
-        : this.getPreviousTrackIndex(this.currentTrackIndex.value);
+      this.repeatMode.snappy === 'one'
+        ? this.currentTrackIndex.snappy
+        : this.getPreviousTrackIndex(this.currentTrackIndex.snappy);
 
     this.setCurrentTrackIndex(prevIndex);
     this.playCurrentTrack();
@@ -208,15 +208,15 @@ export class PlaylistService {
   }
 
   getCurrentTrack(): any | null {
-    return this.playlist.value[this.currentTrackIndex.value] || null;
+    return this.playlist.snappy[this.currentTrackIndex.snappy] || null;
   }
 
   getCurrentTrackIndex(): number {
-    return this.currentTrackIndex.value;
+    return this.currentTrackIndex.snappy;
   }
 
   getPlaylist(): any[] {
-    return this.playlist.value;
+    return this.playlist.snappy;
   }
 
   setRepeatMode(mode: 'none' | 'all' | 'one'): void {
@@ -228,12 +228,12 @@ export class PlaylistService {
   }
 
   setShuffleState(shuffled: boolean): void {
-    if (shuffled && !this.isShuffled.value) {
-      this.originalPlaylist = [...this.playlist.value];
-      this.playlist.next(this.shuffleArray([...this.playlist.value]));
+    if (shuffled && !this.isShuffled.snappy) {
+      this.originalPlaylist = [...this.playlist.snappy];
+      this.playlist.next(this.shuffleArray([...this.playlist.snappy]));
       this.isShuffled.next(true);
-    } else if (!shuffled && this.isShuffled.value) {
-      const currentTrack = this.playlist.value[this.currentTrackIndex.value];
+    } else if (!shuffled && this.isShuffled.snappy) {
+      const currentTrack = this.playlist.snappy[this.currentTrackIndex.snappy];
       const newIndex = this.originalPlaylist.findIndex(t => t.id === currentTrack.id);
       this.playlist.next([...this.originalPlaylist]);
       if (newIndex >= 0) this.setCurrentTrackIndex(newIndex);
@@ -246,7 +246,7 @@ export class PlaylistService {
   }
 
   isPlaylistShuffled(): boolean {
-    return this.isShuffled.value;
+    return this.isShuffled.snappy;
   }
 
   /**
@@ -266,7 +266,7 @@ export class PlaylistService {
    * @param shiftKey true if Shift pressed
    */
   selectTrack(index: number, ctrlKey = false, shiftKey = false): void {
-    const selected = new Set(this.selectedTrackIndexes.value);
+    const selected = new Set(this.selectedTrackIndexes.snappy);
 
     if (shiftKey) {
       // Select range from last selected to clicked index
@@ -301,19 +301,19 @@ export class PlaylistService {
   }
 
   getSelectedTracks(): any[] {
-    const selected = this.selectedTrackIndexes.value;
-    return this.playlist.value.filter((_, idx) => selected.has(idx));
+    const selected = this.selectedTrackIndexes.snappy;
+    return this.playlist.snappy.filter((_, idx) => selected.has(idx));
   }
 
   isTrackSelected(index: number): boolean {
-    return this.selectedTrackIndexes.value.has(index);
+    return this.selectedTrackIndexes.snappy.has(index);
   }
 
   // ========== Private helper methods ==========
 
   private getNextTrackIndex(currentIndex: number): number {
-    return currentIndex >= this.playlist.value.length - 1
-      ? this.repeatMode.value === 'all'
+    return currentIndex >= this.playlist.snappy.length - 1
+      ? this.repeatMode.snappy === 'all'
         ? 0
         : currentIndex
       : currentIndex + 1;
@@ -321,8 +321,8 @@ export class PlaylistService {
 
   private getPreviousTrackIndex(currentIndex: number): number {
     return currentIndex <= 0
-      ? this.repeatMode.value === 'all'
-        ? this.playlist.value.length - 1
+      ? this.repeatMode.snappy === 'all'
+        ? this.playlist.snappy.length - 1
         : currentIndex
       : currentIndex - 1;
   }

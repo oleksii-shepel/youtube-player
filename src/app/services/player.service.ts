@@ -43,17 +43,17 @@ export class PlayerService {
   }
 
   getRepeatMode(): 'none' | 'all' | 'one' {
-    return this.repeatMode.value;
+    return this.repeatMode.snappy;
   }
 
   hide(): void {
-    if(this.isHidden$.value !== true) {
+    if(this.isHidden$.snappy !== true) {
       this.isHidden$.next(true);
     }
   }
 
   show(): void {
-    if(this.isHidden$.value !== false) {
+    if(this.isHidden$.snappy !== false) {
       this.isHidden$.next(false);
     }
   }

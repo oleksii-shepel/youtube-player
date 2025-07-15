@@ -451,7 +451,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
     // Check if current playing track was deselected
     if (this.currentTrackIndex === index &&
-        !this.playlistService.selectedTrackIndexes.value.has(index)) {
+        !this.playlistService.selectedTrackIndexes.snappy.has(index)) {
         this.playlistService.stop();
         this.playlistService.setCurrentTrackIndex(-1);
         return;
@@ -503,7 +503,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
   playNext(): void {
     this.playlistService.next();
-    const newIndex = this.playlistService.currentTrackIndex.value;
+    const newIndex = this.playlistService.currentTrackIndex.snappy;
     if (newIndex !== -1) {
       this.playlistService.selectTrack(newIndex, false, false);
       this.trackSelected.emit(this.playlist[newIndex]);
@@ -512,7 +512,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
   playPrevious(): void {
     this.playlistService.previous();
-    const newIndex = this.playlistService.currentTrackIndex.value;
+    const newIndex = this.playlistService.currentTrackIndex.snappy;
     if (newIndex !== -1) {
       this.playlistService.selectTrack(newIndex, false, false);
       this.trackSelected.emit(this.playlist[newIndex]);
