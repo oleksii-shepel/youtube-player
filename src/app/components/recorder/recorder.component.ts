@@ -35,7 +35,7 @@ enum RecorderState {
       [class.hidden]="isHidden"
       (click)="onBackdropClick($event)"
     >
-      <div class="modal-container" [class.hidden]="isHidden" (click)="$event.stopPropagation()">
+      <div class="modal-container" [class.hidden]="isHidden" [class.with-border]="showBorder" (click)="$event.stopPropagation()">
         <div class="video-container" [class.ready]="currentState !== RecorderState.CameraOff">
           <video #videoPreview autoplay muted playsinline></video>
 
@@ -166,6 +166,8 @@ enum RecorderState {
 })
 export class RecorderComponent implements OnInit, OnChanges {
   @Input() isHidden = true;
+  @Input() showBorder = true;
+
   @Output() close = new EventEmitter<void>();
   @ViewChild('videoPreview', { static: true }) videoPreview!: ElementRef<HTMLVideoElement>;
 
