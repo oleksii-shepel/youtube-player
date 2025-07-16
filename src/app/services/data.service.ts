@@ -376,6 +376,10 @@ export class YoutubeDataService {
     return this.search('playlists', params);
   }
 
+  /**
+   * Fetches the list of trending (most popular) videos globally or regionally.
+   * Uses the `chart=mostPopular` parameter and API key authorization.
+   */
   fetchTrendingVideos(): Stream<any> {
     const params: IYoutubeQueryParams = {
       part: 'snippet,contentDetails,statistics',
@@ -383,6 +387,34 @@ export class YoutubeDataService {
     };
 
     return this.search('videos', params);
+  }
+
+  /**
+   * Fetches videos rated by the authenticated user (liked or disliked).
+   * Requires OAuth 2.0 access token and uses `myRating=like|dislike`.
+   */
+  fetchRatedVideos(myRating: 'like' | 'dislike'): Stream<any> {
+    const params: IYoutubeQueryParams = {
+      part: 'snippet,contentDetails,statistics',
+      myRating
+    };
+
+    // Must use OAuth-based HTTP client, not API key
+    return this.http.get(`${this.baseUrl}/videos`, readJson, {
+      ...params,
+      headers: {
+        Authorization: `Bearer ${environment.youtube.apiKey}`
+      }
+    }).pipe(
+      map((response: any) => ({
+        ...response,
+        nextPageToken: response.nextPageToken,
+        prevPageToken: response.prevPageToken,
+      })),
+      catchError((err) => {
+        this.searchError$.next(this.parseErrorMessage(err));
+      })
+    );
   }
 
   /**
