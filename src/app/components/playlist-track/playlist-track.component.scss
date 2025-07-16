@@ -190,21 +190,9 @@ ion-item-options {
   border: none !important;
   border-radius: 8px;
   box-shadow: none !important;
-  opacity: 0.5;
   /* No fixed height - let it maintain the original item's dimensions */
   display: flex;
   align-items: stretch; /* Stretch to match content */
-
-  & ion-item-options {
-    display: none;
-  }
-
-  ion-item-sliding {
-    /* Preserve the original layout structure */
-    display: flex;
-    align-items: stretch;
-    width: 100%;
-  }
 
   ion-item {
     --background: transparent !important;

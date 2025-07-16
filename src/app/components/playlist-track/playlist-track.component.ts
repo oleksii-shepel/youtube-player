@@ -12,15 +12,25 @@ import {
   Renderer2,
   HostBinding
 } from '@angular/core';
-import { IonItemSliding, Gesture, GestureController } from '@ionic/angular';
+import { IonItemSliding } from '@ionic/angular';
 
 @Component({
   selector: 'app-playlist-track',
   template: `
-    <ion-item-sliding #slidingItem>
+    <div
+      #slidingItem
+      appSwipeable
+      [halfSwipeThreshold]="80"
+      [deleteThreshold]="120"
+      [enableHapticFeedback]="true"
+      (halfSwipe)="onHalfSwipe()"
+      (delete)="onDelete()"
+      (swipeStart)="onSwipeStart()"
+      (swipeEnd)="onSwipeEnd()"
+    >
       <ion-item
         (click)="onItemClick()"
-        class="track"
+        class="track sliding-content"
         [class.selected]="isSelected"
         [attr.aria-selected]="isSelected"
       >
@@ -111,14 +121,13 @@ import { IonItemSliding, Gesture, GestureController } from '@ionic/angular';
           <p class="duration">{{ formattedDuration | toFriendlyDuration }}</p>
         </ion-label>
       </ion-item>
-    </ion-item-sliding>
+    </div>
   `,
   styleUrls: ['./playlist-track.component.scss'],
   standalone: false,
 })
 export class PlaylistTrackComponent implements AfterViewInit, OnDestroy {
-  @ViewChild(IonItemSliding, { read: ElementRef }) private slidingItemEl!: ElementRef;
-  @ViewChild(IonItemSliding) private ionSlidingItem!: IonItemSliding;
+  @ViewChild('slidingItem', { read: ElementRef }) private slidingItemEl!: ElementRef;
 
   @Input() track!: any;
   @Input() thumbnailUrl!: string;
@@ -134,135 +143,45 @@ export class PlaylistTrackComponent implements AfterViewInit, OnDestroy {
     return this.isSelected;
   }
 
-  private customSwipeGesture?: Gesture;
-  // Thresholds for deletion (still relevant for background change/deletion trigger)
-  private readonly SWIPE_DELETE_THRESHOLD_PX = 100;
-  private readonly SWIPE_VELOCITY_THRESHOLD = 0.5;
-
   private isGestureActive = false;
   private isDeleting = false;
 
   constructor(
-    private gestureCtrl: GestureController,
     private zone: NgZone,
     private renderer: Renderer2
   ) {}
 
   ngAfterViewInit(): void {
-    if (this.slidingItemEl && this.slidingItemEl.nativeElement) {
-      this.setupSwipeToDeleteGesture();
-    }
+    // No need to setup custom gesture - directive handles it
   }
 
   ngOnDestroy(): void {
-    if (this.customSwipeGesture) {
-      this.customSwipeGesture.destroy();
-    }
+    // No cleanup needed - directive handles it
   }
 
-  private setupSwipeToDeleteGesture(): void {
-    const itemSlidingNativeEl = this.slidingItemEl.nativeElement;
-    const ionItemContent = itemSlidingNativeEl.querySelector('ion-item') as HTMLElement;
+  // Directive event handlers
+  onHalfSwipe(): void {
+    console.log('Half swipe detected - could show preview or options');
+    // Optional: Show additional UI feedback for half swipe
+  }
 
-    if (!ionItemContent) {
-      console.warn('Could not find ion-item content for gesture setup.');
-      return;
-    }
+  onDelete(): void {
+    if (this.isDeleting) return;
 
-    this.zone.runOutsideAngular(() => {
-      this.customSwipeGesture = this.gestureCtrl.create({
-        el: ionItemContent,
-        threshold: 5,
-        gestureName: 'one-swipe-delete',
-        direction: 'x',
-        onStart: (ev) => {
-          if (this.isDeleting) return;
-
-          const target = ev.event.target as HTMLElement;
-          if (target.closest('.drag-handle')) {
-            this.isGestureActive = false;
-            return;
-          }
-
-          this.isGestureActive = true;
-          this.isDeleting = false;
-
-          this.zone.run(async () => {
-             await this.ionSlidingItem.close();
-          });
-
-          // Disable transitions for background color change to be immediate if desired
-          this.renderer.setStyle(ionItemContent, 'transition', 'background-color 0.2s ease'); // Only transition background
-          this.renderer.setStyle(itemSlidingNativeEl, 'overflow', 'hidden'); // Keep overflow hidden during gesture
-          this.renderer.setStyle(ionItemContent, 'backgroundColor', 'var(--ion-item-background)');
-          this.renderer.setStyle(ionItemContent, 'opacity', '1');
-          this.renderer.setStyle(ionItemContent, 'transform', 'translateX(0px)'); // **Crucial: Always keep at 0px**
-        },
-        onMove: (ev) => {
-          if (!this.isGestureActive || this.isDeleting) return;
-
-          const deltaX = ev.deltaX;
-          const velocityX = ev.velocityX;
-
-          // **DO NOT APPLY TRANSFORM TO ionItemContent HERE**
-          // ionItemContent.style.transform = `translateX(${Math.max(deltaX, -ionItemContent.offsetWidth)}px)`;
-
-          if (deltaX < 0) { // Swiping left
-            if (Math.abs(deltaX) >= this.SWIPE_DELETE_THRESHOLD_PX || Math.abs(velocityX) >= this.SWIPE_VELOCITY_THRESHOLD) {
-              this.zone.run(() => {
-                this.renderer.setStyle(ionItemContent, 'backgroundColor', 'var(--ion-color-danger)');
-              });
-            } else {
-              this.zone.run(() => {
-                this.renderer.setStyle(ionItemContent, 'backgroundColor', 'var(--ion-item-background)');
-              });
-            }
-          } else { // Swiping right or minimal movement
-            this.renderer.setStyle(ionItemContent, 'backgroundColor', 'var(--ion-item-background)');
-          }
-        },
-        onEnd: (ev) => {
-          if (!this.isGestureActive || this.isDeleting) return;
-          this.isGestureActive = false;
-
-          // Re-enable original transition or set new one for background fade
-          this.renderer.setStyle(ionItemContent, 'transition', 'background-color 0.2s ease, opacity 0.3s ease-out');
-          this.renderer.setStyle(itemSlidingNativeEl, 'overflow', 'visible');
-
-          const finalDeltaX = ev.deltaX;
-          const finalVelocityX = ev.velocityX;
-
-          if (Math.abs(finalDeltaX) >= this.SWIPE_DELETE_THRESHOLD_PX || Math.abs(finalVelocityX) >= this.SWIPE_VELOCITY_THRESHOLD) {
-            this.isDeleting = true;
-
-            this.zone.run(() => {
-              // Only fade out the item, don't move it
-              this.renderer.setStyle(ionItemContent, 'opacity', '0');
-              // Ensure background stays danger color during fade-out
-              this.renderer.setStyle(ionItemContent, 'backgroundColor', 'var(--ion-color-danger-tint, #ff9999)');
-            });
-
-            // Wait for the fade-out animation to complete
-            setTimeout(() => {
-              this.zone.run(() => {
-                this.trackDeleted.emit(this.track);
-                // Optional: reset background and opacity immediately after emitting to prepare for reuse
-                this.renderer.setStyle(ionItemContent, 'backgroundColor', 'var(--ion-item-background)');
-                this.renderer.setStyle(ionItemContent, 'opacity', '1');
-              });
-            }, 300); // Match CSS transition duration
-          } else {
-            // Not deleted, animate background back to original
-            this.zone.run(() => {
-              this.renderer.setStyle(ionItemContent, 'backgroundColor', 'var(--ion-item-background)');
-              this.renderer.setStyle(ionItemContent, 'opacity', '1');
-              this.renderer.setStyle(ionItemContent, 'transform', `translateX(0px)`); // Explicitly ensure no transform
-            });
-          }
-        }
-      });
-      this.customSwipeGesture.enable(true);
+    this.isDeleting = true;
+    this.zone.run(() => {
+      this.trackDeleted.emit(this.track);
     });
+  }
+
+  onSwipeStart(): void {
+    this.isGestureActive = true;
+    console.log('Swipe started');
+  }
+
+  onSwipeEnd(): void {
+    this.isGestureActive = false;
+    console.log('Swipe ended');
   }
 
   async onItemClick(): Promise<void> {
@@ -271,13 +190,22 @@ export class PlaylistTrackComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const openAmount = await this.ionSlidingItem.getSlidingRatio();
-    if (openAmount > 0) {
-      await this.ionSlidingItem.close();
-      console.log('Click consumed: Closed sliding item options.');
+    // Check if any swipe is active and close it
+    const swipeableDirective = this.slidingItemEl?.nativeElement?.querySelector('[appSwipeable]');
+    if (swipeableDirective && swipeableDirective.getSwipeState && swipeableDirective.getSwipeState() !== 'closed') {
+      swipeableDirective.close();
+      console.log('Click consumed: Closed swipe state.');
       return;
     }
 
     this.trackSelected.emit(this.track);
+  }
+
+  // Public method to close any open swipe state
+  public closeSwipe(): void {
+    const swipeableDirective = this.slidingItemEl?.nativeElement?.querySelector('[appSwipeable]');
+    if (swipeableDirective && swipeableDirective.close) {
+      swipeableDirective.close();
+    }
   }
 }
