@@ -56,6 +56,7 @@ enum RecorderState {
               currentState === RecorderState.CameraError ||
               currentState === RecorderState.CameraOff
             "
+            (click)="initializeCamera()"
           >
             <ion-icon *ngIf="currentState === RecorderState.CameraError" name="camera-off" size="large"></ion-icon>
             <ion-icon
