@@ -286,56 +286,7 @@ export class SearchPage {
   };
   searchResults: { [key: string]: any[] } = {
     // Separate results for each search type
-    videos: [{
-  id: "dQw4w9WgXcQ",
-  snippet: {
-    publishedAt: "2009-10-25T07:57:33Z",
-    channelId: "UCuAXFkgsw1L7xaCfnd5JJOw",
-    title: "Rick Astley - Never Gonna Give You Up (Official Music Video)",
-    description:
-      "The official video for “Never Gonna Give You Up” by Rick Astley. Listen to Rick Astley: https://RickAstley.lnk.to/_listenYD",
-    thumbnails: {
-      default: {
-        url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/default.jpg",
-        width: 120,
-        height: 90
-      },
-      medium: {
-        url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg",
-        width: 320,
-        height: 180
-      },
-      high: {
-        url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
-        width: 480,
-        height: 360
-      }
-    },
-    channelTitle: "Rick Astley",
-    liveBroadcastContent: "none",
-    tags: ["Rick Astley", "Never Gonna Give You Up", "Official Video"],
-    categoryId: "10",
-    localized: {
-      title: "Rick Astley - Never Gonna Give You Up (Official Music Video)",
-      description:
-        "The official video for “Never Gonna Give You Up” by Rick Astley. Listen to Rick Astley: https://RickAstley.lnk.to/_listenYD"
-    }
-  },
-  contentDetails: {
-    duration: "PT3M33S",
-    dimension: "2d",
-    definition: "hd",
-    caption: "false",
-    licensedContent: true,
-    projection: "rectangular"
-  },
-  statistics: {
-    viewCount: "1253423453",
-    likeCount: "13823456",
-    favoriteCount: "0", // always "0", deprecated but still present
-    commentCount: "893245"
-  }
-}],
+    videos: [],
     playlists: [],
     channels: [],
   };
