@@ -124,7 +124,7 @@ export interface IYoutubeQueryParams {
   publishedAfter?: string; // ISO 8601 timestamp
   publishedBefore?: string; // ISO 8601 timestamp
   maxResults?: number; // Max number of results per page (1-50)
-  order?: YouTubeSortBy; // Sort by relevance, viewCount, date, etc.
+  order?: string; // Sort by relevance, viewCount, date, etc.
   relevanceLanguage?: YouTubeLanguage; // Filter by language
   safeSearch?: YouTubeSafeSearch; // Safe search level (none, moderate, strict)
   pageToken?: string; // Pagination token
@@ -134,7 +134,7 @@ export interface IYoutubeQueryParams {
   videoDuration?: YouTubeVideoDuration; // any | short | medium | long
   videoDefinition?: YouTubeVideoDefinition; // standard | high
   eventType?: YouTubeEventType; // live | completed | upcoming
-  videoCategoryId?: YouTubeVideoCategory; // Video category ID
+  videoCategoryId?: string; // Video category ID
   relatedToVideoId?: string;
 
   // Playlist-specific parameters

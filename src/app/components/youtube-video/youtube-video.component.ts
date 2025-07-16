@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, Input, OnInit, OnDestroy, ElementRe
 
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
 import { YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-youtube-video',
@@ -29,9 +30,9 @@ import { YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
             <ion-icon name="add-circle-outline" slot="start"></ion-icon>
             Add to Playlist
           </ion-button>
-          <ion-button (click)="addToFavorites()" size="small">
+          <ion-button (click)="gotoDetails(video.id)" size="small">
             <ion-icon name="heart-outline" slot="start"></ion-icon>
-            Add to Favorites
+            Details
           </ion-button>
         </div>
       </div>
@@ -54,7 +55,7 @@ export class YoutubeVideoComponent implements OnInit, OnDestroy {
   thumbnailUrl: string = '';
   private resizeListener!: () => void;
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {}
+  constructor(private el: ElementRef, private renderer: Renderer2, private router: Router) {}
 
   ngOnInit(): void {
     this.updateThumbnailSize();
@@ -87,9 +88,9 @@ export class YoutubeVideoComponent implements OnInit, OnDestroy {
     return `https://www.youtube.com/watch?v=${this.video.id}`;
   }
 
-  addToFavorites(): void {
+  gotoDetails(videoId: string): void {
     // Logic to add the video to favorites (placeholder)
-    alert('Added to favorites!');
+    this.router.navigate(['/video', videoId]);
   }
 
   addToPlaylist(video: any): void {
