@@ -145,6 +145,9 @@ ion-header ion-toolbar {
     }
 
     .comments-list {
+      height: inherit;
+      max-height: 300px;
+
       .comment-item {
         display: flex;
         gap: 1rem;

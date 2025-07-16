@@ -83,7 +83,7 @@ import { YoutubeDataService } from 'src/app/services/data.service';
         <!-- Comments Section -->
         <div class="comments-section">
           <h3 class="comments-title">Comments</h3>
-          <div class="comments-list">
+          <div class="comments-list scrollable">
             <div *ngFor="let comment of comments" class="comment-item">
               <div class="comment-avatar">
                 <ion-img
