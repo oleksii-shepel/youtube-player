@@ -151,6 +151,13 @@ ion-content.main {
   padding: 0 10px;
 }
 
+.popover-item {
+  &:active {
+    --background: var(--ion-color-primary);
+    background: var(--background);
+  }
+}
+
 ion-avatar {
   width: 30px; /* Larger avatar */
   height: 30px;
