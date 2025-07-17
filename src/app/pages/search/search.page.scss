@@ -201,7 +201,7 @@ ion-avatar {
 }
 
 ion-segment-button {
-  --color: #b4a0a0;
+  --color: var(--ion-text-color);
   --color-checked: #ff8080;
 }
 
