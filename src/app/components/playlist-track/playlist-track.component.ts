@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { ToFriendlyDurationPipe } from './../../pipes/to-friendly-duration.pipe';
 import {
   Component,
@@ -12,7 +13,8 @@ import {
   Renderer2,
   HostBinding
 } from '@angular/core';
-import { IonItemSliding } from '@ionic/angular';
+import { IonicModule, IonItemSliding } from '@ionic/angular';
+import { DirectiveModule } from 'src/app/directives';
 
 @Component({
   selector: 'app-playlist-track',
@@ -124,7 +126,8 @@ import { IonItemSliding } from '@ionic/angular';
     </div>
   `,
   styleUrls: ['./playlist-track.component.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, IonicModule, DirectiveModule, ToFriendlyDurationPipe]
 })
 export class PlaylistTrackComponent implements AfterViewInit, OnDestroy {
   @ViewChild('slidingItem', { read: ElementRef }) private slidingItemEl!: ElementRef;

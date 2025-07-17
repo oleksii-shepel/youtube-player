@@ -1,3 +1,5 @@
+import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
 import {
   Component,
   Input,
@@ -11,6 +13,8 @@ import {
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { Subscription } from '@actioncrew/streamix';
 import { Options } from 'sortablejs';
+import { PlaylistTrackComponent } from '../playlist-track/playlist-track.component';
+import { DirectiveModule } from 'src/app/directives';
 
 @Component({
   selector: 'app-playlist',
@@ -220,7 +224,8 @@ import { Options } from 'sortablejs';
     </ion-list>
   `,
   styleUrls: ['playlist.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, IonicModule, PlaylistTrackComponent, DirectiveModule]
 })
 export class PlaylistComponent implements OnInit, OnDestroy {
   @Input() playlist: any[] = [];

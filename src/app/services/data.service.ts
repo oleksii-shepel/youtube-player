@@ -5,7 +5,7 @@ import { IYoutubeQueryParams } from '../interfaces/search-parameters';
 import { inject, Injectable } from '@angular/core';
 import { map, switchMap } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
-import { HTTP_CLIENT } from '../app.module';
+import { HTTP_CLIENT } from 'src/main';
 
 @Injectable({
   providedIn: 'root',
