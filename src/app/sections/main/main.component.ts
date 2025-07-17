@@ -8,18 +8,18 @@ import {
   ElementRef,
 } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
-import { YoutubePlayerComponent } from '../youtube-player/youtube-player.component';
+import { YoutubePlayerComponent } from '../../components/youtube-player/youtube-player.component';
 import { Subscription } from '@actioncrew/streamix';
 import { PlayerService } from 'src/app/services/player.service';
 import { RecorderService } from 'src/app/services/recorder.service';
-import { PlaylistComponent } from '../playlist/playlist.component';
-import { RecorderComponent } from '../recorder/recorder.component';
+import { PlaylistComponent } from '../../components/playlist/playlist.component';
+import { RecorderComponent } from '../../components/recorder/recorder.component';
 import { RouterModule } from '@angular/router';
 
 declare const YT: any;
 
 @Component({
-  selector: 'app-search',
+  selector: 'app-main',
   template: `
     <div id="mainContainer">
       <youtube-player
@@ -50,7 +50,7 @@ declare const YT: any;
       </ion-split-pane>
     </div>
   `,
-  styleUrls: ['./app.component.scss'],
+  styleUrls: ['./main.component.scss'],
   standalone: true,
   imports: [
     CommonModule,

@@ -1,5 +1,5 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/components/app/app.component';
+import { AppComponent } from './app/sections/main/main.component';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { IonicRouteStrategy } from '@ionic/angular';
 import { createHttpClient } from '@actioncrew/streamix/http';

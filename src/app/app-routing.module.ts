@@ -3,8 +3,13 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./components/app/app.component').then(m => m.AppComponent),
+    loadComponent: () => import('./sections/main/main.component').then(m => m.AppComponent),
     children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'app'
+      },
       {
         path: 'app',
         loadComponent: () => import('./pages/search/search.page').then(m => m.SearchPage)
@@ -25,7 +30,7 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
-    loadComponent: () => import('./pages/settings/settings.page').then(m => m.SettingsPage)
+    loadComponent: () => import('./sections/settings/settings.page').then(m => m.SettingsPage)
   }
 ];
 

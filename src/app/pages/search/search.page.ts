@@ -17,6 +17,7 @@ import { FilterComponent } from 'src/app/components/filter/filter.component';
 import { DirectiveModule } from 'src/app/directives';
 import { ToastController } from '@ionic/angular';
 import { RecorderService } from 'src/app/services/recorder.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-search-page',
@@ -322,7 +323,8 @@ export class SearchPage {
     private playerService: PlayerService,
     private recorderService: RecorderService,
     private authorization: Authorization,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private router: Router
   ) {}
 
   auth$ = this.authorization.authSubject;
@@ -369,7 +371,10 @@ export class SearchPage {
     this.onSearchQueryChange(event);
   }
 
-  goToPreferences() {}
+  goToPreferences() {
+    this.router.navigate(['/settings']);
+  }
+
   goToAbout() {}
   reportBug() {}
   sendFeedback() {}
