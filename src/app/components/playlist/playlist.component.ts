@@ -224,7 +224,6 @@ import { Options } from 'sortablejs';
 })
 export class PlaylistComponent implements OnInit, OnDestroy {
   @Input() playlist: any[] = [];
-  @Output() trackSelected = new EventEmitter<any>();
   @Output() stateChanged = new EventEmitter<boolean>();
   @Output() playlistSaved = new EventEmitter<any[]>();
   @Output() playlistCleared = new EventEmitter<void>();
@@ -278,11 +277,6 @@ export class PlaylistComponent implements OnInit, OnDestroy {
         this.playlist = playlist;
         this.updateNavigationState();
         this.validateSelection();
-
-        // Auto-select first track if none is selected but playlist has items
-        if (playlist.length > 0 && !this.selectedTrack) {
-          this.playlistService.selectTrack(0, false, false);
-        }
       })
     );
 
@@ -445,23 +439,39 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     const isCtrl = event.ctrlKey || event.metaKey;
     const isShift = event.shiftKey;
 
-    // Handle selection first
     this.playlistService.selectTrack(index, isCtrl, isShift);
-    this.trackSelected.emit(this.playlist[index]);
 
-    // Check if current playing track was deselected
-    if (this.currentTrackIndex === index &&
-        !this.playlistService.selectedTrackIndexes.snappy.has(index)) {
-        this.playlistService.stop();
-        this.playlistService.setCurrentTrackIndex(-1);
-        return;
-    }
-
-    // Only change playback if it's a single click (no modifiers)
     if (!isCtrl && !isShift) {
       this.playlistService.setCurrentTrackIndex(index);
       this.playlistService.play();
     }
+
+    // Stop if current track deselected
+    if (
+      this.playlistService.currentTrackIndex.snappy === index &&
+      !this.playlistService.selectedTrackIndexes.snappy.has(index)
+    ) {
+      this.playlistService.stop();
+      this.playlistService.setCurrentTrackIndex(-1);
+    }
+  }
+
+  /**
+   * Helper method to deselect a range from last selected to given index
+   */
+  private deselectRange(targetIndex: number): void {
+    const selected = new Set(this.playlistService.selectedTrackIndexes.snappy);
+    if (selected.size === 0) return;
+
+    const lastSelected = Math.max(...selected);
+    const start = Math.min(lastSelected, targetIndex);
+    const end = Math.max(lastSelected, targetIndex);
+
+    for (let i = start; i <= end; i++) {
+      selected.delete(i);
+    }
+
+    this.playlistService.selectedTrackIndexes.next(selected);
   }
 
   isTrackSelectedByIndex(index: number): boolean {
@@ -505,8 +515,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     this.playlistService.next();
     const newIndex = this.playlistService.currentTrackIndex.snappy;
     if (newIndex !== -1) {
-      this.playlistService.selectTrack(newIndex, false, false);
-      this.trackSelected.emit(this.playlist[newIndex]);
+      this.playlistService.setCurrentTrackIndex(newIndex);
     }
   }
 
@@ -514,8 +523,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     this.playlistService.previous();
     const newIndex = this.playlistService.currentTrackIndex.snappy;
     if (newIndex !== -1) {
-      this.playlistService.selectTrack(newIndex, false, false);
-      this.trackSelected.emit(this.playlist[newIndex]);
+      this.playlistService.setCurrentTrackIndex(newIndex);
     }
   }
 

@@ -17,6 +17,7 @@ export class PlaylistService {
   menuButtonPressed = createSubject<void>();
 
   originalPlaylist: any[] = [];
+  lastSelectedIndex: number | null = null;
 
   // Multi-selection state: holds indexes of selected tracks
   selectedTrackIndexes = createBehaviorSubject<Set<number>>(new Set());
@@ -167,44 +168,71 @@ export class PlaylistService {
     this.playerService.stop();
   }
 
-  next(): void {
-    if (this.playlist.snappy.length === 0) return;
+  setCurrentTrackIndex(index: number): void {
+    const oldIndex = this.currentTrackIndex.snappy;
+    this.currentTrackIndex.next(index);
 
-    if (this.repeatMode.snappy === 'none' && this.currentTrackIndex.snappy >= this.playlist.snappy.length - 1) {
-      this.stop();
-      this.setCurrentTrackIndex(-1);
-      return;
+    const selected = new Set(this.selectedTrackIndexes.snappy);
+    const wasSingleSelected = selected.size === 1 && selected.has(oldIndex);
+
+    if (oldIndex !== index && oldIndex >= 0) {
+        if (wasSingleSelected) {
+            // Case 1: Only the old track was selected
+            selected.delete(oldIndex);
+            if (index >= 0) {
+                selected.add(index);
+            }
+            this.selectedTrackIndexes.next(selected);
+        } else if (selected.has(oldIndex) && !selected.has(index)) {
+            // Case 2: Old track was part of multi-selection, new track isn't selected
+            // Keep the multi-selection but ensure new track is selected too
+            selected.add(index);
+            this.selectedTrackIndexes.next(selected);
+        } else {
+            this.selectedTrackIndexes.next(selected);
+        }
+        // Case 3: New track is already selected (part of multi-selection) - do nothing
+        // Case 4: No tracks were selected - do nothing
     }
+  }
 
-    const nextIndex =
-      this.repeatMode.snappy === 'one'
-        ? this.currentTrackIndex.snappy
-        : this.getNextTrackIndex(this.currentTrackIndex.snappy);
+  next(): void {
+      if (this.playlist.snappy.length === 0) return;
 
-    this.setCurrentTrackIndex(nextIndex);
-    this.playCurrentTrack();
+      if (this.repeatMode.snappy === 'none' &&
+          this.currentTrackIndex.snappy >= this.playlist.snappy.length - 1) {
+          this.stop();
+          this.setCurrentTrackIndex(-1);
+          return; // Don't clear selection here
+      }
+
+      const nextIndex = this.repeatMode.snappy === 'one'
+          ? this.currentTrackIndex.snappy
+          : this.getNextTrackIndex(this.currentTrackIndex.snappy);
+
+      this.clearSelection();
+      this.selectTrack(nextIndex);
+      this.setCurrentTrackIndex(nextIndex);
+      this.playCurrentTrack();
   }
 
   previous(): void {
-    if (this.playlist.snappy.length === 0) return;
+      if (this.playlist.snappy.length === 0) return;
 
-    if (this.repeatMode.snappy === 'none' && this.currentTrackIndex.snappy <= 0) {
-      this.stop();
-      this.setCurrentTrackIndex(-1);
-      return;
-    }
+      if (this.repeatMode.snappy === 'none' && this.currentTrackIndex.snappy <= 0) {
+          this.stop();
+          this.setCurrentTrackIndex(-1);
+          return; // Don't clear selection here
+      }
 
-    const prevIndex =
-      this.repeatMode.snappy === 'one'
-        ? this.currentTrackIndex.snappy
-        : this.getPreviousTrackIndex(this.currentTrackIndex.snappy);
+      const prevIndex = this.repeatMode.snappy === 'one'
+          ? this.currentTrackIndex.snappy
+          : this.getPreviousTrackIndex(this.currentTrackIndex.snappy);
 
-    this.setCurrentTrackIndex(prevIndex);
-    this.playCurrentTrack();
-  }
-
-  setCurrentTrackIndex(index: number): void {
-    this.currentTrackIndex.next(index);
+      this.clearSelection();
+      this.selectTrack(prevIndex);
+      this.setCurrentTrackIndex(prevIndex);
+      this.playCurrentTrack();
   }
 
   getCurrentTrack(): any | null {
@@ -268,36 +296,40 @@ export class PlaylistService {
   selectTrack(index: number, ctrlKey = false, shiftKey = false): void {
     const selected = new Set(this.selectedTrackIndexes.snappy);
 
-    if (shiftKey) {
-      // Select range from last selected to clicked index
-      const lastSelected = [...selected].length
-        ? Math.max(...selected)
-        : index;
-
-      const start = Math.min(lastSelected, index);
-      const end = Math.max(lastSelected, index);
+    if (shiftKey && this.lastSelectedIndex !== null) {
+      const start = Math.min(this.lastSelectedIndex, index);
+      const end = Math.max(this.lastSelectedIndex, index);
 
       for (let i = start; i <= end; i++) {
-        selected.add(i);
+        selected.add(i); // Always add, never toggle or remove
       }
     } else if (ctrlKey) {
-      // Toggle selection of clicked index
       if (selected.has(index)) {
         selected.delete(index);
       } else {
         selected.add(index);
       }
+      this.lastSelectedIndex = index;
     } else {
-      // No modifier: select only this track (but don't play it)
       selected.clear();
       selected.add(index);
+      this.lastSelectedIndex = index;
     }
 
     this.selectedTrackIndexes.next(selected);
   }
 
+  unselectTrack(index: number): void {
+    const selected = new Set(this.selectedTrackIndexes.snappy);
+    if (selected.has(index)) {
+      selected.delete(index);
+      this.selectedTrackIndexes.next(selected);
+    }
+  }
+
   clearSelection(): void {
     this.selectedTrackIndexes.next(new Set());
+    this.lastSelectedIndex = null;
   }
 
   getSelectedTracks(): any[] {
