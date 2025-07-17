@@ -1,52 +1,198 @@
 :root {
-  /* Backgrounds */
-  --ion-background-color: #1e0f0f; // main background
-  --ion-toolbar-background: #2d1919; // header and filter bar
-  --ion-item-background: #1e0f0f;
-  --ion-background-color-100: #1e0f0f3f; // main background
-  --ion-background-color-200: #1e0f0f76; // main background
-  --ion-background-color-500: #1e0f0fa2; // main background
-  --ion-background-color-750: #1e0f0fe3; // main background
-  --ion-background-color-1000: #1e0f0ffff; // main background
+  /* ==================================== */
+  /* Base & Core Backgrounds              */
+  /* ==================================== */
+  --ion-color-base: #1a0f0f; /* Slightly adjusted for better contrast */
+  --ion-color-base-rgb: 26, 15, 15;
 
-  /* Text Colors */
-  --ion-text-color: #b4a0a0c4; // primary text
-  --ion-text-color-rgb: #b4a0a0c4;
-  --ion-color-step-600: #c0c0c0c4;
-  --ion-color-step-850: #b4a0a0c4; // secondary text
-  --ion-color-step-950: #ffffffc4; // titles/headings
-  --ion-text-color-step-850: #b4a0a0; // secondary text
-  --ion-text-color-step-950: #ffffff; // titles/headings
+  --ion-background-color: var(--ion-color-base);
+  --ion-background-color-light: #281717; /* More consistent with base */
+  --ion-background-color-lighter: #321d1d; /* Better progression */
 
-  /* Placeholder */
-  --ion-placeholder-color: #887c7c;
-  --ion-placeholder-text: #525252;
+  /* Graded Backgrounds - Now using consistent opacity progression */
+  --ion-background-overlay-100: rgba(50, 29, 29, 0.2);
+  --ion-background-overlay-200: rgba(50, 29, 29, 0.4);
+  --ion-background-overlay-500: rgba(50, 29, 29, 0.7);
+  --ion-background-overlay-1000: rgba(50, 29, 29, 1);
+
+  /* ==================================== */
+  /* Text Colors - Harmonized Hierarchy   */
+  /* ==================================== */
+  --ion-text-color: #b8a5a5; /* Slightly warmer, more consistent */
+  --ion-text-color-rgb: 184, 165, 165;
+
+  --ion-text-color-secondary: #a08a8a; /* Better contrast from primary */
+  --ion-text-color-muted: #806f6f; /* More muted, consistent warmth */
+  --ion-text-color-heading: #f2e8e8; /* Warmer white for headings */
+  --ion-text-color-subheading: #d4c4c4; /* Harmonized with text hierarchy */
+
+  --ion-text-color-link: var(--ion-color-primary-tint);
+  --ion-text-color-link-hover: var(--ion-color-primary);
+
+  /* ==================================== */
+  /* Functional / Semantic Colors         */
+  /* ==================================== */
+
+  /* Primary Accent - Refined Warm Red */
+  --ion-color-primary: #a64848; /* Slightly more saturated for better visibility */
+  --ion-color-primary-rgb: 166, 72, 72;
+  --ion-color-primary-contrast: #f2e8e8; /* Matches heading color */
+  --ion-color-primary-contrast-rgb: 242, 232, 232;
+  --ion-color-primary-shade: #8b3d3d; /* More consistent darkening */
+  --ion-color-primary-tint: #b85858; /* Better lightening progression */
+
+  /* Secondary Accent - Harmonized Neutral */
+  --ion-color-secondary: #d4c4c4; /* Matches subheading color */
+  --ion-color-secondary-rgb: 212, 196, 196;
+  --ion-color-secondary-contrast: #1a0f0f; /* Uses base color */
+  --ion-color-secondary-shade: #b8a5a5; /* Matches primary text */
+  --ion-color-secondary-tint: #dccfcf; /* Consistent progression */
+
+  /* Tertiary Accent - Aligned with Text Color */
+  --ion-color-tertiary: #a08a8a; /* Matches secondary text */
+  --ion-color-tertiary-rgb: 160, 138, 138;
+  --ion-color-tertiary-contrast: #f2e8e8;
+  --ion-color-tertiary-shade: #8b7575; /* More consistent */
+  --ion-color-tertiary-tint: #b39a9a; /* Better progression */
+
+  /* Status Colors - Harmonized with Theme */
+  --ion-color-success: #7da85a; /* Slightly more muted, warmer green */
+  --ion-color-success-rgb: 125, 168, 90;
+  --ion-color-success-contrast: #f2e8e8;
+  --ion-color-success-shade: #6b8f4d;
+  --ion-color-success-tint: #8eb26b;
+
+  --ion-color-warning: #d4a832; /* More harmonized with warm palette */
+  --ion-color-warning-rgb: 212, 168, 50;
+  --ion-color-warning-contrast: #1a0f0f;
+  --ion-color-warning-shade: #b8922b;
+  --ion-color-warning-tint: #dbb548;
+
+  --ion-color-danger: #d44547; /* Slightly more muted, consistent with primary */
+  --ion-color-danger-rgb: 212, 69, 71;
+  --ion-color-danger-contrast: #f2e8e8;
+  --ion-color-danger-shade: #b83b3d;
+  --ion-color-danger-tint: #db5759;
+
+  --ion-color-info: #5a9bc4; /* More muted, better harmony */
+  --ion-color-info-rgb: 90, 155, 196;
+  --ion-color-info-contrast: #f2e8e8;
+  --ion-color-info-shade: #4d85a8;
+  --ion-color-info-tint: #6ba8cc;
+
+  /* ==================================== */
+  /* UI Element Specific Colors           */
+  /* ==================================== */
+
+  /* Toolbar */
+  --ion-toolbar-background: var(--ion-background-color-lighter);
+  --ion-toolbar-text-color: var(--ion-text-color-heading);
+  --ion-toolbar-border-color: var(--ion-border-color);
+
+  /* Cards & Items */
+  --ion-card-background: var(--ion-background-color-light);
+  --ion-card-border-color: var(--ion-border-color);
+  --ion-item-background: var(--ion-color-base);
+  --ion-item-background-hover: rgba(166, 72, 72, 0.15); /* Subtle primary tint */
+  --ion-item-background-activated: rgba(166, 72, 72, 0.25);
+  --ion-item-border-color: var(--ion-border-color);
+  --ion-item-text-color: var(--ion-text-color);
 
   /* Inputs & Search */
-  --ion-color-input-background: #2d1919;
-  --ion-color-input-border: #473737;
-  --ion-color-input-text: #f1e9e9;
+  --ion-input-background: var(--ion-background-color-lighter);
+  --ion-input-border-color: var(--ion-border-color);
+  --ion-input-text-color: var(--ion-text-color-heading); /* Better readability */
+  --ion-input-placeholder-color: var(--ion-text-color-muted);
+  --ion-input-highlight-color: var(--ion-color-primary-tint);
+  --ion-searchbar-background: var(--ion-background-color-lighter);
+  --ion-searchbar-input-background: var(--ion-background-color-light);
 
-  /* Cards / Items */
-  --ion-card-background: #2a1717;
-  --ion-card-border-color: #3b2525;
+  /* Buttons */
+  --ion-button-background: var(--ion-color-primary);
+  --ion-button-text-color: var(--ion-color-primary-contrast);
+  --ion-button-background-hover: var(--ion-color-primary-tint);
+  --ion-button-background-active: var(--ion-color-primary-shade);
+  --ion-button-background-disabled: var(--ion-color-secondary-shade);
+  --ion-button-text-color-disabled: var(--ion-text-color-muted);
 
-  /* Buttons / Filters */
-  --ion-color-primary: #a14a4a;
-  --ion-color-primary-contrast: #ddddd0;
-  --ion-color-primary-shade: #893f3f;
-  --ion-color-primary-tint: #B86666;
+  /* Tabs */
+  --ion-tab-bar-background: var(--ion-background-color-lighter);
+  --ion-tab-bar-color: var(--ion-text-color-secondary);
+  --ion-tab-bar-color-selected: var(--ion-color-primary);
+  --ion-tab-bar-indicator-color: var(--ion-color-primary);
 
-  --ion-color-medium: #ddddd0; // used in secondary UI elements
+  /* Toggles, Checkboxes, Radios */
+  --ion-toggle-handle-background: var(--ion-color-secondary-shade);
+  --ion-toggle-handle-background-checked: var(--ion-color-primary-contrast);
+  --ion-toggle-track-background: var(--ion-border-color);
+  --ion-toggle-track-background-checked: var(--ion-color-primary);
+  --ion-checkbox-background: var(--ion-background-color-light);
+  --ion-checkbox-border-color: var(--ion-border-color);
+  --ion-checkbox-checkmark-color: var(--ion-color-primary-contrast);
+  --ion-radio-background: var(--ion-background-color-light);
+  --ion-radio-border-color: var(--ion-border-color);
+  --ion-radio-dot-color: var(--ion-color-primary);
 
-  /* Accent */
-  --ion-color-success: #8FB866; // optional highlight color (e.g. tags)
-  --ion-color-danger: #E14D4F;
+  /* Chip/Badge */
+  --ion-chip-background: var(--ion-color-tertiary-shade);
+  --ion-chip-text-color: var(--ion-color-tertiary-contrast);
 
-  /* Border / Divider */
-  --ion-border-color: #392424;
+  /* List Reorder */
+  --ion-reorder-background: var(--ion-background-color-light);
+  --ion-reorder-text-color: var(--ion-text-color);
 
-  /* Shadow */
-  --ion-box-shadow-color: rgba(0, 0, 0, 0.3);
+  /* Spinner */
+  --ion-spinner-color: var(--ion-color-primary);
+
+  /* Segment Button */
+  --ion-segment-button-background: var(--ion-background-color-light);
+  --ion-segment-button-background-checked: var(--ion-color-primary);
+  --ion-segment-button-color: var(--ion-text-color-secondary);
+  --ion-segment-button-color-checked: var(--ion-color-primary-contrast);
+  --ion-segment-button-border-color: var(--ion-border-color);
+
+  /* ==================================== */
+  /* Borders & Shadows                    */
+  /* ==================================== */
+  --ion-border-color: #3d2525; /* More consistent with theme */
+  --ion-box-shadow-color: rgba(0, 0, 0, 0.5); /* Slightly stronger for better depth */
+  --ion-box-shadow-color-light: rgba(0, 0, 0, 0.3);
+  --ion-box-shadow-color-dark: rgba(0, 0, 0, 0.7);
+
+  /* ==================================== */
+  /* Overlays (Modal, Popover, Toast)     */
+  /* ==================================== */
+  --ion-overlay-backdrop-background: rgba(0, 0, 0, 0.75); /* Slightly stronger */
+  --ion-overlay-background: var(--ion-background-color-light);
+  --ion-overlay-toolbar-background: var(--ion-toolbar-background);
+  --ion-overlay-text-color: var(--ion-text-color);
+
+  /* Toast */
+  --ion-toast-background: var(--ion-background-color-light);
+  --ion-toast-text-color: var(--ion-text-color);
+  --ion-toast-button-color: var(--ion-color-primary-tint);
+
+  /* ==================================== */
+  /* Ionic Color Steps - Harmonized       */
+  /* ==================================== */
+  /* Recalculated for better consistency and smoother transitions */
+  --ion-color-step-50: #281717;
+  --ion-color-step-100: #321d1d;
+  --ion-color-step-150: #3d2525;
+  --ion-color-step-200: #482d2d;
+  --ion-color-step-250: #533535;
+  --ion-color-step-300: #5e3d3d;
+  --ion-color-step-350: #694545;
+  --ion-color-step-400: #744d4d;
+  --ion-color-step-450: #7f5555;
+  --ion-color-step-500: #8a5d5d;
+  --ion-color-step-550: #956565;
+  --ion-color-step-600: #a06d6d;
+  --ion-color-step-650: #ab7575;
+  --ion-color-step-700: #b67d7d;
+  --ion-color-step-750: #c18585;
+  --ion-color-step-800: #cc8d8d;
+  --ion-color-step-850: #d79595;
+  --ion-color-step-900: #e29d9d;
+  --ion-color-step-950: #eda5a5;
 }
-
