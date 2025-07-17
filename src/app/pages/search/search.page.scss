@@ -111,7 +111,7 @@ ion-content.main {
 }
 
 .search-container ion-icon {
-  color: var(--ion-text-color-step-850);
+  color: var(--ion-text-color);
   margin-right: 14px; /* Increased margin for better spacing */
   flex-shrink: 0;
   font-size: 24px; /* Larger icon size */
@@ -125,7 +125,7 @@ ion-content.main {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--ion-text-color-step-850);
+  color: var(--ion-text-color);
   flex: 1;
   min-width: 0;
   font-size: 18px; /* Larger font size */
@@ -184,8 +184,8 @@ ion-avatar {
   }
 
   & ion-button:not(.ion-color-primary) svg {
-    stroke: var(--ion-text-color-step-850);
-    color: var(--ion-text-color-step-850);
+    stroke: var(--ion-text-color);
+    color: var(--ion-text-color);
   }
 
   & ion-icon {
