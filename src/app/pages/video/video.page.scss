@@ -27,47 +27,19 @@ ion-header ion-toolbar {
   .video-player-container {
     position: relative;
     width: 100%;
-    height: 60vh;
-    max-height: 500px;
-    background: #000; /* keep black bg for video */
-    overflow: hidden;
+    background: #000; /* keep black background for video */
+    aspect-ratio: 16 / 9;
+    max-height: 56.25vw; /* 16:9 aspect ratio max */
 
     .video-player {
       position: relative;
       width: 100%;
       height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
 
-      .video-thumbnail {
+      iframe {
         width: 100%;
         height: 100%;
-        object-fit: cover;
-      }
-
-      .play-button-overlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10;
-
-        .play-icon {
-          font-size: 4rem;
-          color: rgba(255, 255, 255, 0.9);
-          background: rgba(0, 0, 0, 0.5);
-          border-radius: 50%;
-          padding: 0.5rem;
-          cursor: pointer;
-          transition: all 0.3s ease;
-
-          &:hover {
-            color: var(--ion-color-primary, #a14a4a);
-            background: rgba(0, 0, 0, 0.7);
-            transform: scale(1.1);
-          }
-        }
+        border: none;
       }
     }
   }

@@ -5,7 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { createSubject, takeUntil } from '@actioncrew/streamix';
 import { VideoComment, YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
 import { YoutubeDataService } from 'src/app/services/data.service';
-
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-video-page',
@@ -21,20 +21,18 @@ import { YoutubeDataService } from 'src/app/services/data.service';
 
     <ion-content class="video-page">
       <div class="scrollable">
+
         <!-- Video Player Section -->
         <div class="video-player-container">
           <div class="video-player">
-            <ion-img
-              [src]="
-                currentVideo?.snippet?.thumbnails?.maxres?.url
-                || currentVideo?.snippet?.thumbnails?.high?.url
-                || ''"
-              [alt]="(currentVideo?.snippet?.title || 'Video') + ' thumbnail'"
-              class="video-thumbnail">
-            </ion-img>
-            <div class="play-button-overlay">
-              <ion-icon name="play-circle" class="play-icon"></ion-icon>
-            </div>
+            <iframe
+             *ngIf="safeVideoUrl"
+              [src]="safeVideoUrl"
+              frameborder="0"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              class="youtube-iframe">
+            </iframe>
           </div>
         </div>
 
@@ -42,29 +40,19 @@ import { YoutubeDataService } from 'src/app/services/data.service';
         <div class="video-info-section">
           <h1 class="video-title">{{ currentVideo?.snippet?.title || 'Loading...' }}</h1>
           <div class="video-meta">
-            <span class="view-count">
-              {{ formatViewCount(currentVideo?.statistics?.viewCount) }} views
-            </span>
-            <span class="publish-date">
-              {{ formatPublishDate(currentVideo?.snippet?.publishedAt) }}
-            </span>
+            <span class="view-count">{{ formatViewCount(currentVideo?.statistics?.viewCount) }} views</span>
+            <span class="publish-date">{{ formatPublishDate(currentVideo?.snippet?.publishedAt) }}</span>
           </div>
 
           <!-- Action Buttons -->
           <div class="action-buttons">
             <ion-button fill="clear" (click)="toggleLike()" [class.liked]="isLiked">
-              <ion-icon
-                [name]="isLiked ? 'thumbs-up' : 'thumbs-up-outline'"
-                slot="start">
-              </ion-icon>
+              <ion-icon [name]="isLiked ? 'thumbs-up' : 'thumbs-up-outline'" slot="start"></ion-icon>
               {{ formatCount(currentVideo?.statistics?.likeCount) }}
             </ion-button>
 
             <ion-button fill="clear" (click)="toggleDislike()" [class.disliked]="isDisliked">
-              <ion-icon
-                [name]="isDisliked ? 'thumbs-down' : 'thumbs-down-outline'"
-                slot="start">
-              </ion-icon>
+              <ion-icon [name]="isDisliked ? 'thumbs-down' : 'thumbs-down-outline'" slot="start"></ion-icon>
               {{ formatCount('120') }}
             </ion-button>
 
@@ -86,10 +74,7 @@ import { YoutubeDataService } from 'src/app/services/data.service';
           <div class="comments-list scrollable">
             <div *ngFor="let comment of comments" class="comment-item">
               <div class="comment-avatar">
-                <ion-img
-                  [src]="comment.authorAvatar || ''"
-                  [alt]="(comment.author || 'User') + ' avatar'">
-                </ion-img>
+                <ion-img [src]="comment.authorAvatar || ''" [alt]="(comment.author || 'User') + ' avatar'"></ion-img>
               </div>
               <div class="comment-content">
                 <div class="comment-header">
@@ -121,12 +106,8 @@ import { YoutubeDataService } from 'src/app/services/data.service';
               <div class="related-video-info">
                 <h4 class="related-video-title">{{ video.snippet.title || 'No Title' }}</h4>
                 <div class="related-video-meta">
-                  <span class="related-view-count">
-                    {{ formatViewCount(video.statistics.viewCount) }} views
-                  </span>
-                  <span class="related-publish-date">
-                    {{ formatPublishDate(video.snippet.publishedAt) }}
-                  </span>
+                  <span class="related-view-count">{{ formatViewCount(video.statistics.viewCount) }} views </span>
+                  <span class="related-publish-date">{{ formatPublishDate(video.snippet.publishedAt) }}</span>
                 </div>
               </div>
             </div>
@@ -143,42 +124,59 @@ export class VideoPage implements OnInit, OnDestroy {
   private destroy$ = createSubject<void>();
 
   currentVideo: YouTubeVideo | null = null;
+  currentVideoId: string | null = null;
   relatedVideos: YouTubeVideo[] = [];
   comments: VideoComment[] = [];
 
   isLiked = false;
   isDisliked = false;
 
-  constructor(private route: ActivatedRoute, private dataService: YoutubeDataService) {}
+  safeVideoUrl: SafeResourceUrl | null = null;
+
+  constructor(
+    private route: ActivatedRoute,
+    private dataService: YoutubeDataService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit(): void {
     const videoId = this.route.snapshot.paramMap.get('id');
     if (videoId) {
-      this.loadVideoData(videoId);
-      this.loadComments(videoId);
-      this.loadRelatedVideos(videoId);
+      this.setCurrentVideoById(videoId);
     }
   }
-
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
+  setCurrentVideoById(videoId: string): void {
+    if (this.currentVideoId !== videoId) {
+      this.currentVideoId = videoId;
+      this.safeVideoUrl = this.getSafeVideoUrl(videoId);
+      this.loadVideoData(videoId);
+      this.loadComments(videoId);
+      this.loadRelatedVideos(videoId);
+    }
+  }
+
+  getSafeVideoUrl(videoId: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://www.youtube.com/embed/${videoId}?rel=0`
+    );
+  }
+
   private loadVideoData(videoId: string): void {
-    this.dataService.fetchVideos([videoId]).pipe(
-      takeUntil(this.destroy$))
-      .subscribe((res) => {
-        this.currentVideo = res.items?.[0] || null;
-      });
+    this.dataService.fetchVideos([videoId]).pipe(takeUntil(this.destroy$)).subscribe((res) => {
+      this.currentVideo = res.items?.[0] || null;
+    });
   }
 
   private loadComments(videoId: string): void {
-    this.dataService.fetchVideoComments(videoId).pipe(
-      takeUntil(this.destroy$))
-      .subscribe((res) => {
-        this.comments = res.items?.map((item: any) => {
+    this.dataService.fetchVideoComments(videoId).pipe(takeUntil(this.destroy$)).subscribe((res) => {
+      this.comments =
+        res.items?.map((item: any) => {
           const snippet = item.snippet.topLevelComment.snippet;
           return {
             id: item.id,
@@ -189,42 +187,32 @@ export class VideoPage implements OnInit, OnDestroy {
             likes: snippet.likeCount,
           };
         }) || [];
-      });
+    });
   }
 
   private loadRelatedVideos(videoId: string): void {
-    this.dataService.fetchRelatedVideos(videoId).pipe(
-      takeUntil(this.destroy$))
-      .subscribe((res) => {
-        const relatedIds = res.items?.map((item: any) => item.id.videoId).filter(Boolean);
-        if (relatedIds?.length) {
-          this.dataService.fetchVideos(relatedIds).pipe(
-            takeUntil(this.destroy$))
-            .subscribe((detailedRes) => {
-              this.relatedVideos = detailedRes.items || [];
-            });
-        }
-      });
+    this.dataService.fetchRelatedVideos(videoId).pipe(takeUntil(this.destroy$)).subscribe((res) => {
+      const relatedIds = res.items?.map((item: any) => item.id.videoId).filter(Boolean);
+      if (relatedIds?.length) {
+        this.dataService.fetchVideos(relatedIds).pipe(takeUntil(this.destroy$)).subscribe((detailedRes) => {
+          this.relatedVideos = detailedRes.items || [];
+        });
+      }
+    });
   }
 
   formatViewCount(viewCount: string | undefined): string {
     if (!viewCount) return '0';
     const count = parseInt(viewCount, 10);
-    if (count >= 1000000) {
-      return (count / 1000000).toFixed(1) + 'M';
-    } else if (count >= 1000) {
-      return (count / 1000).toFixed(1) + 'K';
-    }
+    if (count >= 1_000_000) return (count / 1_000_000).toFixed(1) + 'M';
+    if (count >= 1_000) return (count / 1_000).toFixed(1) + 'K';
     return count.toString();
   }
 
   formatCount(count: string | undefined): string {
     if (!count) return '0';
     const num = parseInt(count, 10);
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
+    return num >= 1_000 ? (num / 1_000).toFixed(1) + 'K' : num.toString();
   }
 
   formatPublishDate(publishedAt: string | undefined): string {
@@ -233,33 +221,24 @@ export class VideoPage implements OnInit, OnDestroy {
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - publishDate.getTime()) / (1000 * 60 * 60));
 
-    if (diffInHours < 24) {
-      return diffInHours === 1 ? '1 hour ago' : `${diffInHours} hours ago`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      if (diffInDays === 1) {
-        return '1 day ago';
-      } else if (diffInDays < 7) {
-        return `${diffInDays} days ago`;
-      } else {
-        const diffInWeeks = Math.floor(diffInDays / 7);
-        return diffInWeeks === 1 ? '1 week ago' : `${diffInWeeks} weeks ago`;
-      }
-    }
+    if (diffInHours < 24) return diffInHours === 1 ? '1 hour ago' : `${diffInHours} hours ago`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays === 1) return '1 day ago';
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    return diffInWeeks === 1 ? '1 week ago' : `${diffInWeeks} weeks ago`;
   }
 
   toggleLike(): void {
     this.isLiked = !this.isLiked;
-    if (this.isLiked && this.isDisliked) {
-      this.isDisliked = false;
-    }
+    if (this.isLiked) this.isDisliked = false;
   }
 
   toggleDislike(): void {
     this.isDisliked = !this.isDisliked;
-    if (this.isDisliked && this.isLiked) {
-      this.isLiked = false;
-    }
+    if (this.isDisliked) this.isLiked = false;
   }
 
   shareVideo(): void {
@@ -274,24 +253,24 @@ export class VideoPage implements OnInit, OnDestroy {
         url: videoUrl,
       });
     } else {
-      // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(videoUrl).then(() => {
-        // You could show a toast notification here
         console.log('Video URL copied to clipboard');
       });
     }
   }
 
   downloadVideo(): void {
-    // This would typically integrate with a download service
-    console.log('Download functionality would be implemented here');
-    // For now, just show an alert
     alert('Download functionality not implemented in this demo');
   }
 
   playVideo(video: YouTubeVideo): void {
-    this.currentVideo = video;
-    // Scroll to top of the page
+    if (video.id !== this.currentVideoId) {
+      this.currentVideo = video;
+      this.currentVideoId = video.id;
+      this.loadComments(video.id);
+      this.loadRelatedVideos(video.id);
+    }
     document.querySelector('ion-content')?.scrollToTop();
   }
 }
+
