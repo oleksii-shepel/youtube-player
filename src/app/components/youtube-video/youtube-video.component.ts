@@ -32,7 +32,7 @@ import { Router } from '@angular/router';
           </ion-button>
           <ion-button (click)="gotoDetails(video.id)" size="small">
             <ion-icon name="heart-outline" slot="start"></ion-icon>
-            Details
+            View Details
           </ion-button>
         </div>
       </div>
