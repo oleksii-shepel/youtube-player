@@ -150,8 +150,7 @@ export class PlaylistTrackComponent implements AfterViewInit, OnDestroy {
   private isDeleting = false;
 
   constructor(
-    private zone: NgZone,
-    private renderer: Renderer2
+    private zone: NgZone
   ) {}
 
   ngAfterViewInit(): void {
