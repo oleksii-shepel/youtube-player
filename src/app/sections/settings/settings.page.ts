@@ -5,12 +5,9 @@ import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Authorization } from 'src/app/services/authorization.service';
 import { AccountContentComponent } from 'src/app/pages/account/account.page';
-import { PreferencesContentComponent } from 'src/app/pages/preferences/preferences.page';
-import { AppSettingsContentComponent } from 'src/app/pages/settings/settings.page';
-import { ShortsContentComponent } from 'src/app/pages/shorts/shorts.page';
-import { SubscriptionsContentComponent } from 'src/app/pages/subscriptions/subscriptions.page';
-import { LibraryContentComponent } from 'src/app/pages/library/library.page';
-import { HistoryContentComponent } from 'src/app/pages/history/history.page';
+import { AppearanceContentComponent } from 'src/app/pages/appearance/appearance.page';
+import { ActivityContentComponent } from 'src/app/pages/activity/activity.page';
+import { RegionalSettingsComponent } from 'src/app/pages/language/language.page';
 
 @Component({
   selector: 'app-settings',
@@ -38,55 +35,31 @@ import { HistoryContentComponent } from 'src/app/pages/history/history.page';
           </div>
           <div
             class="nav-item"
-            [class.active]="selectedMainSection === 'preferences'"
-            (click)="selectMainSection('preferences')"
+            [class.active]="selectedMainSection === 'appearance'"
+            (click)="selectMainSection('appearance')"
           >
             <ion-icon name="settings-outline"></ion-icon>
-            <span>Preferences</span>
-          </div>
-          <div
-            class="nav-item"
-            [class.active]="selectedMainSection === 'app-settings'"
-            (click)="selectMainSection('app-settings')"
-          >
-            <ion-icon name="apps-outline"></ion-icon>
-            <span>App Settings</span>
+            <span>Appearance</span>
           </div>
 
           <div
             class="nav-item"
-            [class.active]="selectedMainSection === 'subscriptions'"
-            (click)="selectMainSection('subscriptions')"
+            [class.active]="selectedMainSection === 'activity'"
+            (click)="selectMainSection('activity')"
           >
             <ion-icon name="bookmarks-outline"></ion-icon>
-            <span>Subscriptions</span>
-          </div>
-          <div
-            class="nav-item"
-            [class.active]="selectedMainSection === 'library'"
-            (click)="selectMainSection('library')"
-          >
-            <ion-icon name="play-circle-outline"></ion-icon>
-            <span>Library</span>
-          </div>
-          <div
-            class="nav-item"
-            [class.active]="selectedMainSection === 'history'"
-            (click)="selectMainSection('history')"
-          >
-            <ion-icon name="time-outline"></ion-icon>
-            <span>History</span>
-          </div>
-          <div
-            class="nav-item"
-            [class.active]="selectedMainSection === 'shorts'"
-            (click)="selectMainSection('shorts')"
-          >
-            <ion-icon name="play-outline"></ion-icon>
-            <span>Shorts</span>
+            <span>User Data & Activity</span>
           </div>
 
+          <div
+            class="nav-item"
+            [class.active]="selectedMainSection === 'language'"
+            (click)="selectMainSection('language')"
+          >
+            <ion-icon name="bookmarks-outline"></ion-icon>
+            <span>Region & Language</span>
           </div>
+        </div>
 
         <div class="settings-main">
           <div class="settings-header">
@@ -95,12 +68,9 @@ import { HistoryContentComponent } from 'src/app/pages/history/history.page';
 
           <div [ngSwitch]="selectedMainSection">
             <app-account-content *ngSwitchCase="'account'"></app-account-content>
-            <app-preferences-content *ngSwitchCase="'preferences'"></app-preferences-content>
-            <app-app-settings-content *ngSwitchCase="'app-settings'"></app-app-settings-content>
-            <app-shorts-content *ngSwitchCase="'shorts'"></app-shorts-content>
-            <app-subscriptions-content *ngSwitchCase="'subscriptions'"></app-subscriptions-content>
-            <app-library-content *ngSwitchCase="'library'"></app-library-content>
-            <app-history-content *ngSwitchCase="'history'"></app-history-content>
+            <app-appearance-content *ngSwitchCase="'appearance'"></app-appearance-content>
+            <app-activity-content *ngSwitchCase="'activity'"></app-activity-content>
+            <app-regional-content *ngSwitchCase="'language'"></app-regional-content>
 
             <div *ngSwitchDefault>
               <p class="empty-state-message">Select a category from the left menu to view its settings.</p>
@@ -128,13 +98,10 @@ import { HistoryContentComponent } from 'src/app/pages/history/history.page';
     CommonModule,
     IonicModule,
     AccountContentComponent,
-    PreferencesContentComponent,
-    AppSettingsContentComponent,
-    ShortsContentComponent,
-    SubscriptionsContentComponent,
-    LibraryContentComponent,
-    HistoryContentComponent
-  ]
+    AppearanceContentComponent,
+    ActivityContentComponent,
+    RegionalSettingsComponent
+]
 })
 export class SettingsPage implements OnInit {
   userName: string = 'Sophia Carter';
@@ -172,13 +139,10 @@ export class SettingsPage implements OnInit {
   getSectionTitle(): string {
     // Helper to get a human-readable title for the current section
     switch (this.selectedMainSection) {
-      case 'account': return 'Account Management';
-      case 'preferences': return 'App Preferences';
-      case 'app-settings': return 'Application Settings';
-      case 'shorts': return 'Shorts Settings';
-      case 'subscriptions': return 'Your Subscriptions';
-      case 'library': return 'Media Library';
-      case 'history': return 'Viewing History';
+      case 'account': return 'Account Settings';
+      case 'appearance': return 'Appearance';
+      case 'activity': return 'User Data & Activity';
+      case 'language': return 'Regional Settings & Language';
       default: return 'Settings';
     }
   }

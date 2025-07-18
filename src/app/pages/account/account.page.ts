@@ -1,4 +1,3 @@
-// src/app/settings/account-content/account-content.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
@@ -9,7 +8,6 @@ import { FormsModule } from '@angular/forms';
   template: `
     <ion-accordion-group [multiple]="true" class="settings-accordion-group">
 
-      <!-- Profile & Security Section -->
       <ion-accordion value="profile-security">
         <ion-item slot="header">
           <ion-icon slot="start" name="person-outline"></ion-icon>
@@ -20,7 +18,6 @@ import { FormsModule } from '@angular/forms';
         </ion-item>
 
         <div slot="content" class="accordion-content">
-          <!-- Edit Profile -->
           <ion-card>
             <ion-card-header>
               <ion-card-title>Edit Profile</ion-card-title>
@@ -45,7 +42,6 @@ import { FormsModule } from '@angular/forms';
             </ion-card-content>
           </ion-card>
 
-          <!-- Change Password -->
           <ion-card>
             <ion-card-header>
               <ion-card-title>Change Password</ion-card-title>
@@ -67,7 +63,19 @@ import { FormsModule } from '@angular/forms';
             </ion-card-content>
           </ion-card>
 
-          <!-- Connected Accounts -->
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Two-Factor Authentication</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-label>Enable 2FA</ion-label>
+                <ion-toggle [(ngModel)]="securitySettings.twoFactorAuth" slot="end" (ionChange)="toggleTwoFactorAuth()"></ion-toggle>
+              </ion-item>
+              <p class="description">Add an extra layer of security to your account.</p>
+            </ion-card-content>
+          </ion-card>
+
           <ion-card>
             <ion-card-header>
               <ion-card-title>Connected Accounts</ion-card-title>
@@ -91,174 +99,165 @@ import { FormsModule } from '@angular/forms';
         </div>
       </ion-accordion>
 
-      <!-- Content Preferences Section -->
-      <ion-accordion value="content-preferences">
+      <ion-accordion value="privacy-settings">
         <ion-item slot="header">
-          <ion-icon slot="start" name="settings-outline"></ion-icon>
+          <ion-icon slot="start" name="shield-checkmark-outline"></ion-icon>
           <ion-label>
-            <h2>Content Preferences</h2>
-            <p>Customize your viewing experience</p>
+            <h2>Privacy Settings</h2>
+            <p>Control your data and audience settings</p>
           </ion-label>
         </ion-item>
 
         <div slot="content" class="accordion-content">
-          <!-- Video Quality -->
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Video Quality</ion-card-title>
+              <ion-card-title>Activity History</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <ion-radio-group [(ngModel)]="contentPreferences.videoQuality">
-                <ion-item *ngFor="let quality of videoQualities">
-                  <ion-label>{{quality.label}}</ion-label>
-                  <ion-radio slot="end" [value]="quality.value"></ion-radio>
-                </ion-item>
-              </ion-radio-group>
+              <ion-item>
+                <ion-label>Save Watch History</ion-label>
+                <ion-toggle [(ngModel)]="privacySettings.saveWatchHistory" slot="end" (ionChange)="updatePrivacySetting('saveWatchHistory')"></ion-toggle>
+              </ion-item>
+              <ion-item>
+                <ion-label>Save Search History</ion-label>
+                <ion-toggle [(ngModel)]="privacySettings.saveSearchHistory" slot="end" (ionChange)="updatePrivacySetting('saveSearchHistory')"></ion-toggle>
+              </ion-item>
+              <ion-button expand="block" fill="outline" color="medium" (click)="manageActivity()">Manage Activity</ion-button>
             </ion-card-content>
           </ion-card>
 
-          <!-- Autoplay -->
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Autoplay Settings</ion-card-title>
+              <ion-card-title>Personalized Ads</ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <ion-item>
-                <ion-label>Enable Autoplay</ion-label>
-                <ion-toggle [(ngModel)]="contentPreferences.autoplay" slot="end"></ion-toggle>
+                <ion-label>Show Personalized Ads</ion-label>
+                <ion-toggle [(ngModel)]="privacySettings.personalizedAds" slot="end" (ionChange)="updatePrivacySetting('personalizedAds')"></ion-toggle>
+              </ion-item>
+              <p class="description">Receive ads tailored to your interests based on your activity.</p>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Blocked Users</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item *ngIf="blockedUsers.length === 0">
+                <ion-label>No users currently blocked.</ion-label>
+              </ion-item>
+              <ion-item *ngFor="let user of blockedUsers">
+                <ion-label>{{user.name}}</ion-label>
+                <ion-button slot="end" fill="outline" color="danger" (click)="unblockUser(user)">Unblock</ion-button>
+              </ion-item>
+              <ion-button expand="block" fill="outline" (click)="addBlockedUser()">Add Blocked User</ion-button>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Comment Settings</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-label>Hold potentially inappropriate comments for review</ion-label>
+                <ion-toggle [(ngModel)]="privacySettings.commentModeration" slot="end" (ionChange)="updatePrivacySetting('commentModeration')"></ion-toggle>
               </ion-item>
               <ion-item>
-                <ion-label>Autoplay on Mobile Data</ion-label>
-                <ion-toggle [(ngModel)]="contentPreferences.autoplayMobile" slot="end"></ion-toggle>
+                <ion-label>Allow all comments</ion-label>
+                <ion-toggle [(ngModel)]="privacySettings.allowAllComments" slot="end" (ionChange)="updatePrivacySetting('allowAllComments')"></ion-toggle>
               </ion-item>
             </ion-card-content>
           </ion-card>
 
-          <!-- Captions -->
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Captions & Subtitles</ion-card-title>
+              <ion-card-title>Subscription Visibility</ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <ion-item>
-                <ion-label>Enable Captions</ion-label>
-                <ion-toggle [(ngModel)]="contentPreferences.captions" slot="end"></ion-toggle>
+                <ion-label>Keep all my subscriptions private</ion-label>
+                <ion-toggle [(ngModel)]="privacySettings.privateSubscriptions" slot="end" (ionChange)="updatePrivacySetting('privateSubscriptions')"></ion-toggle>
               </ion-item>
-              <ion-item>
-                <ion-label position="stacked">Caption Language</ion-label>
-                <ion-select [(ngModel)]="contentPreferences.captionLanguage">
-                  <ion-select-option value="en">English</ion-select-option>
-                  <ion-select-option value="es">Spanish</ion-select-option>
-                  <ion-select-option value="fr">French</ion-select-option>
-                  <ion-select-option value="de">German</ion-select-option>
-                </ion-select>
-              </ion-item>
-            </ion-card-content>
-          </ion-card>
-
-          <!-- Region -->
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>Content Region</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-item>
-                <ion-label position="stacked">Preferred Region</ion-label>
-                <ion-select [(ngModel)]="contentPreferences.region">
-                  <ion-select-option value="international">International</ion-select-option>
-                  <ion-select-option value="us">United States</ion-select-option>
-                  <ion-select-option value="uk">United Kingdom</ion-select-option>
-                  <ion-select-option value="ca">Canada</ion-select-option>
-                  <ion-select-option value="au">Australia</ion-select-option>
-                </ion-select>
-              </ion-item>
+              <p class="description">Your subscriptions will not be visible to other users.</p>
             </ion-card-content>
           </ion-card>
         </div>
       </ion-accordion>
 
-      <!-- API & Data Section -->
-      <ion-accordion value="api-data">
+      <ion-accordion value="subscription-billing">
         <ion-item slot="header">
-          <ion-icon slot="start" name="code-outline"></ion-icon>
+          <ion-icon slot="start" name="wallet-outline"></ion-icon>
           <ion-label>
-            <h2>API & Data</h2>
-            <p>Manage API settings and data usage</p>
+            <h2>Subscription & Billing</h2>
+            <p>Manage your premium membership and payments</p>
           </ion-label>
         </ion-item>
 
         <div slot="content" class="accordion-content">
-          <!-- YouTube API Settings -->
           <ion-card>
             <ion-card-header>
-              <ion-card-title>YouTube API Settings</ion-card-title>
+              <ion-card-title>Current Plan</ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <ion-item>
-                <ion-label position="stacked">API Key</ion-label>
-                <ion-input [(ngModel)]="apiSettings.apiKey" placeholder="Enter your API key"></ion-input>
-              </ion-item>
-              <ion-item>
-                <ion-label>Daily Quota Used</ion-label>
-                <ion-badge slot="end" color="primary">{{apiSettings.quotaUsed}}/{{apiSettings.quotaLimit}}</ion-badge>
-              </ion-item>
-              <ion-progress-bar [value]="apiSettings.quotaUsed / apiSettings.quotaLimit"></ion-progress-bar>
-              <ion-button expand="block" (click)="saveApiSettings()">Save API Settings</ion-button>
-            </ion-card-content>
-          </ion-card>
-
-          <!-- Data Usage -->
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>Data Usage</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-item>
-                <ion-label>Limit Mobile Data Usage</ion-label>
-                <ion-toggle [(ngModel)]="dataSettings.limitMobileData" slot="end"></ion-toggle>
-              </ion-item>
-              <ion-item>
-                <ion-label>Download Quality on WiFi</ion-label>
-                <ion-select [(ngModel)]="dataSettings.wifiQuality">
-                  <ion-select-option value="high">High</ion-select-option>
-                  <ion-select-option value="medium">Medium</ion-select-option>
-                  <ion-select-option value="low">Low</ion-select-option>
-                </ion-select>
-              </ion-item>
-              <ion-item>
-                <ion-label>Download Quality on Mobile</ion-label>
-                <ion-select [(ngModel)]="dataSettings.mobileQuality">
-                  <ion-select-option value="high">High</ion-select-option>
-                  <ion-select-option value="medium">Medium</ion-select-option>
-                  <ion-select-option value="low">Low</ion-select-option>
-                </ion-select>
+                <ion-label>
+                  <h3>{{ subscription.planName }}</h3>
+                  <p *ngIf="subscription.isActive">{{ subscription.price }} / {{ subscription.renewalPeriod }} (Renews on {{ subscription.renewalDate | date:'shortDate' }})</p>
+                  <p *ngIf="!subscription.isActive">No active subscription.</p>
+                </ion-label>
+                <ion-button *ngIf="!subscription.isActive" slot="end" (click)="subscribe()">Subscribe Now</ion-button>
+                <ion-button *ngIf="subscription.isActive" slot="end" fill="outline" (click)="changePlan()">Change Plan</ion-button>
               </ion-item>
             </ion-card-content>
           </ion-card>
 
-          <!-- Cache Management -->
           <ion-card>
             <ion-card-header>
-              <ion-card-title>Cache Management</ion-card-title>
+              <ion-card-title>Payment Methods</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <ion-item>
-                <ion-label>Cache Size</ion-label>
-                <ion-badge slot="end" color="secondary">{{cacheSize}}</ion-badge>
+              <ion-item *ngIf="paymentMethods.length === 0">
+                <ion-label>No payment methods added.</ion-label>
               </ion-item>
-              <ion-item>
-                <ion-label>Auto-clear Cache</ion-label>
-                <ion-toggle [(ngModel)]="cacheSettings.autoClear" slot="end"></ion-toggle>
+              <ion-item *ngFor="let method of paymentMethods">
+                <ion-icon slot="start" [name]="method.icon"></ion-icon>
+                <ion-label>
+                  <h3>{{method.type}} ending in {{method.lastFour}}</h3>
+                  <p>{{method.expiry}}</p>
+                </ion-label>
+                <ion-button slot="end" fill="outline" color="danger" (click)="removePaymentMethod(method)">Remove</ion-button>
               </ion-item>
-              <ion-item>
-                <ion-label position="stacked">Cache Limit</ion-label>
-                <ion-range [(ngModel)]="cacheSettings.limit" min="100" max="5000" step="100" snaps="true">
-                  <ion-label slot="start">100MB</ion-label>
-                  <ion-label slot="end">5GB</ion-label>
-                </ion-range>
-                <ion-note>{{cacheSettings.limit}}MB</ion-note>
+              <ion-button expand="block" (click)="addPaymentMethod()">Add Payment Method</ion-button>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Billing History</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item *ngIf="billingHistory.length === 0">
+                <ion-label>No billing history found.</ion-label>
               </ion-item>
-              <ion-button expand="block" color="warning" (click)="clearCache()">Clear Cache Now</ion-button>
+              <ion-item *ngFor="let bill of billingHistory">
+                <ion-label>
+                  <h3>{{bill.date | date:'shortDate'}} - {{bill.description}}</h3>
+                  <p>{{bill.amount}}</p>
+                </ion-label>
+                <ion-button slot="end" fill="clear" (click)="viewInvoice(bill)">View Invoice</ion-button>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Cancel Subscription</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <p class="description">You can cancel your subscription at any time. This will take effect at the end of your current billing cycle.</p>
+              <ion-button expand="block" color="danger" (click)="cancelSubscription()">Cancel Subscription</ion-button>
             </ion-card-content>
           </ion-card>
         </div>
@@ -266,7 +265,6 @@ import { FormsModule } from '@angular/forms';
 
     </ion-accordion-group>
 
-    <!-- Account Actions -->
     <ion-list class="account-actions">
       <ion-item button class="logout-item" (click)="logout()">
         <ion-icon slot="start" name="log-out-outline" color="danger"></ion-icon>
@@ -388,10 +386,13 @@ import { FormsModule } from '@angular/forms';
       margin-top: 12px;
     }
 
-    ion-note {
+    ion-note, .description {
       text-align: center;
       display: block;
       margin-top: 12px;
+      color: var(--ion-text-color-secondary);
+      font-size: 0.85em;
+      padding: 0 16px;
     }
   `],
   standalone: true,
@@ -412,6 +413,11 @@ export class AccountContentComponent implements OnInit {
     confirmPassword: ''
   };
 
+  // Security settings (new)
+  securitySettings = {
+    twoFactorAuth: false
+  };
+
   // Connected accounts
   connectedAccounts = [
     { name: 'YouTube', icon: 'logo-youtube', connected: true, status: 'Connected' },
@@ -419,51 +425,42 @@ export class AccountContentComponent implements OnInit {
     { name: 'Twitter', icon: 'logo-twitter', connected: false, status: 'Not connected' }
   ];
 
-  // Content preferences
-  contentPreferences = {
-    videoQuality: 'auto',
-    autoplay: true,
-    autoplayMobile: false,
-    captions: true,
-    captionLanguage: 'en',
-    region: 'international'
+  // Privacy settings (new)
+  privacySettings = {
+    saveWatchHistory: true,
+    saveSearchHistory: true,
+    personalizedAds: true,
+    commentModeration: true,
+    allowAllComments: false, // Added for comment moderation nuance
+    privateSubscriptions: false
   };
 
-  // Video quality options
-  videoQualities = [
-    { label: 'Auto (Recommended)', value: 'auto' },
-    { label: '8K (4320p)', value: '4320p' },
-    { label: '4K (2160p)', value: '2160p' },
-    { label: 'QHD (1440p)', value: '1440p' },
-    { label: 'Full HD (1080p)', value: '1080p' },
-    { label: 'HD (720p)', value: '720p' },
-    { label: 'SD (480p)', value: '480p' },
-    { label: 'SD (360p)', value: '360p' },
-    { label: 'LD (240p)', value: '240p' },
-    { label: 'LD (144p)', value: '144p' }
+  // Blocked users (new)
+  blockedUsers = [
+    { id: 'user123', name: 'Spam_Bot_XYZ' },
+    { id: 'user456', name: 'AnnoyingViewer' }
   ];
 
-  // API settings
-  apiSettings = {
-    apiKey: '',
-    quotaUsed: 8500,
-    quotaLimit: 10000
+  // Subscription data (new)
+  subscription = {
+    isActive: true,
+    planName: 'YouTube Premium',
+    price: '$11.99',
+    renewalPeriod: 'month',
+    renewalDate: new Date(2025, 7, 18) // July 18, 2025
   };
 
-  // Data settings
-  dataSettings = {
-    limitMobileData: true,
-    wifiQuality: 'high',
-    mobileQuality: 'medium'
-  };
+  // Payment methods (new)
+  paymentMethods = [
+    { id: 'card1', type: 'Visa', lastFour: '4242', expiry: '12/26', icon: 'card-outline' },
+    { id: 'paypal1', type: 'PayPal', lastFour: '****', expiry: 'N/A', icon: 'logo-paypal' }
+  ];
 
-  // Cache settings
-  cacheSettings = {
-    autoClear: true,
-    limit: 1000
-  };
-
-  cacheSize = '245 MB';
+  // Billing history (new)
+  billingHistory = [
+    { id: 'bill001', date: new Date(2025, 6, 18), description: 'YouTube Premium - July', amount: '$11.99' },
+    { id: 'bill002', date: new Date(2025, 5, 18), description: 'YouTube Premium - June', amount: '$11.99' }
+  ];
 
   constructor() {}
 
@@ -472,19 +469,29 @@ export class AccountContentComponent implements OnInit {
   // Profile methods
   selectAvatar() {
     console.log('Select avatar');
+    // Implement avatar selection logic
   }
 
   saveProfile() {
     console.log('Save profile:', this.profileData);
+    // Implement API call to save profile
   }
 
   // Password methods
   changePassword() {
     if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
       console.log('Passwords do not match');
+      // Show an error message to the user
       return;
     }
     console.log('Change password');
+    // Implement API call to change password
+  }
+
+  // Security methods (new)
+  toggleTwoFactorAuth() {
+    console.log('Two-factor authentication toggled:', this.securitySettings.twoFactorAuth);
+    // Implement logic to enable/disable 2FA
   }
 
   // Connected accounts
@@ -492,25 +499,71 @@ export class AccountContentComponent implements OnInit {
     account.connected = !account.connected;
     account.status = account.connected ? 'Connected' : 'Not connected';
     console.log('Toggle connection for:', account.name);
+    // Implement API call to update connected account status
   }
 
-  // API methods
-  saveApiSettings() {
-    console.log('Save API settings:', this.apiSettings);
+  // Privacy methods (new)
+  updatePrivacySetting(setting: string) {
+    console.log(`${setting} updated:`, (this.privacySettings as any)[setting]);
+    // Implement API call to save privacy setting
   }
 
-  // Cache methods
-  clearCache() {
-    console.log('Clear cache');
-    this.cacheSize = '0 MB';
+  manageActivity() {
+    console.log('Navigate to activity management page/modal');
+    // Implement navigation to a more detailed activity management screen
+  }
+
+  addBlockedUser() {
+    console.log('Open modal to add blocked user');
+    // Implement logic to add a user to the blocked list
+  }
+
+  unblockUser(user: any) {
+    this.blockedUsers = this.blockedUsers.filter(u => u.id !== user.id);
+    console.log('Unblocked user:', user.name);
+    // Implement API call to unblock user
+  }
+
+  // Subscription & Billing methods (new)
+  subscribe() {
+    console.log('Navigate to subscription page');
+    // Implement navigation to a subscription offer page
+  }
+
+  changePlan() {
+    console.log('Navigate to change plan options');
+    // Implement navigation to change subscription plan
+  }
+
+  addPaymentMethod() {
+    console.log('Open modal to add payment method');
+    // Implement logic to add a new payment method
+  }
+
+  removePaymentMethod(method: any) {
+    this.paymentMethods = this.paymentMethods.filter(m => m.id !== method.id);
+    console.log('Removed payment method:', method.type);
+    // Implement API call to remove payment method
+  }
+
+  viewInvoice(bill: any) {
+    console.log('View invoice for:', bill.id);
+    // Implement logic to display or download the invoice
+  }
+
+  cancelSubscription() {
+    console.log('Initiate subscription cancellation process');
+    // Implement API call or confirmation dialog for cancellation
   }
 
   // Account actions
   logout() {
     console.log('User logout initiated');
+    // Implement logout logic (clear tokens, navigate to login)
   }
 
   deleteAccount() {
     console.log('User delete account initiated');
+    // Implement delete account logic (confirmation, API call)
   }
 }
