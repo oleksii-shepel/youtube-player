@@ -1,6 +1,8 @@
-import { Injectable } from '@angular/core';
-import { Subject, createSubject } from '@actioncrew/streamix';
+import { Inject, Injectable } from '@angular/core';
+import { Stream, Subject, createSubject, firstValueFrom } from '@actioncrew/streamix';
 import { Authorization, AuthorizationProfile } from './authorization.service';
+import { HTTP_CLIENT } from 'src/main';
+import { HttpClient, HttpStream, readJson } from '@actioncrew/streamix/http';
 
 export interface UserProfile {
   displayName: string;
@@ -43,7 +45,7 @@ export class UserProfileService {
 
   readonly profileSubject: Subject<UserProfile | null> = createSubject<UserProfile | null>();
 
-  constructor(private authorization: Authorization) {
+  constructor(private authorization: Authorization, @Inject(HTTP_CLIENT) private http: HttpClient) {
     this.authorization.authSubject.subscribe(authState => {
       if (authState) {
         this.loadUserProfile(authState.profile);
@@ -58,7 +60,7 @@ export class UserProfileService {
    */
   async loadUserProfile(googleProfile: AuthorizationProfile): Promise<void> {
     try {
-      const storedPreferences = await this.getUserPreferences(googleProfile.sub);
+      const storedPreferences = await firstValueFrom(this.getUserPreferences(googleProfile.sub));
 
       const defaultPrivacy = {
         saveWatchHistory: true,
@@ -111,7 +113,8 @@ export class UserProfileService {
 
     try {
       this.userProfile = { ...this.userProfile, ...updates };
-      await this.saveUserPreferences(this.userProfile);
+      let values = await firstValueFrom(this.saveUserPreferences(this.userProfile));
+      console.log(values);
       this.profileSubject.next(this.userProfile);
       return this.userProfile;
     } catch (error) {
@@ -177,49 +180,52 @@ export class UserProfileService {
     }
   }
 
-  private async getUserPreferences(userId: string): Promise<Partial<UserProfile> | null> {
+  private getUserPreferences(userId: string): HttpStream<UserProfile> {
     try {
       const token = this.authorization.getAccessToken();
       if (!token) throw new Error('No access token available');
 
-      const res = await fetch(`/api/users/${userId}/preferences`, {
+      return this.http.get(`https://people.googleapis.com/v1/people/me`, readJson, {
+        params: {
+          'personFields': 'names,locales,emailAddresses,genders,locations,birthdays,nicknames,photos'
+        },
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-
-      if (!res.ok) {
-        if (res.status === 404) return null;
-        throw new Error(`Failed to fetch user preferences: ${res.status} ${res.statusText}`);
-      }
-
-      return await res.json();
     } catch (error) {
-      console.error('Error fetching user preferences:', error);
-      return null;
+      throw error;
     }
   }
 
-  private async saveUserPreferences(profile: UserProfile): Promise<void> {
+  private saveUserPreferences(profile: UserProfile): HttpStream<UserProfile> {
     const token = this.authorization.getAccessToken();
     const userId = this.authorization.getProfile()?.sub;
 
     if (!token) throw new Error('No access token available');
     if (!userId) throw new Error('No user ID available');
 
-    const res = await fetch(`/api/users/${userId}/preferences`, {
-      method: 'PUT',
+    const body = {
+      names: [{ displayName: 'Alex Code', familyName: 'Code', givenName: 'Alex' }],
+      photos: [{ url: profile.avatar }],
+      nicknames: [{ value: 'Ace' }],
+      biographies: [{ value: 'Loves coding.' }],
+      genders: [{ value: 'male' }],
+      birthdays: [{ date: { year: 1990, month: 7, day: 18 } }],
+      locations: [{ type: 'home', formattedValue: 'Kyiv, Ukraine' }]
+    };
+
+    return this.http.patch(`https://people.googleapis.com/v1/people/${userId}`, readJson, {
+      params: {
+        updatePersonFields: 'names,photos,nicknames,biographies,genders,birthdays,locations'
+      },
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(profile)
+      body: JSON.stringify(body)
     });
-
-    if (!res.ok) {
-      throw new Error(`Failed to save user preferences: ${res.status} ${res.statusText}`);
-    }
   }
 
   completeProfile(): void {
