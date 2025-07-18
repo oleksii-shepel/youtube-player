@@ -122,11 +122,16 @@ import { DirectiveModule } from 'src/app/directives';
       }
 
       &.hidden {
+        min-width: inherit;
+        min-height: inherit;
         position: absolute;
-        top: -10000px;
-        left: -10000px;
         height: 1px;
         width: 1px;
+        left: 0;
+        top: 0;
+        padding: 0;
+        border: 0;
+        margin: 0;
         opacity: 0.01;
         pointer-events: none;
         overflow: hidden;
