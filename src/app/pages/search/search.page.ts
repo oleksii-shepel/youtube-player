@@ -35,8 +35,8 @@ import { Router } from '@angular/router';
             </div>
 
             <div class="toolbar-right">
-              <div class="search-container">
-                <ion-icon name="search-outline"></ion-icon>
+              <div class="search-container" [class.disabled]="filters.trending">
+                <ion-icon name="search-outline" [class.disabled]="filters.trending"></ion-icon>
                 <ion-input
                   color="primary"
                   #searchbar
@@ -44,6 +44,7 @@ import { Router } from '@angular/router';
                   placeholder="Enter search query"
                   (ionInput)="onSearchQueryChange($event)"
                   (keydown)="onKeydown($event)"
+                  [class.disabled]="filters.trending"
                 ></ion-input>
                 <div class="icon-buttons">
                   <ion-button
@@ -51,6 +52,7 @@ import { Router } from '@angular/router';
                     size="small"
                     (mousedown)="clearSearch($event)"
                     *ngIf="searchbar.value"
+                    [class.disabled]="filters.trending"
                   >
                     <ion-icon name="close-circle" class="clear-icon"></ion-icon>
                   </ion-button>
@@ -59,6 +61,7 @@ import { Router } from '@angular/router';
                     id="sort-button"
                     size="small"
                     [color]="sortOrder ? 'primary' : undefined"
+                    [class.disabled]="filters.trending"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -80,9 +83,14 @@ import { Router } from '@angular/router';
                     </svg>
                   </ion-button>
                 </div>
-                <ion-button size="small" (click)="searchRequested = true; performSearch()"
-                  >Search</ion-button
+                <!-- Search button remains active - no disabled class -->
+                <ion-button
+                  size="small"
+                  class="search-button"
+                  (click)="searchRequested = true; performSearch()"
                 >
+                  Search
+                </ion-button>
               </div>
 
               <ion-popover

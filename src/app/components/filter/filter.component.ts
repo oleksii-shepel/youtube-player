@@ -10,6 +10,7 @@ interface FilterSubtopics {
 }
 
 export interface SelectedFilters {
+  trending: boolean | null;
   quality: 'HD' | 'SD' | null;
   status: 'Live' | 'Upcoming' | 'Archived' | null;
   duration: 'Short' | 'Medium' | 'Long' | null;
@@ -22,8 +23,18 @@ export interface SelectedFilters {
   selector: 'app-filter',
   template: `
     <ng-container>
-      <!-- Duration Group -->
+      <!-- Trending Chip -->
       <div class="chip-group" *ngIf="searchType === 'videos'">
+        <ion-chip
+          [color]="selectedFilters.trending ? 'primary' : 'light'"
+          (click)="toggleTrending()"
+        >
+          <ion-label>Trending</ion-label>
+        </ion-chip>
+      </div>
+
+      <!-- Duration Group -->
+      <div class="chip-group" *ngIf="searchType === 'videos'" [class.disabled]="selectedFilters.trending">
         <ion-chip
           [color]="selectedFilters.duration === 'Short' ? 'primary' : 'light'"
           (click)="selectFilter('duration', 'Short')"
@@ -45,7 +56,7 @@ export interface SelectedFilters {
       </div>
 
       <!-- HD/SD Group -->
-      <div class="chip-group" *ngIf="searchType === 'videos'">
+      <div class="chip-group" *ngIf="searchType === 'videos'" [class.disabled]="selectedFilters.trending">
         <ion-chip
           [color]="selectedFilters.quality === 'HD' ? 'primary' : 'light'"
           (click)="selectFilter('quality', 'HD')"
@@ -61,7 +72,7 @@ export interface SelectedFilters {
       </div>
 
       <!-- Live/Upcoming/Archived Group -->
-      <div class="chip-group" *ngIf="searchType === 'videos'">
+      <div class="chip-group" *ngIf="searchType === 'videos'" [class.disabled]="selectedFilters.trending">
         <ion-chip
           [color]="selectedFilters.status === 'Live' ? 'primary' : 'light'"
           (click)="selectFilter('status', 'Live')"
@@ -140,7 +151,11 @@ export class FilterComponent {
   @Input() videoFilters: any = [];
   @Output() filtersChanged = new EventEmitter<any>();
 
+
+  private previousFilters: SelectedFilters | null = null;
+
   selectedFilters: SelectedFilters = {
+    trending: null,
     quality: null,
     status: null,
     duration: null,
@@ -306,6 +321,24 @@ export class FilterComponent {
     },
   ];
 
+  toggleTrending() {
+    if (!this.selectedFilters.trending) {
+      // Save current filters before clearing
+      this.previousFilters = { ...this.selectedFilters };
+      this.resetFilters(); // Clear filters without emitting
+      this.selectedFilters.trending = true;
+    } else {
+      // Restore saved filters
+      if (this.previousFilters) {
+        this.selectedFilters = { ...this.previousFilters };
+        this.previousFilters = null;
+      }
+      this.selectedFilters.trending = null;
+    }
+
+    this.emitFiltersChange();
+  }
+
   selectFilter(category: 'topic' | SimpleFilterCategory, value: string) {
     if (category === 'topic') {
       if (this.selectedFilters.topic === value) {
@@ -379,6 +412,7 @@ export class FilterComponent {
 
   resetFilters() {
     this.selectedFilters = {
+      trending: null,
       quality: null,
       status: null,
       duration: null,

@@ -131,6 +131,7 @@ ion-content.main {
   font-size: 18px; /* Larger font size */
   min-height: 40px;
   max-height: 40px;
+  user-select: none;
 
   &::placeholder {
     color: var(--ion-color-primary);
@@ -148,7 +149,8 @@ ion-content.main {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 10px;
+  padding: 0;
+  margin: 0 10px;
 }
 
 .popover-item {
@@ -156,6 +158,46 @@ ion-content.main {
     --background: var(--ion-color-primary);
     background: var(--background);
   }
+}
+
+/* Enable pointer events and full opacity on the button inside disabled container */
+/* Modified disabled state for search container */
+.search-container.disabled {
+  pointer-events: none;
+  position: relative;
+  background: transparent !important;
+  /* Remove opacity from container - handle it per element */
+}
+
+.search-container.disabled::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--ion-background-overlay-500); /* White with 70% opacity */
+  z-index: 1;
+  border-radius: inherit;
+}
+
+
+/* Keep search button fully visible and interactive */
+.search-container.disabled .search-button {
+  pointer-events: auto;
+  opacity: 1;
+  position: relative;
+  z-index: 10;
+  background: var(--ion-toolbar-background); /* Solid background */
+  border-radius: 4px;
+}
+
+/* Disabled state for inner elements */
+.search-container.disabled ion-icon,
+.search-container.disabled ion-input,
+.search-container.disabled .icon-buttons ion-button {
+  opacity: 1; /* Reduce opacity of disabled elements */
+  pointer-events: none;
 }
 
 ion-avatar {
