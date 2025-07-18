@@ -98,3 +98,6 @@ ion-split-pane.split-pane-visible ion-menu.hide-menu {
   pointer-events: auto;
 }
 
+::ng-deep .button-clear {
+  color: var(--ion-color-secondary) !important;
+}
