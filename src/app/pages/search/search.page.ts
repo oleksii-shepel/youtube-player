@@ -9,7 +9,6 @@ import { Authorization } from 'src/app/services/authorization.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
-import { StreamixModule } from 'projects/angular/src/lib';
 import { YoutubeVideoComponent } from 'src/app/components/youtube-video/youtube-video.component';
 import { YoutubePlaylistComponent } from 'src/app/components/youtube-playlist/youtube-playlist.component';
 import { YoutubeChannelComponent } from 'src/app/components/youtube-channel/youtube-channel.component';
@@ -285,7 +284,6 @@ import { Router } from '@angular/router';
     FormsModule,
     IonicModule,
     DirectiveModule,
-    StreamixModule,
     YoutubeVideoComponent,
     YoutubePlaylistComponent,
     YoutubeChannelComponent,
