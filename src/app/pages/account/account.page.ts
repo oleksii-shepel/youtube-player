@@ -383,19 +383,6 @@ import { Authorization } from '../../services/authorization.service'; // Ensure 
       gap: 10px;
     }
 
-    /* Specific styles for logout/delete if needed */
-    .logout-item {
-      /* Specific styles if different from .action-item */
-    }
-
-    .delete-account-item {
-      /* Specific styles if different from .action-item */
-    }
-
-    .login-item {
-      /* Specific styles if different from .action-item */
-    }
-
     .ion-text-center {
       text-align: center;
     }
