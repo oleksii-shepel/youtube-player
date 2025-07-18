@@ -363,8 +363,10 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     const currentSelected = this.selectedTrackIndexes;
     const inverted = new Set<number>();
 
+    const currentIndex = this.currentTrackIndex;
+
     allIndexes.forEach(index => {
-      if (!currentSelected.has(index)) {
+      if (!currentSelected.has(index) || index === currentIndex) {
         inverted.add(index);
       }
     });

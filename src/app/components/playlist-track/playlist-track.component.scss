@@ -1,6 +1,7 @@
 /* Base styling with dynamic heights */
 :host {
   display: block;
+  user-select: none;
   /* No fixed height - let content determine it */
 
   & ion-item.track {
