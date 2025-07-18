@@ -1,9 +1,14 @@
 {
-  "name": "vercel-api-functions",
+  "name": "youtube-player-api",
   "version": "1.0.0",
-  "private": true,
-  "description": "Vercel Serverless Functions for my application's backend API.",
+  "description": "",
+  "main": "index.js",
+
   "scripts": {
-    "start": "vercel dev"
-  }
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module"
 }
