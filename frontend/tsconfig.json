@@ -2,7 +2,15 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "types": ["gapi.client", "youtube"],
+    "types": [
+      "gapi.client",
+      "youtube"
+    ],
+    "paths": {
+      "api": [
+        "./dist/api"
+      ]
+    },
     "baseUrl": "./",
     "allowSyntheticDefaultImports": true,
     "outDir": "./dist/out-tsc",
