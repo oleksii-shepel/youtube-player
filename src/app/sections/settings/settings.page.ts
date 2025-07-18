@@ -27,7 +27,7 @@ import { HistoryContentComponent } from 'src/app/pages/history/history.page';
           </div>
         </div>
 
-        <div class="settings-nav">
+        <div class="settings-nav scrollable">
           <div
             class="nav-item"
             [class.active]="selectedMainSection === 'account'"
