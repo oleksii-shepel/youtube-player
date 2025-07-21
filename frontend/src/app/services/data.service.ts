@@ -380,13 +380,12 @@ export class YoutubeDataService {
    * Fetches the list of trending (most popular) videos globally or regionally.
    * Uses the `chart=mostPopular` parameter and API key authorization.
    */
-  fetchTrendingVideos(): Stream<any> {
-    const params: IYoutubeQueryParams = {
+  fetchTrendingVideos(params?: IYoutubeQueryParams): Stream<any> {
+    return this.search('videos', {
       part: 'snippet,contentDetails,statistics',
-      chart: 'mostPopular'
-    };
-
-    return this.search('videos', params);
+      chart: 'mostPopular',
+      pageToken: params?.pageToken ?? ''
+    });
   }
 
   /**

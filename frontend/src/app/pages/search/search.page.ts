@@ -1,6 +1,6 @@
 import { PlayerService } from './../../services/player.service';
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Stream, Subscription, switchMap } from '@actioncrew/streamix';
+import { fork, of, Stream, Subscription, switchMap } from '@actioncrew/streamix';
 import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { PlaylistService } from 'src/app/services/playlist.service';
@@ -29,10 +29,10 @@ import { Router } from '@angular/router';
               <ion-button fill="clear" size="medium" (click)="toggleMenu()">
                 <ion-icon name="menu-outline"></ion-icon>
               </ion-button>
-    
+
               <ion-title>YouTube Search</ion-title>
             </div>
-    
+
             <div class="toolbar-right">
               <div class="search-container" [class.disabled]="filters.trending  && searchType === 'videos'">
                 <ion-icon name="search-outline" [class.disabled]="filters.trending && searchType === 'videos'"></ion-icon>
@@ -92,7 +92,7 @@ import { Router } from '@angular/router';
                   Search
                 </ion-button>
               </div>
-    
+
               <ion-popover
                 trigger="sort-button"
                 triggerAction="click"
@@ -140,11 +140,11 @@ import { Router } from '@angular/router';
                   </ion-list>
                 </ng-template>
               </ion-popover>
-    
+
               <ion-button fill="clear" size="small" (click)="toggleRecorder()">
                 <ion-icon name="videocam-outline"></ion-icon>
               </ion-button>
-    
+
               <ion-button fill="clear" size="small" (click)="togglePlayer()">
                 @if (!playerHidden$.snappy) {
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off-icon lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>
@@ -153,11 +153,11 @@ import { Router } from '@angular/router';
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
                 }
               </ion-button>
-    
+
               <ion-button fill="clear" size="small" id="settings-button">
                 <ion-icon name="settings-outline"></ion-icon>
               </ion-button>
-    
+
               <ion-popover
                 trigger="settings-button"
                 triggerAction="click"
@@ -205,18 +205,18 @@ import { Router } from '@angular/router';
                                 </ion-button>
                               </ion-item>
                             }
-    
-    
+
+
                           </ion-list>
                         </ng-template>
                       </ion-popover>
-    
+
                     </div>
                   </div>
                 </div>
               </div>
             </ion-header>
-    
+
             <ion-content class="main">
               <ion-item>
                 <ion-segment
@@ -228,7 +228,7 @@ import { Router } from '@angular/router';
                   <ion-segment-button value="channels">Channels</ion-segment-button>
                 </ion-segment>
               </ion-item>
-    
+
               <!-- Filters Section -->
               <div class="scrollable">
                 <div class="filter-inner">
@@ -239,7 +239,7 @@ import { Router } from '@angular/router';
                   </app-filter>
                 </div>
               </div>
-    
+
               @for (suggestion of suggestions; track suggestion) {
                 <ion-chip
                   (click)="selectSuggestion(suggestion)"
@@ -247,7 +247,7 @@ import { Router } from '@angular/router';
                   {{ suggestion }}
                 </ion-chip>
               }
-    
+
               <!-- Adaptive Grid -->
               <div class="adaptive-grid">
                 @if (searchType === 'videos') {
@@ -277,7 +277,7 @@ import { Router } from '@angular/router';
                   }
                 }
               </div>
-    
+
               <ion-infinite-scroll (ionInfinite)="loadMore($event)">
                 <ion-infinite-scroll-content
                   loadingSpinner="bubbles"
@@ -471,9 +471,7 @@ export class SearchPage {
   }
 
   onFiltersChanged(filters: any) {
-    console.log('Filters changed:', filters);
-    this.filters = filters; // Update filters when the filter component emits changes
-    this.performSearch(); // Re-run the search when filters are updated
+    this.filters = filters;
   }
 
   fetchSuggestions(query: string): Stream<string[]> {
@@ -495,128 +493,115 @@ export class SearchPage {
     this.lastSearchQuery = this.searchQuery.trim();
     this.lastSearchType = this.searchType;
 
-    this.dataService
-      .search('search', params)
-      .pipe(
-        switchMap((response: any) => {
-          const results = this.mapResults(response);
+    return of(true).pipe(
+      fork([
+        {
+          on: () => this.filters.trending && this.searchType === 'videos',
+          handler: () =>
+            this.dataService.fetchTrendingVideos().pipe(
+              map((response: any) => {
+                this.updatePageToken(response);
+                return response.items;
+              })
+            ),
+        },
+        {
+          on: () => true,
+          handler: () =>
+            this.dataService.search('search', params).pipe(
+              switchMap((response: any) => {
+                const basic = this.mapResults(response);
+                let detailed$: Stream<any>;
 
-          let detailedResults$: Stream<any>;
+                if (this.searchType === 'videos') {
+                  detailed$ = this.dataService.fetchVideos(basic.map((i) => i.id));
+                } else if (this.searchType === 'playlists') {
+                  detailed$ = this.dataService.fetchPlaylists(basic.map((i) => i.id));
+                } else if (this.searchType === 'channels') {
+                  detailed$ = this.dataService.fetchChannels(basic.map((i) => i.id));
+                } else {
+                  throw new Error('Unknown search type.');
+                }
 
-          // Fetch detailed data based on the search type
-          if (this.searchType === 'videos') {
-            const videoIds = results.map((item) => item.id);
-            detailedResults$ = this.dataService.fetchVideos(videoIds);
-          } else if (this.searchType === 'playlists') {
-            const playlistIds = results.map((item) => item.id);
-            detailedResults$ =
-              this.dataService.fetchPlaylists(playlistIds);
-          } else if (this.searchType === 'channels') {
-            const channelIds = results.map((item) => item.id);
-            detailedResults$ =
-              this.dataService.fetchChannels(channelIds);
-          } else {
-            throw new Error('Unknown search type.');
-          }
+                return detailed$.pipe(
+                  map((detailedItems: any) => {
+                    this.updatePageToken(response);
+                    return detailedItems;
+                  })
+                );
+              })
+            ),
+        },
+      ]),
+      map(items => this.filterAndMerge(items))
+    )
+    .subscribe((finalResults: any[]) => {
+      this.searchResults[this.searchType] = finalResults;
+    });
+  }
 
-          // Combine basic and detailed results
-          return detailedResults$.pipe(
-            map((detailedItems: any) => {
-              this.updatePageToken(response); // Update the correct page token
+  private filterAndMerge(detailed: any[]): any[] {
+    const requiredFields = {
+      videos: ['snippet', 'contentDetails', 'statistics'],
+      playlists: ['snippet', 'contentDetails'],
+      channels: ['snippet', 'contentDetails', 'statistics'],
+    }[this.searchType]!;
 
-              const requiredFields = {
-                videos: ['snippet', 'contentDetails', 'statistics'],
-                playlists: ['snippet', 'contentDetails'],
-                channels: ['snippet', 'contentDetails', 'statistics'],
-              }[this.searchType]!;
-
-              const filteredItems = detailedItems.items.filter((item: any) =>
-                requiredFields.every((field) => field in item)
-              );
-
-              const mergedResults = results
-                .map((result) => {
-                  const detailedItem = filteredItems.find(
-                    (item: any) => item.id === result.id
-                  );
-                  return detailedItem ? { ...result, ...detailedItem } : null;
-                })
-                .filter((item) => item !== null);
-
-              return mergedResults;
-            })
-          );
-        })
-      )
-      .subscribe((finalResults: any[]) => {
-        this.searchResults[this.searchType] = finalResults; // Update specific search type results
-      });
+    return detailed.filter((item: any) =>
+      requiredFields.every((field) => field in item)
+    );
   }
 
   loadMore(event: any) {
     const params = this.buildSearchParams();
 
-    this.dataService
-      .search('search', params)
-      .pipe(
-        switchMap((response: any) => {
-          const results = this.mapResults(response);
-          let detailedResults$: Stream<any>;
+    return of(true).pipe(
+      fork([
+        {
+          on: () => this.filters.trending && this.searchType === 'videos',
+          handler: () =>
+            this.dataService.fetchTrendingVideos(params).pipe(
+              map((response: any) => {
+                this.updatePageToken(response);
+                return response.items; // already detailed
+              })
+            ),
+        },
+        {
+          on: () => true,
+          handler: () =>
+            this.dataService.search('search', params).pipe(
+              switchMap((response: any) => {
+                const basic = this.mapResults(response);
+                let detailed$: Stream<any>;
 
-          if (this.searchType === 'videos') {
-            const videoIds = results.map((item) => item.id);
-            detailedResults$ = this.dataService.fetchVideos(videoIds);
-          } else if (this.searchType === 'playlists') {
-            const playlistIds = results.map((item) => item.id);
-            detailedResults$ =
-              this.dataService.fetchPlaylists(playlistIds);
-          } else if (this.searchType === 'channels') {
-            const channelIds = results.map((item) => item.id);
-            detailedResults$ =
-              this.dataService.fetchChannels(channelIds);
-          } else {
-            throw new Error('Unknown search type.');
-          }
+                if (this.searchType === 'videos') {
+                  detailed$ = this.dataService.fetchVideos(basic.map((i) => i.id));
+                } else if (this.searchType === 'playlists') {
+                  detailed$ = this.dataService.fetchPlaylists(basic.map((i) => i.id));
+                } else if (this.searchType === 'channels') {
+                  detailed$ = this.dataService.fetchChannels(basic.map((i) => i.id));
+                } else {
+                  throw new Error('Unknown search type.');
+                }
 
-          return detailedResults$.pipe(
-            map((detailedItems: any) => {
-              this.updatePageToken(response); // Update the correct page token
-              const requiredFields = {
-                videos: ['snippet', 'contentDetails', 'statistics'],
-                playlists: ['snippet', 'contentDetails'],
-                channels: ['snippet', 'contentDetails', 'statistics'],
-              }[this.searchType]!;
-
-              const filteredItems = detailedItems.items.filter((item: any) =>
-                requiredFields.every((field) => field in item)
-              );
-
-              const mergedResults = results
-                .map((result) => {
-                  const detailedItem = filteredItems.find(
-                    (item: any) => item.id === result.id
-                  );
-                  return detailedItem ? { ...result, ...detailedItem } : null;
-                })
-                .filter((item) => item !== null);
-
-              return mergedResults;
-            }),
-            // Handle the correct page token for pagination
-            map((finalResults: any[]) => {
-              this.searchResults[this.searchType] = [
-                ...this.searchResults[this.searchType],
-                ...finalResults,
-              ];
-              return this.searchResults[this.searchType];
-            })
-          );
-        })
-      )
+                return detailed$.pipe(
+                  map((detailedItems: any) => {
+                    this.updatePageToken(response);
+                    return this.filterAndMerge(detailedItems.items);
+                  })
+                );
+              })
+            ),
+        },
+      ]))
       .subscribe({
-        next: () => {
+        next: (newItems: any[]) => {
+          this.searchResults[this.searchType] = [
+            ...(this.searchResults[this.searchType] || []),
+            ...newItems,
+          ];
           event.target.complete();
-          // Disable infinite scroll if no more results
           if (!this.pageTokenAvailable()) {
             event.target.disabled = true;
           }
@@ -639,7 +624,7 @@ export class SearchPage {
   }
 
   pageTokenAvailable(): boolean {
-    return !!this.pageTokens[this.searchType];
+    return this.pageTokens[this.searchType] !== '';
   }
 
   buildSearchParams() {
