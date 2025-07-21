@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { createSubject, takeUntil } from '@actioncrew/streamix';
@@ -18,24 +18,25 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
         <ion-title>{{ currentVideo?.snippet?.title || 'Video' }}</ion-title>
       </ion-toolbar>
     </ion-header>
-
+    
     <ion-content class="video-page">
       <div class="scrollable">
-
+    
         <!-- Video Player Section -->
         <div class="video-player-container">
           <div class="video-player">
-            <iframe
-             *ngIf="safeVideoUrl"
-              [src]="safeVideoUrl"
-              frameborder="0"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-              class="youtube-iframe">
-            </iframe>
+            @if (safeVideoUrl) {
+              <iframe
+                [src]="safeVideoUrl"
+                frameborder="0"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="youtube-iframe">
+              </iframe>
+            }
           </div>
         </div>
-
+    
         <!-- Video Info Section -->
         <div class="video-info-section">
           <h1 class="video-title">{{ currentVideo?.snippet?.title || 'Loading...' }}</h1>
@@ -43,82 +44,85 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
             <span class="view-count">{{ formatViewCount(currentVideo?.statistics?.viewCount) }} views</span>
             <span class="publish-date">{{ formatPublishDate(currentVideo?.snippet?.publishedAt) }}</span>
           </div>
-
+    
           <!-- Action Buttons -->
           <div class="action-buttons">
             <ion-button fill="clear" (click)="toggleLike()" [class.liked]="isLiked">
               <ion-icon [name]="isLiked ? 'thumbs-up' : 'thumbs-up-outline'" slot="start"></ion-icon>
               {{ formatCount(currentVideo?.statistics?.likeCount) }}
             </ion-button>
-
+    
             <ion-button fill="clear" (click)="toggleDislike()" [class.disliked]="isDisliked">
               <ion-icon [name]="isDisliked ? 'thumbs-down' : 'thumbs-down-outline'" slot="start"></ion-icon>
               {{ formatCount('120') }}
             </ion-button>
-
+    
             <ion-button fill="clear" (click)="shareVideo()">
               <ion-icon name="share-outline" slot="start"></ion-icon>
               Share
             </ion-button>
-
+    
             <ion-button fill="clear" (click)="downloadVideo()">
               <ion-icon name="download-outline" slot="start"></ion-icon>
               Download
             </ion-button>
           </div>
         </div>
-
+    
         <!-- Comments Section -->
         <div class="comments-section">
           <h3 class="comments-title">Comments</h3>
           <div class="comments-list scrollable">
-            <div *ngFor="let comment of comments" class="comment-item">
-              <div class="comment-avatar">
-                <ion-img [src]="comment.authorAvatar || ''" [alt]="(comment.author || 'User') + ' avatar'"></ion-img>
-              </div>
-              <div class="comment-content">
-                <div class="comment-header">
-                  <span class="comment-author">{{ comment.author || 'Unknown' }}</span>
-                  <span class="comment-time">{{ comment.timestamp || '' }}</span>
+            @for (comment of comments; track comment) {
+              <div class="comment-item">
+                <div class="comment-avatar">
+                  <ion-img [src]="comment.authorAvatar || ''" [alt]="(comment.author || 'User') + ' avatar'"></ion-img>
                 </div>
-                <p class="comment-text">{{ comment.text || '' }}</p>
+                <div class="comment-content">
+                  <div class="comment-header">
+                    <span class="comment-author">{{ comment.author || 'Unknown' }}</span>
+                    <span class="comment-time">{{ comment.timestamp || '' }}</span>
+                  </div>
+                  <p class="comment-text">{{ comment.text || '' }}</p>
+                </div>
               </div>
-            </div>
+            }
           </div>
         </div>
-
+    
         <!-- Related Videos Section -->
         <div class="related-videos-section">
           <h3 class="section-title">Related Videos</h3>
           <div class="recommended-label">Recommended</div>
-
+    
           <div class="related-videos-list">
-            <div
-              *ngFor="let video of relatedVideos"
-              class="related-video-item"
-              (click)="playVideo(video)">
-              <div class="related-video-thumbnail">
-                <ion-img
-                  [src]="video.snippet.thumbnails.medium.url || ''"
-                  [alt]="(video.snippet.title || 'Video') + ' thumbnail'">
-                </ion-img>
-              </div>
-              <div class="related-video-info">
-                <h4 class="related-video-title">{{ video.snippet.title || 'No Title' }}</h4>
-                <div class="related-video-meta">
-                  <span class="related-view-count">{{ formatViewCount(video.statistics.viewCount) }} views </span>
-                  <span class="related-publish-date">{{ formatPublishDate(video.snippet.publishedAt) }}</span>
+            @for (video of relatedVideos; track video) {
+              <div
+                class="related-video-item"
+                (click)="playVideo(video)">
+                <div class="related-video-thumbnail">
+                  <ion-img
+                    [src]="video.snippet.thumbnails.medium.url || ''"
+                    [alt]="(video.snippet.title || 'Video') + ' thumbnail'">
+                  </ion-img>
+                </div>
+                <div class="related-video-info">
+                  <h4 class="related-video-title">{{ video.snippet.title || 'No Title' }}</h4>
+                  <div class="related-video-meta">
+                    <span class="related-view-count">{{ formatViewCount(video.statistics.viewCount) }} views </span>
+                    <span class="related-publish-date">{{ formatPublishDate(video.snippet.publishedAt) }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            }
           </div>
         </div>
       </div>
     </ion-content>
-  `,
+    `,
   styleUrls: ['./video.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [IonicModule],
 })
 export class VideoPage implements OnInit, OnDestroy {
   private destroy$ = createSubject<void>();

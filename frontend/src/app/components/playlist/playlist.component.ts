@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { IonicModule } from '@ionic/angular';
 import {
   Component,
@@ -26,206 +26,212 @@ import { DirectiveModule } from 'src/app/directives';
             fill="clear"
             (click)="toggleShuffle()"
             [class.active]="isShuffled"
-          >
-            <ion-icon *ngIf="!isShuffled" name="shuffle"></ion-icon>
-            <svg
-              *ngIf="isShuffled"
-              xmlns="http://www.w3.org/2000/svg"
-              width="18.898"
-              height="18.898"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.0"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
-              <path d="M10 6h11" />
-              <path d="M10 12h11" />
-              <path d="M10 18h11" />
-              <path d="M4 6h1v4" />
-              <path d="M4 12h2" />
-              <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" />
-            </svg>
+            @if (!isShuffled) {
+              <ion-icon name="shuffle"></ion-icon>
+            }
+            @if (isShuffled) {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18.898"
+                height="18.898"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.0"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                >
+                <path d="M10 6h11" />
+                <path d="M10 12h11" />
+                <path d="M10 18h11" />
+                <path d="M4 6h1v4" />
+                <path d="M4 12h2" />
+                <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" />
+              </svg>
+            }
           </ion-button>
-
+    
           <ion-button
             fill="clear"
             (click)="playPrevious()"
             [disabled]="!hasPrevious"
-          >
+            >
             <ion-icon name="play-skip-back"></ion-icon>
           </ion-button>
-
+    
           <ion-button
             fill="clear"
             (click)="togglePlay()"
             [disabled]="!selectedTrack"
-          >
+            >
             <ion-icon [name]="isPlaying ? 'pause' : 'play'"></ion-icon>
           </ion-button>
-
+    
           <ion-button fill="clear" (click)="playNext()" [disabled]="!hasNext">
             <ion-icon name="play-skip-forward"></ion-icon>
           </ion-button>
-
+    
           <ion-button
             fill="clear"
             (click)="toggleRepeat()"
             [class.active]="repeatMode !== 'none'"
-          >
-            <svg
-              *ngIf="repeatMode === 'all'"
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-repeat-icon lucide-repeat"
             >
-              <path d="m17 2 4 4-4 4" />
-              <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
-              <path d="m7 22-4-4 4-4" />
-              <path d="M21 13v1a4 4 0 0 1-4 4H3" />
-            </svg>
-
-            <svg
-              *ngIf="repeatMode === 'one'"
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-repeat1-icon lucide-repeat-1"
-            >
-              <path d="m17 2 4 4-4 4" />
-              <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
-              <path d="m7 22-4-4 4-4" />
-              <path d="M21 13v1a4 4 0 0 1-4 4H3" />
-              <path d="M11 10h1v4" />
-            </svg>
-
-            <svg
-              *ngIf="repeatMode === 'none'"
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-repeat-off-icon lucide-repeat-off"
-            >
-              <path d="m17 2 4 4-4 4" />
-              <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
-              <path d="m7 22-4-4 4-4" />
-              <path d="M21 13v1a4 4 0 0 1-4 4H3" />
-              <line
-                x1="4"
-                y1="4"
-                x2="20"
-                y2="20"
+            @if (repeatMode === 'all') {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-repeat-icon lucide-repeat"
+                >
+                <path d="m17 2 4 4-4 4" />
+                <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+                <path d="m7 22-4-4 4-4" />
+                <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+              </svg>
+            }
+    
+            @if (repeatMode === 'one') {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
                 stroke="currentColor"
                 stroke-width="1.5"
-              />
-            </svg>
-          </ion-button>
-        </div>
-      </div>
-
-      <div class="scrollable">
-        <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" (sortUpdate)="onPlaylistSort($event)">
-          <app-playlist-track
-            *ngFor="let track of playlist; let i = index"
-            [track]="track"
-            [thumbnailUrl]="getTrackThumbnail(track)"
-            [formattedDuration]="getTrackFormattedDuration(track)"
-            (click)="onTrackClick(i, $event)"
-            (trackDeleted)="deleteTrack(track)"
-            [isSelected]="isTrackSelectedByIndex(i)"
-            [isPlaying]="i === currentTrackIndex && isPlaying"
-          ></app-playlist-track>
-        </div>
-      </div>
-
-      <!-- Playlist Action Buttons -->
-      <ion-footer class="playlist-footer-actions" *ngIf="playlist.length > 0">
-        <ion-toolbar>
-          <div class="action-buttons-row">
-            <!-- Clear Selected Button -->
-            <ion-button
-              fill="clear"
-              color="warning"
-              (click)="clearSelectedTracks()"
-              [disabled]="selectedTrackIndexes.size === 0"
-              size="small"
-            >
-              <ion-icon name="remove-circle-outline" slot="start"></ion-icon>
-              Clear Selected ({{ selectedTrackIndexes.size }})
-            </ion-button>
-
-            <!-- Clear All Button -->
-            <ion-button
-              fill="clear"
-              color="danger"
-              (click)="clearAllTracks()"
-              size="small"
-            >
-              <ion-icon name="trash-outline" slot="start"></ion-icon>
-              Clear All
-            </ion-button>
-
-            <!-- Invert Selection Button -->
-            <ion-button
-              fill="clear"
-              color="medium"
-              (click)="invertSelection()"
-              [disabled]="playlist.length === 0"
-              size="small"
-            >
-              <ion-icon name="swap-horizontal-outline" slot="start"></ion-icon>
-              Invert
-            </ion-button>
-
-            <!-- Save Playlist Button -->
-            <ion-button
-              fill="solid"
-              color="primary"
-              (click)="savePlaylist()"
-              [disabled]="playlist.length === 0"
-              size="small"
-            >
-              <ion-icon name="save-outline" slot="start"></ion-icon>
-              Save
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-repeat1-icon lucide-repeat-1"
+                >
+                <path d="m17 2 4 4-4 4" />
+                <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+                <path d="m7 22-4-4 4-4" />
+                <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+                <path d="M11 10h1v4" />
+              </svg>
+            }
+    
+            @if (repeatMode === 'none') {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-repeat-off-icon lucide-repeat-off"
+                >
+                <path d="m17 2 4 4-4 4" />
+                <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+                <path d="m7 22-4-4 4-4" />
+                <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+                <line
+                  x1="4"
+                  y1="4"
+                  x2="20"
+                  y2="20"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  />
+                </svg>
+              }
             </ion-button>
           </div>
-
-          <div
-            class="selection-info"
-            *ngIf="selectedTrackIndexes.size > 0"
-            style="text-align: center; margin-top: 4px"
-          >
-            <ion-text color="medium">
-              {{ selectedTrackIndexes.size }} of {{ playlist.length }} tracks selected
-            </ion-text>
+        </div>
+    
+        <div class="scrollable">
+          <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" (sortUpdate)="onPlaylistSort($event)">
+            @for (track of playlist; track track; let i = $index) {
+              <app-playlist-track
+                [track]="track"
+                [thumbnailUrl]="getTrackThumbnail(track)"
+                [formattedDuration]="getTrackFormattedDuration(track)"
+                (click)="onTrackClick(i, $event)"
+                (trackDeleted)="deleteTrack(track)"
+                [isSelected]="isTrackSelectedByIndex(i)"
+                [isPlaying]="i === currentTrackIndex && isPlaying"
+              ></app-playlist-track>
+            }
           </div>
-        </ion-toolbar>
-      </ion-footer>
-    </ion-list>
-  `,
+        </div>
+    
+        <!-- Playlist Action Buttons -->
+        @if (playlist.length > 0) {
+          <ion-footer class="playlist-footer-actions">
+            <ion-toolbar>
+              <div class="action-buttons-row">
+                <!-- Clear Selected Button -->
+                <ion-button
+                  fill="clear"
+                  color="warning"
+                  (click)="clearSelectedTracks()"
+                  [disabled]="selectedTrackIndexes.size === 0"
+                  size="small"
+                  >
+                  <ion-icon name="remove-circle-outline" slot="start"></ion-icon>
+                  Clear Selected ({{ selectedTrackIndexes.size }})
+                </ion-button>
+                <!-- Clear All Button -->
+                <ion-button
+                  fill="clear"
+                  color="danger"
+                  (click)="clearAllTracks()"
+                  size="small"
+                  >
+                  <ion-icon name="trash-outline" slot="start"></ion-icon>
+                  Clear All
+                </ion-button>
+                <!-- Invert Selection Button -->
+                <ion-button
+                  fill="clear"
+                  color="medium"
+                  (click)="invertSelection()"
+                  [disabled]="playlist.length === 0"
+                  size="small"
+                  >
+                  <ion-icon name="swap-horizontal-outline" slot="start"></ion-icon>
+                  Invert
+                </ion-button>
+                <!-- Save Playlist Button -->
+                <ion-button
+                  fill="solid"
+                  color="primary"
+                  (click)="savePlaylist()"
+                  [disabled]="playlist.length === 0"
+                  size="small"
+                  >
+                  <ion-icon name="save-outline" slot="start"></ion-icon>
+                  Save
+                </ion-button>
+              </div>
+              @if (selectedTrackIndexes.size > 0) {
+                <div
+                  class="selection-info"
+                  style="text-align: center; margin-top: 4px"
+                  >
+                  <ion-text color="medium">
+                    {{ selectedTrackIndexes.size }} of {{ playlist.length }} tracks selected
+                  </ion-text>
+                </div>
+              }
+            </ion-toolbar>
+          </ion-footer>
+        }
+      </ion-list>
+    `,
   styleUrls: ['playlist.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, PlaylistTrackComponent, DirectiveModule]
+  imports: [IonicModule, PlaylistTrackComponent, DirectiveModule]
 })
 export class PlaylistComponent implements OnInit, OnDestroy {
   @Input() playlist: any[] = [];

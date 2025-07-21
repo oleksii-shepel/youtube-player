@@ -2,17 +2,27 @@
 .youtube-api-settings-content {
   --background: var(--ion-color-base);
   --color: var(--ion-text-color);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 
   .settings-container {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-areas:
+      "header header"
+      "nav main"
+      "footer footer";
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 250px 1fr;
     height: 100%;
-    padding: 16px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    gap: 24px;
+    padding: 16px;
+    gap: 16px;
 
+    // Header (user-info) - Top on mobile, first column on desktop
     .user-header {
+      grid-area: header;
       display: flex;
       align-items: center;
       gap: 16px;
@@ -72,7 +82,9 @@
       }
     }
 
+    // Navigation - Hidden on mobile (can be toggled), shown on desktop
     .settings-nav {
+      grid-area: nav;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -80,6 +92,8 @@
       border-radius: 12px;
       padding: 8px;
       box-shadow: 0 4px 8px var(--ion-box-shadow-color-light);
+      height: 100%;
+      overflow-y: auto;
 
       .nav-item {
         display: flex;
@@ -119,13 +133,15 @@
       }
     }
 
+    // Main content area
     .settings-main {
-      flex: 1;
+      grid-area: main;
       background: var(--ion-background-color-light);
       border-radius: 12px;
       padding: 16px;
       box-shadow: 0 4px 8px var(--ion-box-shadow-color-light);
       overflow-y: auto;
+      height: min-content;
 
       .settings-header {
         display: flex;
@@ -148,266 +164,52 @@
       }
 
       .content-section {
+        height: inherit;
+
         .section-card {
           background: var(--ion-background-color-lighter);
           border-radius: 8px;
           padding: 16px;
           margin-bottom: 16px;
           box-shadow: 0 2px 4px var(--ion-box-shadow-color-light);
-
-          .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--ion-border-color);
-
-            h3 {
-              margin: 0;
-              color: var(--ion-text-color-heading);
-              font-weight: 500;
-            }
-          }
-
-          .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 32px;
-            text-align: center;
-            color: var(--ion-text-color-muted);
-
-            ion-icon {
-              font-size: 3em;
-              margin-bottom: 16px;
-              color: var(--ion-color-tertiary);
-            }
-
-            p {
-              margin: 0;
-              font-size: 1.1em;
-            }
-          }
-
-          .user-details {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-
-            .detail-row {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              padding: 8px 0;
-
-              ion-icon {
-                font-size: 1.2em;
-                color: var(--ion-color-primary);
-              }
-
-              .detail-content {
-                display: flex;
-                flex-direction: column;
-
-                .label {
-                  font-size: 0.8em;
-                  color: var(--ion-text-color-muted);
-                }
-
-                .value {
-                  font-size: 1em;
-                  color: var(--ion-text-color);
-                }
-              }
-            }
-          }
-
-          ion-list {
-            background: transparent;
-            padding: 0;
-
-            ion-item {
-              --background: transparent;
-              --padding-start: 0;
-              --inner-padding-end: 0;
-              --border-color: var(--ion-border-color);
-              --color: var(--ion-text-color);
-
-              ion-icon[slot="start"] {
-                color: var(--ion-color-primary);
-                margin-right: 12px;
-              }
-
-              .color-picker {
-                width: 32px;
-                height: 32px;
-                border-radius: 4px;
-                border: 1px solid var(--ion-border-color);
-                cursor: pointer;
-              }
-            }
-          }
-
-          .playlist-list, .subscription-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-
-            .playlist-item, .subscription-item {
-              display: flex;
-              align-items: center;
-              gap: 16px;
-              padding: 12px;
-              background: var(--ion-background-color-light);
-              border-radius: 8px;
-              transition: all 0.2s ease;
-
-              &:hover {
-                background: var(--ion-item-background-hover);
-              }
-
-              .playlist-thumbnail, .subscription-avatar {
-                position: relative;
-                width: 80px;
-                height: 60px;
-                border-radius: 4px;
-                overflow: hidden;
-                flex-shrink: 0;
-
-                img {
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                }
-
-                .video-count {
-                  position: absolute;
-                  bottom: 0;
-                  right: 0;
-                  background: var(--ion-box-shadow-color);
-                  color: white;
-                  padding: 2px 6px;
-                  font-size: 0.8em;
-                  border-radius: 4px 0 0 0;
-                }
-              }
-
-              .playlist-info, .subscription-info {
-                flex: 1;
-                min-width: 0;
-
-                h4 {
-                  margin: 0 0 4px 0;
-                  color: var(--ion-text-color-heading);
-                  font-weight: 500;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                }
-
-                p {
-                  margin: 0;
-                  color: var(--ion-text-color-secondary);
-                  font-size: 0.9em;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                }
-
-                .playlist-meta {
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                  margin-top: 8px;
-
-                  .created-date {
-                    font-size: 0.8em;
-                    color: var(--ion-text-color-muted);
-                  }
-                }
-              }
-
-              .playlist-actions, .subscription-actions {
-                display: flex;
-                gap: 4px;
-
-                ion-button {
-                  --padding-start: 0;
-                  --padding-end: 0;
-                  margin: 0;
-                  height: 32px;
-                  width: 32px;
-                }
-              }
-            }
-          }
-
-          .quota-info {
-            .quota-bar {
-              height: 8px;
-              background: var(--ion-border-color);
-              border-radius: 4px;
-              overflow: hidden;
-              margin-bottom: 8px;
-
-              .quota-progress {
-                height: 100%;
-                background: var(--ion-color-primary);
-                transition: width 0.5s ease;
-              }
-            }
-
-            .quota-text {
-              display: flex;
-              justify-content: space-between;
-              font-size: 0.9em;
-              color: var(--ion-text-color-secondary);
-            }
-          }
-
-          .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 24px;
-          }
-        }
-      }
-
-      .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 300px;
-        text-align: center;
-        color: var(--ion-text-color-muted);
-
-        ion-icon {
-          font-size: 3em;
-          margin-bottom: 16px;
-          color: var(--ion-color-tertiary);
-        }
-
-        .empty-state-message {
-          margin: 0;
-          font-size: 1.1em;
-          max-width: 300px;
         }
       }
     }
 
+    // Footer with back button
     .back-button-container {
+      grid-area: footer;
       display: flex;
       justify-content: center;
-      margin-top: 16px;
+      padding-top: 16px;
 
       .back-button {
         --border-width: 1px;
         --border-color: var(--ion-color-primary);
         --color: var(--ion-color-primary);
+        width: 200px;
+      }
+    }
+  }
+}
+
+.action-buttons {
+  display: inline-flex;
+}
+
+// Mobile layout (stacked)
+@media (max-width: 767px) {
+  .youtube-api-settings-content {
+    .settings-container {
+      grid-template-areas:
+        "header"
+        "main"
+        "footer";
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+
+      .settings-nav {
+        display: none; // Hide nav on mobile or implement a toggle
       }
     }
   }
@@ -424,21 +226,5 @@
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-// Responsive layout
-@media (min-width: 768px) {
-  .settings-container {
-    flex-direction: row !important;
-
-    .settings-nav {
-      width: 250px;
-      flex-shrink: 0;
-    }
-
-    .settings-main {
-      flex: 1;
-    }
   }
 }

@@ -17,10 +17,10 @@ import { Subscription } from '@actioncrew/streamix';
         <ion-title>{{ channel?.snippet.title || 'Channel' }}</ion-title>
       </ion-toolbar>
     </ion-header>
-
+    
     <ion-content class="channel-page">
       <div class="scrollable">
-        <ng-container *ngIf="isLoadingChannel; else channelContent">
+        @if (isLoadingChannel) {
           <ion-card class="skeleton-card">
             <ion-thumbnail class="ion-skeleton-text"></ion-thumbnail>
             <ion-skeleton-text animated class="skeleton-title"></ion-skeleton-text>
@@ -28,49 +28,52 @@ import { Subscription } from '@actioncrew/streamix';
             <ion-skeleton-text animated class="skeleton-description"></ion-skeleton-text>
             <ion-skeleton-text animated class="skeleton-description" style="width: 80%;"></ion-skeleton-text>
           </ion-card>
-        </ng-container>
-
-        <ng-template #channelContent>
-          <ion-card *ngIf="channel">
-            <img [src]="channel.snippet.thumbnails.medium.url" />
-            <ion-card-header>
-              <ion-card-title>{{ channel.snippet.title }}</ion-card-title>
-              <ion-card-subtitle>
-                Subscribers: {{ channel.statistics.subscriberCount | number }}
-              </ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              {{ channel.snippet.description }}
-            </ion-card-content>
-          </ion-card>
-        </ng-template>
-
+        } @else {
+          @if (channel) {
+            <ion-card>
+              <img [src]="channel.snippet.thumbnails.medium.url" />
+              <ion-card-header>
+                <ion-card-title>{{ channel.snippet.title }}</ion-card-title>
+                <ion-card-subtitle>
+                  Subscribers: {{ channel.statistics.subscriberCount | number }}
+                </ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                {{ channel.snippet.description }}
+              </ion-card-content>
+            </ion-card>
+          }
+        }
+    
+    
         <ion-list class="playlists">
           <ion-list-header>Playlists</ion-list-header>
-
-          <ng-container *ngIf="isLoadingPlaylists; else playlistsContent">
-            <ion-item *ngFor="let i of [1,2,3]" lines="none">
-              <ion-thumbnail slot="start" class="ion-skeleton-text"></ion-thumbnail>
-              <ion-label>
-                <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
-                <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
-              </ion-label>
-            </ion-item>
-          </ng-container>
-
-          <ng-template #playlistsContent>
+    
+          @if (isLoadingPlaylists) {
+            @for (i of [1,2,3]; track i) {
+              <ion-item lines="none">
+                <ion-thumbnail slot="start" class="ion-skeleton-text"></ion-thumbnail>
+                <ion-label>
+                  <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+                  <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+                </ion-label>
+              </ion-item>
+            }
+          } @else {
             <div class="adaptive-grid">
-              <app-youtube-playlist
-                *ngFor="let playlist of playlists"
-                [playlistData]="playlist"
-              ></app-youtube-playlist>
+              @for (playlist of playlists; track playlist) {
+                <app-youtube-playlist
+                  [playlistData]="playlist"
+                ></app-youtube-playlist>
+              }
             </div>
-          </ng-template>
-
+          }
+    
+    
         </ion-list>
       </div>
     </ion-content>
-  `,
+    `,
   styleUrls: ["channel.page.scss"],
   standalone: true,
   imports: [CommonModule, IonicModule, YoutubePlaylistComponent],

@@ -38,16 +38,20 @@ import { YouTubeChannel } from 'src/app/interfaces/youtube-channel-data';
           {{ showUploadsList ? 'Hide Uploads' : 'Uploads' }}
         </ion-button>
       </div>
-      <div class="video-list" *ngIf="showUploadsList">
-        <h4 class="video-list-header">Uploads</h4>
-        <div class="video-list-wrapper">
-          <div class="scrollable-container">
-            <app-youtube-video *ngFor="let video of videosResponse?.items || []" [videoData]="video" [isCompact]="true" class="video-item"></app-youtube-video>
+      @if (showUploadsList) {
+        <div class="video-list">
+          <h4 class="video-list-header">Uploads</h4>
+          <div class="video-list-wrapper">
+            <div class="scrollable-container">
+              @for (video of videosResponse?.items || []; track video) {
+                <app-youtube-video [videoData]="video" [isCompact]="true" class="video-item"></app-youtube-video>
+              }
+            </div>
           </div>
         </div>
-      </div>
+      }
     </div>
-  `,
+    `,
   styleUrls: ['./youtube-channel.component.scss'],
   standalone: true,
   imports: [CommonModule, ShrinkNumberPipe, YoutubeVideoComponent, IonicModule]

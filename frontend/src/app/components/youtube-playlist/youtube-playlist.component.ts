@@ -25,28 +25,34 @@ import { YouTubePlaylist } from 'src/app/interfaces/youtube-playlist-data';
         </div>
         <section class="card-main">
           <p class="card-description mt-2 mb-2" [attr.title]="playlist.snippet.description">
-            {{ playlist.snippet.description | slice: 0:150 }}<span *ngIf="playlist.snippet.description.length > 150">...</span>
-          </p>
-        </section>
-        <div class="action-buttons">
-          <ion-button (click)="goToPlaylist(playlist.id)" size="small">
-            View Playlist
-          </ion-button>
-          <ion-button (click)="toggleVideos()" size="small">
-            {{ showVideosList ? 'Hide Videos' : 'Show Videos' }}
-          </ion-button>
-        </div>
-      </div>
-
-      <div *ngIf="showVideosList" class="video-list">
-        <h4 class="video-list-header">Playlist Videos</h4>
-        <div class="scrollable-container">
-          <app-youtube-video *ngFor="let video of videosResponse?.items || []" [videoData]="video" [isCompact]="true" class="video-item">
-          </app-youtube-video>
-        </div>
+            {{ playlist.snippet.description | slice: 0:150 }}@if (playlist.snippet.description.length > 150) {
+            <span>...</span>
+          }
+        </p>
+      </section>
+      <div class="action-buttons">
+        <ion-button (click)="goToPlaylist(playlist.id)" size="small">
+          View Playlist
+        </ion-button>
+        <ion-button (click)="toggleVideos()" size="small">
+          {{ showVideosList ? 'Hide Videos' : 'Show Videos' }}
+        </ion-button>
       </div>
     </div>
-  `,
+    
+    @if (showVideosList) {
+      <div class="video-list">
+        <h4 class="video-list-header">Playlist Videos</h4>
+        <div class="scrollable-container">
+          @for (video of videosResponse?.items || []; track video) {
+            <app-youtube-video [videoData]="video" [isCompact]="true" class="video-item">
+            </app-youtube-video>
+          }
+        </div>
+      </div>
+    }
+    </div>
+    `,
   styleUrls: ['./youtube-playlist.component.scss'],
   standalone: true,
   imports: [CommonModule, IonicModule, YoutubeVideoComponent],

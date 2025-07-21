@@ -1,5 +1,5 @@
 import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+
 import {
   Component,
   ViewChild,
@@ -53,13 +53,12 @@ declare const YT: any;
   styleUrls: ['./main.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     IonicModule,
     PlaylistComponent,
     YoutubePlayerComponent,
     RecorderComponent,
-    RouterModule,
-  ],
+    RouterModule
+],
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   selectedVideoId = '';

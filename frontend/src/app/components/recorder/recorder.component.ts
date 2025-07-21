@@ -11,7 +11,7 @@ import {
   SimpleChanges,
   ChangeDetectorRef,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonicModule } from '@ionic/angular';
 import { RecorderService } from 'src/app/services/recorder.service';
 
@@ -27,142 +27,152 @@ enum RecorderState {
 @Component({
   standalone: true,
   selector: 'app-recorder',
-  imports: [CommonModule, IonicModule],
+  imports: [IonicModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       class="modal-backdrop"
       [class.hidden]="isHidden"
       (click)="onBackdropClick($event)"
-    >
+      >
       <div class="modal-container" [class.hidden]="isHidden" [class.with-border]="showBorder" (click)="$event.stopPropagation()">
         <div class="video-container" [class.ready]="currentState !== RecorderState.CameraOff">
           <video #videoPreview autoplay muted playsinline></video>
-
+    
           <!-- Status Indicator in Top-Right -->
           <div class="status-indicator-corner"
             [class.recording]="currentState === RecorderState.Recording"
             [class.ready]="currentState === RecorderState.CameraReady">
           </div>
-
+    
           <!-- Temporary Status Message -->
-          <div class="status-message" *ngIf="showStatusMessage">
-            {{ getStatusText() }}
-          </div>
-
-          <div
-            class="overlay"
-            *ngIf="
-              currentState === RecorderState.CameraError ||
-              currentState === RecorderState.CameraOff
-            "
-            (click)="initializeCamera()"
-          >
-            <ion-icon *ngIf="currentState === RecorderState.CameraError" name="camera-off" size="large"></ion-icon>
-            <ion-icon
-              *ngIf="currentState === RecorderState.CameraOff"
-              name="camera"
-              size="large"
-            ></ion-icon>
-            <p>{{ getOverlayText() }}</p>
-            <ion-button
-              *ngIf="currentState === RecorderState.CameraError"
+          @if (showStatusMessage) {
+            <div class="status-message">
+              {{ getStatusText() }}
+            </div>
+          }
+    
+          @if (
+            currentState === RecorderState.CameraError ||
+            currentState === RecorderState.CameraOff
+            ) {
+            <div
+              class="overlay"
               (click)="initializeCamera()"
-              fill="outline"
-              color="primary"
-            >
-              Try Again
-            </ion-button>
-          </div>
+              >
+              @if (currentState === RecorderState.CameraError) {
+                <ion-icon name="camera-off" size="large"></ion-icon>
+              }
+              @if (currentState === RecorderState.CameraOff) {
+                <ion-icon
+                  name="camera"
+                  size="large"
+                ></ion-icon>
+              }
+              <p>{{ getOverlayText() }}</p>
+              @if (currentState === RecorderState.CameraError) {
+                <ion-button
+                  (click)="initializeCamera()"
+                  fill="outline"
+                  color="primary"
+                  >
+                  Try Again
+                </ion-button>
+              }
+            </div>
+          }
         </div>
-
+    
         <div class="controls">
           <!-- Camera Controls (CameraReady state) -->
-          <div *ngIf="currentState === RecorderState.CameraReady" class="camera-controls">
-            <ion-button
-              (click)="startRecording()"
-              fill="clear"
-              color="primary"
-            >
-              <ion-icon name="radio-button-on" slot="start"></ion-icon>
-              Start Recording
-            </ion-button>
-
-            <ion-button
-              (click)="stopCamera()"
-              fill="clear"
-              color="primary"
-            >
-              <ion-icon name="camera-off" slot="start"></ion-icon>
-              Turn Off Camera
-            </ion-button>
-          </div>
-
+          @if (currentState === RecorderState.CameraReady) {
+            <div class="camera-controls">
+              <ion-button
+                (click)="startRecording()"
+                fill="clear"
+                color="primary"
+                >
+                <ion-icon name="radio-button-on" slot="start"></ion-icon>
+                Start Recording
+              </ion-button>
+              <ion-button
+                (click)="stopCamera()"
+                fill="clear"
+                color="primary"
+                >
+                <ion-icon name="camera-off" slot="start"></ion-icon>
+                Turn Off Camera
+              </ion-button>
+            </div>
+          }
+    
           <!-- Recording Controls (Recording state) -->
-          <ion-button
-            *ngIf="currentState === RecorderState.Recording"
-            (click)="stopRecording()"
-            fill="clear"
-            color="primary"
-          >
-            <ion-icon name="stop" slot="start"></ion-icon>
-            Stop Recording
-          </ion-button>
-
+          @if (currentState === RecorderState.Recording) {
+            <ion-button
+              (click)="stopRecording()"
+              fill="clear"
+              color="primary"
+              >
+              <ion-icon name="stop" slot="start"></ion-icon>
+              Stop Recording
+            </ion-button>
+          }
+    
           <!-- Playback Controls (RecordingComplete state) -->
-          <div *ngIf="currentState === RecorderState.RecordingComplete" class="playback-controls">
-            <ion-button
-              (click)="playRecording()"
-              fill="clear"
-              color="primary"
-            >
-              <ion-icon name="play" slot="start"></ion-icon>
-              Play
-            </ion-button>
-
-            <ion-button
-              (click)="downloadRecording()"
-              fill="clear"
-              color="primary"
-            >
-              <ion-icon name="download" slot="start"></ion-icon>
-              Download
-            </ion-button>
-
-            <ion-button
-              (click)="recordAgain()"
-              fill="clear"
-              color="primary"
-            >
-              <ion-icon name="refresh" slot="start"></ion-icon>
-              Record Again
-            </ion-button>
-          </div>
-
+          @if (currentState === RecorderState.RecordingComplete) {
+            <div class="playback-controls">
+              <ion-button
+                (click)="playRecording()"
+                fill="clear"
+                color="primary"
+                >
+                <ion-icon name="play" slot="start"></ion-icon>
+                Play
+              </ion-button>
+              <ion-button
+                (click)="downloadRecording()"
+                fill="clear"
+                color="primary"
+                >
+                <ion-icon name="download" slot="start"></ion-icon>
+                Download
+              </ion-button>
+              <ion-button
+                (click)="recordAgain()"
+                fill="clear"
+                color="primary"
+                >
+                <ion-icon name="refresh" slot="start"></ion-icon>
+                Record Again
+              </ion-button>
+            </div>
+          }
+    
           <!-- Turn On Camera Button (CameraOff state) -->
-          <ion-button
-            *ngIf="currentState === RecorderState.CameraOff"
-            (click)="initializeCamera()"
-            fill="clear"
-            color="primary"
-          >
-            <ion-icon name="camera" slot="start"></ion-icon>
-            Turn On Camera
-          </ion-button>
-
+          @if (currentState === RecorderState.CameraOff) {
+            <ion-button
+              (click)="initializeCamera()"
+              fill="clear"
+              color="primary"
+              >
+              <ion-icon name="camera" slot="start"></ion-icon>
+              Turn On Camera
+            </ion-button>
+          }
+    
           <ion-button
             (click)="closeModal()"
             fill="solid"
             color="primary"
             class="close-btn"
-          >
+            >
             <ion-icon name="close" slot="start"></ion-icon>
             Close
           </ion-button>
         </div>
       </div>
     </div>
-  `,
+    `,
   styleUrls: ['recorder.component.scss'],
 })
 export class RecorderComponent implements OnInit, OnChanges {

@@ -17,31 +17,37 @@ import { Router } from '@angular/router';
           <span class="view-count">{{ +video.statistics.viewCount | shrink }} views</span>
           <span class="publish-date">{{ video.snippet.publishedAt | date }}</span>
         </div>
-        <div *ngIf="isCompact" class="video-duration-overlay">
-          {{ video.contentDetails.duration | toFriendlyDuration }}
+        @if (isCompact) {
+          <div class="video-duration-overlay">
+            {{ video.contentDetails.duration | toFriendlyDuration }}
+          </div>
+        }
+      </div>
+    
+      @if (!isCompact) {
+        <div class="video-info">
+          <h5 class="video-title" [attr.title]="video.snippet.description">{{ video.snippet.title }}</h5>
+          <p class="video-description">{{video.snippet.description}}</p>
+          <div class="action-buttons">
+            <ion-button (click)="addToPlaylist(video)" size="small">
+              <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+              Add to Playlist
+            </ion-button>
+            <ion-button (click)="gotoDetails(video.id)" size="small">
+              <ion-icon name="heart-outline" slot="start"></ion-icon>
+              View Details
+            </ion-button>
+          </div>
         </div>
-      </div>
-
-      <div *ngIf="!isCompact" class="video-info">
-        <h5 class="video-title" [attr.title]="video.snippet.description">{{ video.snippet.title }}</h5>
-        <p class="video-description">{{video.snippet.description}}</p>
-        <div class="action-buttons">
-          <ion-button (click)="addToPlaylist(video)" size="small">
-            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-            Add to Playlist
-          </ion-button>
-          <ion-button (click)="gotoDetails(video.id)" size="small">
-            <ion-icon name="heart-outline" slot="start"></ion-icon>
-            View Details
-          </ion-button>
+      }
+    
+      @if (isCompact) {
+        <div class="video-info compact-info">
+          <h5 class="video-title" [attr.title]="video.snippet.title">{{ video.snippet.title }}</h5>
         </div>
-      </div>
-
-      <div *ngIf="isCompact" class="video-info compact-info">
-        <h5 class="video-title" [attr.title]="video.snippet.title">{{ video.snippet.title }}</h5>
-      </div>
+      }
     </div>
-  `,
+    `,
   styleUrls: ['./youtube-video.component.scss'],
   standalone: true,
   imports: [CommonModule, IonicModule, ToFriendlyDurationPipe, ShrinkNumberPipe],

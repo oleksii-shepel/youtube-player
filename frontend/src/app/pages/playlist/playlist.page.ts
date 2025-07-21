@@ -19,86 +19,96 @@ import { map, switchMap } from '@actioncrew/streamix';
         <ion-title>{{ playlist?.snippet?.title || 'Playlist' }}</ion-title>
       </ion-toolbar>
     </ion-header>
-
+    
     <ion-content class="playlist-page">
       <div class="playlist-container scrollable">
         <!-- Playlist Header Section -->
-        <ion-card *ngIf="playlist" class="playlist-header-card">
-          <img [src]="playlist.snippet.thumbnails.medium.url" alt="{{ playlist.snippet.title }}" />
-          <ion-card-header>
-            <ion-card-title>{{ playlist.snippet.title }}</ion-card-title>
-            <ion-card-subtitle>
-              <span>Published: {{ playlist.snippet.publishedAt | date:'mediumDate' }}</span>
-              <span *ngIf="playlist.contentDetails?.itemCount">
-                • {{ playlist.contentDetails.itemCount }} videos
-              </span>
-            </ion-card-subtitle>
-          </ion-card-header>
-          <ion-card-content>
-            <p [class]="showFullDescription ? 'description-full' : 'description-truncated'">
-              {{ playlist.snippet.description || 'No description available.' }}
-            </p>
-            <ion-button
-              *ngIf="playlist.snippet.description && playlist.snippet.description.length > 150"
-              fill="clear"
-              (click)="toggleDescription()"
-              class="description-toggle"
-            >
-              {{ showFullDescription ? 'Show Less' : 'Show More' }}
-            </ion-button>
-          </ion-card-content>
-          <div class="playlist-actions">
-            <ion-button expand="block" fill="outline" (click)="goToChannel(playlist.snippet.channelId)">
-              <ion-icon name="person-circle-outline" slot="start"></ion-icon>
-              Channel
-            </ion-button>
-            <ion-button expand="block" class="play-all" (click)="playAllVideos(playlist.id)">
-              <ion-icon name="play-circle-outline" slot="start"></ion-icon>
-              Play All
-            </ion-button>
-          </div>
-        </ion-card>
-
+        @if (playlist) {
+          <ion-card class="playlist-header-card">
+            <img [src]="playlist.snippet.thumbnails.medium.url" alt="{{ playlist.snippet.title }}" />
+            <ion-card-header>
+              <ion-card-title>{{ playlist.snippet.title }}</ion-card-title>
+              <ion-card-subtitle>
+                <span>Published: {{ playlist.snippet.publishedAt | date:'mediumDate' }}</span>
+                @if (playlist.contentDetails?.itemCount) {
+                  <span>
+                    • {{ playlist.contentDetails.itemCount }} videos
+                  </span>
+                }
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <p [class]="showFullDescription ? 'description-full' : 'description-truncated'">
+                {{ playlist.snippet.description || 'No description available.' }}
+              </p>
+              @if (playlist.snippet.description && playlist.snippet.description.length > 150) {
+                <ion-button
+                  fill="clear"
+                  (click)="toggleDescription()"
+                  class="description-toggle"
+                  >
+                  {{ showFullDescription ? 'Show Less' : 'Show More' }}
+                </ion-button>
+              }
+            </ion-card-content>
+            <div class="playlist-actions">
+              <ion-button expand="block" fill="outline" (click)="goToChannel(playlist.snippet.channelId)">
+                <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+                Channel
+              </ion-button>
+              <ion-button expand="block" class="play-all" (click)="playAllVideos(playlist.id)">
+                <ion-icon name="play-circle-outline" slot="start"></ion-icon>
+                Play All
+              </ion-button>
+            </div>
+          </ion-card>
+        }
+    
         <!-- Videos Grid -->
-        <div *ngIf="videos.length > 0" class="videos-grid">
-          <div
-            *ngFor="let video of videos"
-            class="video-item"
-            [class.selected]="isSelected(video.contentDetails.videoId || video.id)"
-            (click)="toggleSelection(video.contentDetails.videoId || video.id)"
-          >
-            <app-youtube-video
-              [videoData]="video"
-              (addTrackToPlaylist)="onAddTrackToPlaylist(video)"
-            ></app-youtube-video>
+        @if (videos.length > 0) {
+          <div class="videos-grid">
+            @for (video of videos; track video) {
+              <div
+                class="video-item"
+                [class.selected]="isSelected(video.contentDetails.videoId || video.id)"
+                (click)="toggleSelection(video.contentDetails.videoId || video.id)"
+                >
+                <app-youtube-video
+                  [videoData]="video"
+                  (addTrackToPlaylist)="onAddTrackToPlaylist(video)"
+                ></app-youtube-video>
+              </div>
+            }
           </div>
-        </div>
-
+        }
+    
         <ion-infinite-scroll (ionInfinite)="loadMore()">
           <ion-infinite-scroll-content
             loadingSpinner="bubbles"
             loadingText="Loading more..."
-          >
+            >
           </ion-infinite-scroll-content>
         </ion-infinite-scroll>
       </div>
     </ion-content>
-
-    <ion-footer *ngIf="selectedVideoIds.size > 0">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button (click)="clearSelection()">Clear</ion-button>
-        </ion-buttons>
-        <ion-title>{{ selectedVideoIds.size }} selected</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="addSelectedToPlaylist()">
-            <ion-icon name="add" slot="start"></ion-icon>
-            Add to Playlist
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-footer>
-  `,
+    
+    @if (selectedVideoIds.size > 0) {
+      <ion-footer>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="clearSelection()">Clear</ion-button>
+          </ion-buttons>
+          <ion-title>{{ selectedVideoIds.size }} selected</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="addSelectedToPlaylist()">
+              <ion-icon name="add" slot="start"></ion-icon>
+              Add to Playlist
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-footer>
+    }
+    `,
   styleUrls: ['playlist.page.scss'],
   standalone: true,
   imports: [CommonModule, IonicModule, YoutubeVideoComponent],

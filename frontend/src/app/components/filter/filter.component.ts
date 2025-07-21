@@ -24,124 +24,141 @@ export interface SelectedFilters {
   template: `
     <ng-container>
       <!-- Trending Chip -->
-      <div class="chip-group" *ngIf="searchType === 'videos'">
-        <ion-chip
-          [color]="selectedFilters.trending ? 'primary' : 'light'"
-          (click)="toggleTrending()"
-        >
-          <ion-label>Trending</ion-label>
-        </ion-chip>
-      </div>
+      @if (searchType === 'videos') {
+        <div class="chip-group">
+          <ion-chip
+            [color]="selectedFilters.trending ? 'primary' : 'light'"
+            (click)="toggleTrending()"
+            >
+            <ion-label>Trending</ion-label>
+          </ion-chip>
+        </div>
+      }
 
       <!-- Duration Group -->
-      <div class="chip-group" *ngIf="searchType === 'videos'" [class.disabled]="selectedFilters.trending">
-        <ion-chip
-          [color]="selectedFilters.duration === 'Short' ? 'primary' : 'light'"
-          (click)="selectFilter('duration', 'Short')"
-        >
-          <ion-label>Short</ion-label>
-        </ion-chip>
-        <ion-chip
-          [color]="selectedFilters.duration === 'Medium' ? 'primary' : 'light'"
-          (click)="selectFilter('duration', 'Medium')"
-        >
-          <ion-label>Medium</ion-label>
-        </ion-chip>
-        <ion-chip
-          [color]="selectedFilters.duration === 'Long' ? 'primary' : 'light'"
-          (click)="selectFilter('duration', 'Long')"
-        >
-          <ion-label>Long</ion-label>
-        </ion-chip>
-      </div>
+      @if (searchType === 'videos') {
+        <div class="chip-group" [class.disabled]="selectedFilters.trending">
+          <ion-chip
+            [color]="selectedFilters.duration === 'Short' ? 'primary' : 'light'"
+            (click)="selectFilter('duration', 'Short')"
+            >
+            <ion-label>Short</ion-label>
+          </ion-chip>
+          <ion-chip
+            [color]="selectedFilters.duration === 'Medium' ? 'primary' : 'light'"
+            (click)="selectFilter('duration', 'Medium')"
+            >
+            <ion-label>Medium</ion-label>
+          </ion-chip>
+          <ion-chip
+            [color]="selectedFilters.duration === 'Long' ? 'primary' : 'light'"
+            (click)="selectFilter('duration', 'Long')"
+            >
+            <ion-label>Long</ion-label>
+          </ion-chip>
+        </div>
+      }
 
       <!-- HD/SD Group -->
-      <div class="chip-group" *ngIf="searchType === 'videos'" [class.disabled]="selectedFilters.trending">
-        <ion-chip
-          [color]="selectedFilters.quality === 'HD' ? 'primary' : 'light'"
-          (click)="selectFilter('quality', 'HD')"
-        >
-          <ion-label>HD</ion-label>
-        </ion-chip>
-        <ion-chip
-          [color]="selectedFilters.quality === 'SD' ? 'primary' : 'light'"
-          (click)="selectFilter('quality', 'SD')"
-        >
-          <ion-label>SD</ion-label>
-        </ion-chip>
-      </div>
+      @if (searchType === 'videos') {
+        <div class="chip-group" [class.disabled]="selectedFilters.trending">
+          <ion-chip
+            [color]="selectedFilters.quality === 'HD' ? 'primary' : 'light'"
+            (click)="selectFilter('quality', 'HD')"
+            >
+            <ion-label>HD</ion-label>
+          </ion-chip>
+          <ion-chip
+            [color]="selectedFilters.quality === 'SD' ? 'primary' : 'light'"
+            (click)="selectFilter('quality', 'SD')"
+            >
+            <ion-label>SD</ion-label>
+          </ion-chip>
+        </div>
+      }
 
       <!-- Live/Upcoming/Archived Group -->
-      <div class="chip-group" *ngIf="searchType === 'videos'" [class.disabled]="selectedFilters.trending">
-        <ion-chip
-          [color]="selectedFilters.status === 'Live' ? 'primary' : 'light'"
-          (click)="selectFilter('status', 'Live')"
-        >
-          <ion-label>Live</ion-label>
-        </ion-chip>
-        <ion-chip
-          [color]="selectedFilters.status === 'Upcoming' ? 'primary' : 'light'"
-          (click)="selectFilter('status', 'Upcoming')"
-        >
-          <ion-label>Upcoming</ion-label>
-        </ion-chip>
-        <ion-chip
-          [color]="selectedFilters.status === 'Archived' ? 'primary' : 'light'"
-          (click)="selectFilter('status', 'Archived')"
-        >
-          <ion-label>Archived</ion-label>
-        </ion-chip>
-      </div>
+      @if (searchType === 'videos') {
+        <div class="chip-group" [class.disabled]="selectedFilters.trending">
+          <ion-chip
+            [color]="selectedFilters.status === 'Live' ? 'primary' : 'light'"
+            (click)="selectFilter('status', 'Live')"
+            >
+            <ion-label>Live</ion-label>
+          </ion-chip>
+          <ion-chip
+            [color]="selectedFilters.status === 'Upcoming' ? 'primary' : 'light'"
+            (click)="selectFilter('status', 'Upcoming')"
+            >
+            <ion-label>Upcoming</ion-label>
+          </ion-chip>
+          <ion-chip
+            [color]="selectedFilters.status === 'Archived' ? 'primary' : 'light'"
+            (click)="selectFilter('status', 'Archived')"
+            >
+            <ion-label>Archived</ion-label>
+          </ion-chip>
+        </div>
+      }
 
       <!-- Playlists Group -->
-      <div class="chip-group" *ngIf="searchType === 'playlists'">
-        <ion-chip
-          *ngFor="let playlist of playlists"
+      @if (searchType === 'playlists') {
+        <div class="chip-group">
+          @for (playlist of playlists; track playlist) {
+            <ion-chip
           [color]="
             selectedFilters.playlist === playlist.value ? 'primary' : 'light'
           "
-          (click)="selectFilter('playlist', playlist.value)"
-        >
-          <ion-label>{{ playlist.label }}</ion-label>
-        </ion-chip>
-      </div>
+              (click)="selectFilter('playlist', playlist.value)"
+              >
+              <ion-label>{{ playlist.label }}</ion-label>
+            </ion-chip>
+          }
+        </div>
+      }
 
       <!-- Topics Group -->
       <!-- Topics Bar -->
       <div class="channels-filter">
-        <div class="chip-group" *ngIf="searchType === 'channels'">
-          <ion-chip
-            *ngFor="let topic of topics"
-            [color]="isTopicSelected(topic.value) ? 'primary' : 'light'"
-            (click)="selectFilter('topic', topic.value)"
-          >
-            <ion-label>{{ topic.label }}</ion-label>
-          </ion-chip>
-        </div>
+        @if (searchType === 'channels') {
+          <div class="chip-group">
+            @for (topic of topics; track topic) {
+              <ion-chip
+                [color]="isTopicSelected(topic.value) ? 'primary' : 'light'"
+                (click)="selectFilter('topic', topic.value)"
+                >
+                <ion-label>{{ topic.label }}</ion-label>
+              </ion-chip>
+            }
+          </div>
+        }
 
         <!-- Subtopics Bar (visible only if expandedTopic has subtopics) -->
-        <div
-          class="chip-group subtopics"
-          *ngIf="
-            searchType === 'channels' &&
-            expandedTopic &&
-            getSubtopics(expandedTopic)?.length
-          "
-        >
-          <ion-chip
-            *ngFor="let sub of getSubtopics(expandedTopic)"
+        @if (
+          searchType === 'channels' &&
+          expandedTopic &&
+          getSubtopics(expandedTopic)!.length
+          ) {
+          <div
+            class="chip-group subtopics"
+            >
+            @for (sub of getSubtopics(expandedTopic); track sub) {
+              <ion-chip
             [color]="
               isSubtopicSelected(expandedTopic, sub.value) ? 'primary' : 'light'
             "
-            (click)="selectSubtopic(expandedTopic, sub.value)"
-          >
-            <ion-label>{{ sub.label }}</ion-label>
-          </ion-chip>
-        </div>
+                (click)="selectSubtopic(expandedTopic, sub.value)"
+                >
+                <ion-label>{{ sub.label }}</ion-label>
+              </ion-chip>
+            }
+          </div>
+        }
       </div>
     </ng-container>
-  `,
+    `,
   styleUrls: ['./filter.component.scss'],
+  standalone: true,
   imports: [CommonModule, FormsModule, IonicModule],
 })
 export class FilterComponent {

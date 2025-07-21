@@ -13,7 +13,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { createReplaySubject, ReplaySubject, Subscription, take } from '@actioncrew/streamix';
-import { CommonModule } from '@angular/common';
+
 import { IonicModule } from '@ionic/angular';
 import { DirectiveModule } from 'src/app/directives';
 
@@ -21,80 +21,91 @@ import { DirectiveModule } from 'src/app/directives';
   standalone: true,
   selector: 'youtube-player',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, IonicModule, DirectiveModule],
+  imports: [IonicModule, DirectiveModule],
   template: ` <div
-    class="modal-container"
-    [appDraggable]="draggable"
-    [appResizable]="resizable"
-    [preserveAspectRatio]="false"
-    [class.with-border]="showBorder"
-    [class.hidden]="isHidden"
-  >
-    <div
-      class="drag-overlay"
-      *ngIf="draggable"
-      (click)="$event.stopPropagation()"
-    ></div>
-
-    <div #playerContainer id="playerContainer" (click)="selectVisualPreset()"></div>
-
-    <div class="custom-buttons" *ngIf="showButtons">
-      <ion-button expand="block" fill="clear" (click)="toggleMode()">
-        <svg *ngIf="mode === 'youtube'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-projector-icon lucide-projector"><path d="M5 7 3 5"/><path d="M9 6V3"/><path d="m13 7 2-2"/><circle cx="9" cy="13" r="3"/><path d="M11.83 12H20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2.17"/><path d="M16 16h2"/></svg>
-        <svg *ngIf="mode === 'butterchurn'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-no-axes-column-icon lucide-chart-no-axes-column"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
-        <svg *ngIf="mode === 'bars'" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
-      </ion-button>
-      <ion-button expand="block" fill="clear" (click)="togglePin()">
-        <svg
-          *ngIf="draggable && resizable"
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="lucide lucide-pin-icon lucide-pin"
-        >
-          <path d="M12 17v5" />
-          <path
-            d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"
-          />
-        </svg>
-        <svg
-          *ngIf="!draggable || !resizable"
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="lucide lucide-pin-off-icon lucide-pin-off"
-        >
-          <path d="M12 17v5" />
-          <path d="M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89" />
-          <path d="m2 2 20 20" />
-          <path
-            d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11"
-          />
-        </svg>
-      </ion-button>
-      <ion-button
-            (click)="closeModal()"
-            fill="solid"
-            color="primary"
-            class="close-btn"
-          >
-        <ion-icon name="close" slot="start"></ion-icon>
-        Close
-      </ion-button>
-    </div>
-  </div>`,
+      class="modal-container"
+      [appDraggable]="draggable"
+      [appResizable]="resizable"
+      [preserveAspectRatio]="false"
+      [class.with-border]="showBorder"
+      [class.hidden]="isHidden"
+      >
+      @if (draggable) {
+        <div
+          class="drag-overlay"
+          (click)="$event.stopPropagation()"
+        ></div>
+      }
+    
+      <div #playerContainer id="playerContainer" (click)="selectVisualPreset()"></div>
+    
+      @if (showButtons) {
+        <div class="custom-buttons">
+          <ion-button expand="block" fill="clear" (click)="toggleMode()">
+            @if (mode === 'youtube') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-projector-icon lucide-projector"><path d="M5 7 3 5"/><path d="M9 6V3"/><path d="m13 7 2-2"/><circle cx="9" cy="13" r="3"/><path d="M11.83 12H20a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2.17"/><path d="M16 16h2"/></svg>
+            }
+            @if (mode === 'butterchurn') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-no-axes-column-icon lucide-chart-no-axes-column"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+            }
+            @if (mode === 'bars') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-youtube-icon lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
+            }
+          </ion-button>
+          <ion-button expand="block" fill="clear" (click)="togglePin()">
+            @if (draggable && resizable) {
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-pin-icon lucide-pin"
+                >
+                <path d="M12 17v5" />
+                <path
+                  d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"
+                  />
+                </svg>
+              }
+              @if (!draggable || !resizable) {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-pin-off-icon lucide-pin-off"
+                  >
+                  <path d="M12 17v5" />
+                  <path d="M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89" />
+                  <path d="m2 2 20 20" />
+                  <path
+                    d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11"
+                    />
+                  </svg>
+                }
+              </ion-button>
+              <ion-button
+                (click)="closeModal()"
+                fill="solid"
+                color="primary"
+                class="close-btn"
+                >
+                <ion-icon name="close" slot="start"></ion-icon>
+                Close
+              </ion-button>
+            </div>
+          }
+        </div>`,
 
   styles: [`
     .modal-container {
