@@ -141,7 +141,8 @@
       padding: 16px;
       box-shadow: 0 4px 8px var(--ion-box-shadow-color-light);
       overflow-y: auto;
-      height: min-content;
+      display: flex;
+      flex-direction: column;
 
       .settings-header {
         display: flex;

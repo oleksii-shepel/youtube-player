@@ -29,6 +29,17 @@ import { IonicModule } from '@ionic/angular';
               {{ isApiConnected ? 'Connected' : 'Disconnected' }}
             </ion-chip>
           </div>
+          <div class="back-button-container">
+            <ion-button
+              fill="outline"
+              color="primary"
+              (click)="goBackToApp()"
+              class="back-button"
+            >
+              <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+              Back to App
+            </ion-button>
+          </div>
         </div>
 
         <div class="settings-nav scrollable">
@@ -543,21 +554,9 @@ import { IonicModule } from '@ionic/angular';
             Select a category from the left menu to view YouTube API settings.
           </p>
         </div>
-
-        <div class="back-button-container">
-          <ion-button
-            fill="outline"
-            color="primary"
-            (click)="goBackToApp()"
-            class="back-button"
-          >
-            <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-            Back to App
-          </ion-button>
-        </div>
       </div>
-      </div>
-    </ion-content>
+    </div>
+  </ion-content>
   `,
   styleUrls: ['./settings.component.scss'],
   standalone: true,
