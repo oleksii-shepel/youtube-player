@@ -34,7 +34,7 @@ import { Router } from '@angular/router';
             </div>
 
             <div class="toolbar-right">
-              <div #searchContainer class="search-container" [class.disabled]="filters.trending  && searchType === 'videos'">
+              <div class="search-container" [class.disabled]="filters.trending  && searchType === 'videos'" (animationend)="onAnimationEnd()">
                 <ion-icon name="search-outline" [class.disabled]="filters.trending && searchType === 'videos'"></ion-icon>
                 <ion-input
                   color="primary"
@@ -332,7 +332,6 @@ export class SearchPage {
   showPopover = false;
   popoverEvent: any;
 
-  @ViewChild('searchContainer', { static: false }) searchContainer!: ElementRef<HTMLElement>;
   @ViewChild('googleLogInButton', { static: false }) googleLogInButton!: ElementRef<HTMLElement>;
 
   constructor(
@@ -358,12 +357,6 @@ export class SearchPage {
       this.authorization.initializeGsiButton();
     }
 
-    if (this.searchContainer?.nativeElement) {
-      this.searchContainer.nativeElement.addEventListener('animationend', () => {
-        this.queryInvalid = false;
-      });
-    }
-
     this.subscriptions.push(this.dataService.searchError$.subscribe(async msg => {
        const toast = await this.toastCtrl.create({
         message: msg,
@@ -373,6 +366,10 @@ export class SearchPage {
       });
       toast.present();
     }));
+  }
+
+  onAnimationEnd() {
+    this.queryInvalid = false;
   }
 
   ngOnDestroy() {
