@@ -180,6 +180,7 @@ import { Router } from '@angular/router';
                           <div class="google-signin-label">Sign in with Google</div>
                         </ion-label>
                         <ion-button
+                          #googleLogInButton
                           id="google-signin-btn"
                           fill="clear"
                           size="small"
@@ -332,6 +333,7 @@ export class SearchPage {
   popoverEvent: any;
 
   @ViewChild('searchContainer', { static: false }) searchContainer!: ElementRef<HTMLElement>;
+  @ViewChild('googleLogInButton', { static: false }) googleLogInButton!: ElementRef<HTMLElement>;
 
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
@@ -352,10 +354,7 @@ export class SearchPage {
   private subscriptions: Subscription[] = [];
 
   ngAfterViewInit() {
-    const container = document.getElementById('google-signin-btn');
-    if (!container) {
-      console.warn('Google Sign-In button container not found');
-    } else {
+    if (this.googleLogInButton?.nativeElement) {
       this.authorization.initializeGsiButton();
     }
 
