@@ -1,10 +1,10 @@
 import { PlayerService } from './../../services/player.service';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { fork, of, Stream, Subscription, switchMap } from '@actioncrew/streamix';
-import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
+import { debounce, distinctUntilChanged, map, filter } from '@actioncrew/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { PlaylistService } from 'src/app/services/playlist.service';
-import { YoutubeDataService } from 'src/app/services/data.service';  // Import YoutubeDataService
+import { YoutubeDataService } from 'src/app/services/data.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
@@ -34,7 +34,7 @@ import { Router } from '@angular/router';
             </div>
 
             <div class="toolbar-right">
-              <div class="search-container" [class.disabled]="filters.trending  && searchType === 'videos'">
+              <div #searchContainer class="search-container" [class.disabled]="filters.trending  && searchType === 'videos'">
                 <ion-icon name="search-outline" [class.disabled]="filters.trending && searchType === 'videos'"></ion-icon>
                 <ion-input
                   color="primary"
@@ -44,6 +44,7 @@ import { Router } from '@angular/router';
                   (ionInput)="onSearchQueryChange($event)"
                   (keydown)="onKeydown($event)"
                   [class.disabled]="filters.trending && searchType === 'videos'"
+                  [class.invalid]="queryInvalid"
                 ></ion-input>
                 <div class="icon-buttons">
                   @if (searchbar.value) {
@@ -301,6 +302,7 @@ import { Router } from '@angular/router';
   ]
 })
 export class SearchPage {
+  queryInvalid = false;
   searchQuery: string = '';
   searchType: string = 'videos'; // Default to video
   suggestions: string[] = [];
@@ -329,8 +331,7 @@ export class SearchPage {
   showPopover = false;
   popoverEvent: any;
 
-  @ViewChild('googleButtonContainer', { static: false })
-  googleButtonContainer!: ElementRef;
+  @ViewChild('searchContainer', { static: false }) searchContainer!: ElementRef<HTMLElement>;
 
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
@@ -356,6 +357,12 @@ export class SearchPage {
       console.warn('Google Sign-In button container not found');
     } else {
       this.authorization.initializeGsiButton();
+    }
+
+    if (this.searchContainer?.nativeElement) {
+      this.searchContainer.nativeElement.addEventListener('animationend', () => {
+        this.queryInvalid = false;
+      });
     }
 
     this.subscriptions.push(this.dataService.searchError$.subscribe(async msg => {
@@ -461,6 +468,7 @@ export class SearchPage {
 
   onSearchQueryChange(event: any) {
     const query = event.target.value;
+    this.queryInvalid = false;
     if (query && query.length > 2) {
       this.fetchSuggestions(query).subscribe((suggestions: string[]) => {
         this.suggestions = suggestions;
@@ -489,14 +497,21 @@ export class SearchPage {
   performSearch() {
     const params = this.buildSearchParams();
 
+    // Reset previous error state
+    this.queryInvalid = false;
+
     // Store new search state
     this.lastSearchQuery = this.searchQuery.trim();
     this.lastSearchType = this.searchType;
 
+    if (!this.filters.trending && this.lastSearchQuery === '') {
+      this.queryInvalid = true;
+    }
+
     return of(true).pipe(
       fork([
-        {
-          on: () => this.filters.trending && this.searchType === 'videos',
+        { on: () => this.queryInvalid, handler: () => of([]) },
+        { on: () => this.filters.trending && this.searchType === 'videos',
           handler: () =>
             this.dataService.fetchTrendingVideos().pipe(
               map((response: any) => {
@@ -526,7 +541,7 @@ export class SearchPage {
                 return detailed$.pipe(
                   map((detailedItems: any) => {
                     this.updatePageToken(response);
-                    return detailedItems;
+                    return detailedItems.items;
                   })
                 );
               })
@@ -557,8 +572,8 @@ export class SearchPage {
 
     return of(true).pipe(
       fork([
-        {
-          on: () => this.filters.trending && this.searchType === 'videos',
+        { on: () => this.queryInvalid, handler: () => of([]) },
+        { on: () => this.filters.trending && this.searchType === 'videos',
           handler: () =>
             this.dataService.fetchTrendingVideos(params).pipe(
               map((response: any) => {

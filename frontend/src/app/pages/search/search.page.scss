@@ -132,6 +132,7 @@ ion-content.main {
   min-height: 40px;
   max-height: 40px;
   user-select: none;
+  padding: 0 10px !important;
 
   &::placeholder {
     color: var(--ion-color-primary);
@@ -142,6 +143,22 @@ ion-content.main {
   }
 
   --highlight-color: var(--ion-color-primary);
+
+  &.invalid {
+    background-color: rgba(var(--ion-color-danger-rgb), 0.15); // soft red fill
+    border-radius: 6px;
+    animation: shake 0.5s ease;
+    animation-fill-mode: none; // important: do not keep final frame
+  }
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
 }
 
 .search-container ion-button {
