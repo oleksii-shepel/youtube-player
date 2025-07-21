@@ -568,7 +568,7 @@ import { IonicModule } from '@ionic/angular';
 ]
 })
 export class SettingsComponent implements OnInit {
-  selectedMainSection: string = 'user-info';
+  selectedMainSection: string = 'appearance';
   isApiConnected: boolean = false;
   isLoading: boolean = false;
   showApiKey: boolean = false;
@@ -690,7 +690,6 @@ export class SettingsComponent implements OnInit {
 
   async ngOnInit() {
     await this.storage.create();
-    this.selectedMainSection = 'user-info';
     await this.loadSavedSettings();
     this.applyTheme();
     this.checkApiConnection();
