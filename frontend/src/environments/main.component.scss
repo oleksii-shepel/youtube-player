@@ -35,8 +35,7 @@
   --background: transparent;
 
   &.show-menu {
-    --background: var(--ion-toolbar-background); // or any visible color
-    opacity: 0.9;
+    --background: var(--ion-color-step-750); // or any visible color
     backdrop-filter: none; // optional for glassy effect
   }
 }
