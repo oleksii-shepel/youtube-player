@@ -37,7 +37,7 @@ declare const YT: any;
           contentId="main-content"
           type="overlay"
           menuId="main-menu"
-          [class.overlay-active]="isOverlayMenuVisible"
+          [class.show-menu]="isOverlayMenuVisible"
         >
           <div class="content">
             <app-playlist class="expandable-list"></app-playlist>
