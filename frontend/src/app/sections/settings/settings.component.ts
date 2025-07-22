@@ -4,6 +4,8 @@ import { IonicStorageModule, Storage } from '@ionic/storage-angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
+import { Settings } from 'src/app/services/settings.service';
+import { firstValueFrom } from '@actioncrew/streamix';
 
 @Component({
   selector: 'app-settings',
@@ -684,15 +686,164 @@ export class SettingsComponent implements OnInit {
     cacheDuration: 3600
   };
 
-  constructor(private router: Router, private storage: Storage) {
+  constructor(private router: Router, private storage: Storage, private settings: Settings) {
     this.filteredSubscriptions = [...this.subscriptions];
   }
 
-  async ngOnInit() {
+   async ngOnInit() {
     await this.storage.create();
     await this.loadSavedSettings();
     this.applyTheme();
-    this.checkApiConnection();
+    await this.checkApiConnection(); // Made this async
+  }
+
+  // Updated checkApiConnection to use Settings service
+  async checkApiConnection() {
+    if (!this.apiConfig.apiKey) {
+      this.isApiConnected = false;
+      return;
+    }
+
+    this.isLoading = true;
+
+    try {
+      // Use the Settings service to check connection
+      const channelData = await firstValueFrom(this.settings.getMyChannel());
+      this.isApiConnected = true;
+      await this.loadUserData();
+    } catch (error) {
+      console.error('API Connection Error:', error);
+      this.isApiConnected = false;
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  // Updated loadUserData to use Settings service
+  async loadUserData() {
+    if (!this.isApiConnected) return;
+
+    this.isLoading = true;
+    try {
+      // Get channel data
+      const channelResponse = await firstValueFrom(this.settings.getMyChannel());
+      const channel = channelResponse.items[0];
+
+      this.userInfo = {
+        name: channel.snippet.title,
+        channelId: channel.id,
+        avatar: channel.snippet.thumbnails?.default?.url || 'assets/youtube-default-avatar.png',
+        email: '', // Not available in basic response
+        subscriberCount: parseInt(channel.statistics.subscriberCount),
+        videoCount: parseInt(channel.statistics.videoCount),
+        totalViews: parseInt(channel.statistics.viewCount),
+        joinedDate: new Date(channel.snippet.publishedAt).toLocaleDateString(),
+        description: channel.snippet.description
+      };
+
+      await this.loadPlaylists();
+      await this.loadSubscriptions();
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  // Updated loadPlaylists to use Settings service
+  async loadPlaylists() {
+    if (!this.isApiConnected) return;
+
+    try {
+      const playlistsResponse = await firstValueFrom(this.settings.listPlaylists());
+      this.playlists = playlistsResponse.items.map((item: any) => ({
+        id: item.id,
+        name: item.snippet.title,
+        description: item.snippet.description,
+        videoCount: 0, // Would need another API call to get this
+        privacy: item.status.privacyStatus,
+        thumbnail: item.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
+        createdDate: new Date(item.snippet.publishedAt).toLocaleDateString()
+      }));
+      this.playlistCount = this.playlists.length;
+    } catch (error) {
+      console.error('Error loading playlists:', error);
+    }
+  }
+
+  // Updated loadSubscriptions to use Settings service
+  async loadSubscriptions() {
+    if (!this.isApiConnected) return;
+
+    try {
+      const subscriptionsResponse = await firstValueFrom(this.settings.listSubscriptions());
+      this.subscriptions = subscriptionsResponse.items.map((item: any) => ({
+        id: item.snippet.resourceId.channelId,
+        name: item.snippet.title,
+        subscriberCount: 0, // Would need another API call to get this
+        category: '', // Not directly available in subscription response
+        thumbnail: item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg'
+      }));
+      this.subscriptionCount = this.subscriptions.length;
+      this.filteredSubscriptions = [...this.subscriptions];
+    } catch (error) {
+      console.error('Error loading subscriptions:', error);
+    }
+  }
+
+  // Updated createPlaylist to use Settings service
+  async createPlaylist() {
+    if (!this.isApiConnected) return;
+
+    try {
+      // In a real app, you'd get these values from a form
+      const title = 'New Playlist';
+      const description = 'Playlist created from the app';
+      const privacyStatus = 'private';
+
+      const response = await firstValueFrom(
+        this.settings.createPlaylist(title, description, privacyStatus)
+      );
+
+      // Add the new playlist to our list
+      this.playlists.unshift({
+        id: response.id,
+        name: response.snippet.title,
+        description: response.snippet.description,
+        videoCount: 0,
+        privacy: response.status.privacyStatus,
+        thumbnail: response.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
+        createdDate: new Date(response.snippet.publishedAt).toLocaleDateString()
+      });
+      this.playlistCount = this.playlists.length;
+    } catch (error) {
+      console.error('Error creating playlist:', error);
+    }
+  }
+
+  // Updated deletePlaylist to use Settings service
+  async deletePlaylist(playlist: any) {
+    try {
+      await firstValueFrom(this.settings.deletePlaylist(playlist.id));
+      this.playlists = this.playlists.filter(p => p.id !== playlist.id);
+      this.playlistCount = this.playlists.length;
+    } catch (error) {
+      console.error('Error deleting playlist:', error);
+    }
+  }
+
+  // Updated unsubscribe to use Settings service
+  async unsubscribe(channel: any) {
+    try {
+      // Note: This assumes the subscriptionId is the same as channelId
+      // In a real app, you'd need to find the actual subscriptionId
+      await firstValueFrom(this.settings.unsubscribe(channel.id));
+      this.subscriptions = this.subscriptions.filter(s => s.id !== channel.id);
+      this.subscriptionCount = this.subscriptions.length;
+      this.filterSubscriptions();
+    } catch (error) {
+      console.error('Error unsubscribing:', error);
+    }
   }
 
   async loadSavedSettings() {
@@ -780,10 +931,6 @@ export class SettingsComponent implements OnInit {
     this.isApiConnected = false;
   }
 
-  checkApiConnection() {
-    this.isApiConnected = !!this.apiConfig.apiKey;
-  }
-
   async testApiConnection() {
     if (!this.apiConfig.apiKey) {
       this.isApiConnected = false;
@@ -804,87 +951,6 @@ export class SettingsComponent implements OnInit {
       this.isApiConnected = false;
     } finally {
       this.isLoading = false;
-    }
-  }
-
-  async loadUserData() {
-    if (!this.isApiConnected) return;
-
-    this.isLoading = true;
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // In a real app, you would fetch actual user data here
-      this.userInfo = {
-        name: 'Tech Creator',
-        channelId: 'UC1234567890abcdef',
-        avatar: 'assets/youtube-default-avatar.png',
-        email: 'creator@example.com',
-        subscriberCount: 125000,
-        videoCount: 47,
-        totalViews: 1250000,
-        joinedDate: 'Jan 15, 2020',
-        description: 'Technology and programming content creator'
-      };
-
-      await this.loadPlaylists();
-      await this.loadSubscriptions();
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    } finally {
-      this.isLoading = false;
-    }
-  }
-
-  async loadPlaylists() {
-    if (!this.isApiConnected) return;
-
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // In a real app, you would fetch actual playlists
-      this.playlists = [
-        {
-          id: 'PL1',
-          name: 'JavaScript Tutorials',
-          description: 'Complete JavaScript programming course',
-          videoCount: 25,
-          privacy: 'public',
-          thumbnail: 'assets/playlist-1.jpg',
-          createdDate: 'Mar 2023'
-        },
-        // ... other playlists ...
-      ];
-      this.playlistCount = this.playlists.length;
-    } catch (error) {
-      console.error('Error loading playlists:', error);
-    }
-  }
-
-  async loadSubscriptions() {
-    if (!this.isApiConnected) return;
-
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // In a real app, you would fetch actual subscriptions
-      this.subscriptions = [
-        {
-          id: 'UC1',
-          name: 'Tech Channel Pro',
-          subscriberCount: 2100000,
-          category: 'Technology',
-          thumbnail: 'assets/channel-1.jpg'
-        },
-        // ... other subscriptions ...
-      ];
-      this.subscriptionCount = this.subscriptions.length;
-      this.filteredSubscriptions = [...this.subscriptions];
-    } catch (error) {
-      console.error('Error loading subscriptions:', error);
     }
   }
 
@@ -935,34 +1001,14 @@ export class SettingsComponent implements OnInit {
     return Math.round((this.apiConfig.quotaUsage / this.apiConfig.quotaLimit) * 100);
   }
 
-  createPlaylist() {
-    // In a real app, implement playlist creation logic
-    console.log('Create new playlist');
-  }
-
   editPlaylist(playlist: any) {
     // In a real app, implement playlist editing logic
     console.log('Edit playlist:', playlist);
   }
 
-  deletePlaylist(playlist: any) {
-    // In a real app, implement playlist deletion logic
-    console.log('Delete playlist:', playlist);
-    this.playlists = this.playlists.filter(p => p.id !== playlist.id);
-    this.playlistCount = this.playlists.length;
-  }
-
   viewChannel(channel: any) {
     // In a real app, implement channel viewing logic
     console.log('View channel:', channel);
-  }
-
-  unsubscribe(channel: any) {
-    // In a real app, implement unsubscribe logic
-    console.log('Unsubscribe from channel:', channel);
-    this.subscriptions = this.subscriptions.filter(s => s.id !== channel.id);
-    this.subscriptionCount = this.subscriptions.length;
-    this.filterSubscriptions();
   }
 
   goBackToApp() {
