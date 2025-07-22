@@ -1,16 +1,17 @@
-import { Authorization } from './../../services/authorization.service';
-import { Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
-import { IonicStorageModule, Storage } from '@ionic/storage-angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
-import { Settings } from 'src/app/services/settings.service';
+import { Storage } from '@ionic/storage-angular';
+import { Router } from '@angular/router';
 import { firstValueFrom } from '@actioncrew/streamix';
+import { Settings } from 'src/app/services/settings.service';
+import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
-import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import { TableComponent, PageState, TableColumn } from '../../components/table/table.component';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { IonicModule } from '@ionic/angular';
 
-export type AppTheme = 'default' | 'dark' | 'light'; // 'default' will now map to system preference
+export type AppTheme = 'default' | 'dark' | 'light';
 export type AppFontSize = 'small' | 'medium' | 'large';
 export type AppThumbnailSize = 'small' | 'medium' | 'large';
 export type AppDisplayResults = 'change' | 'search';
@@ -37,12 +38,30 @@ export interface AppearanceSettings {
   maxItemsPerRequest: number;
 }
 
+export interface Playlist {
+  id: string;
+  name: string;
+  description: string;
+  videoCount: number;
+  privacy: string;
+  thumbnail: string;
+  createdDate: string;
+}
+
+export interface Subscription {
+  id: string;
+  name: string;
+  subscriberCount: number;
+  category: string;
+  thumbnail: string;
+}
+
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, IonicStorageModule, NgxDatatableModule],
+  imports: [CommonModule, FormsModule, IonicModule, TableComponent],
 })
 export class SettingsComponent implements OnInit {
   selectedMainSection: string = 'appearance';
@@ -50,15 +69,12 @@ export class SettingsComponent implements OnInit {
   isLoading: boolean = false;
   showApiKey: boolean = false;
   showClientSecret: boolean = false;
-  subscriptionFilter: string = '';
-  filteredSubscriptions: any[] = [];
 
   appVersion = '1.0.0';
   releaseDate = '2023-11-15';
   developerInfo = 'Tech Solutions Inc.';
   licenseInfo = 'MIT License';
 
-  // User Information
   userInfo = {
     name: '',
     channelId: '',
@@ -71,8 +87,7 @@ export class SettingsComponent implements OnInit {
     description: '',
   };
 
-  // Appearance Settings
-  appearanceSettings = {
+  appearanceSettings: AppearanceSettings = {
     theme: 'default',
     fontSize: 'medium',
     thumbnailSize: 'medium',
@@ -80,10 +95,9 @@ export class SettingsComponent implements OnInit {
     enableDescription: true,
     visibleBackdrop: true,
     displayResults: 'search',
-    maxItemsPerRequest: '5'
+    maxItemsPerRequest: 5,
   };
 
-  // Region & Language Settings
   regionLanguageSettings = {
     country: 'US',
     language: 'en',
@@ -93,74 +107,70 @@ export class SettingsComponent implements OnInit {
     numberFormat: 'en-US',
   };
 
-  // Playlists Data
-  playlists = [
+  playlistState: PageState<Playlist> = {
+    items: [],
+    pages: [],
+    pageIndex: 0,
+    nextPageToken: null,
+    prevPageTokens: [],
+    filter: '',
+  };
+
+  playlistColumns: TableColumn<Playlist>[] = [
     {
-      id: 'PL1',
-      name: 'JavaScript Tutorials',
-      description: 'Complete JavaScript programming course',
-      videoCount: 25,
-      privacy: 'public',
-      thumbnail: 'assets/playlist-1.jpg',
-      createdDate: 'Mar 2023',
+      name: 'Thumbnail',
+      prop: 'thumbnail',
+      sortable: false,
+      width: 100,
+      cellFn: (item: any) => this.sanitizer.bypassSecurityTrustHtml(`<img src="${item.thumbnail}" width="50" height="50" alt="${item.name}" />`),
+    },
+    { name: 'Name', prop: 'name', sortable: true, width: 200 },
+    { name: 'Description', prop: 'description', sortable: true, width: 300, cellFn: (item) => item.description || 'No description' },
+    { name: 'Videos', prop: 'videoCount', sortable: true, width: 100 },
+    {
+      name: 'Privacy',
+      prop: 'privacy',
+      sortable: true,
+      width: 100,
+      cellFn: (item: any) => this.sanitizer.bypassSecurityTrustHtml(`<ion-chip color="${this.getPrivacyColor(item.privacy)}">${item.privacy}</ion-chip>`),
+    },
+    { name: 'Created', prop: 'createdDate', sortable: true, width: 120 },
+  ];
+
+  subscriptionState: PageState<Subscription> = {
+    items: [],
+    pages: [],
+    pageIndex: 0,
+    nextPageToken: null,
+    prevPageTokens: [],
+    filter: '',
+  };
+
+  subscriptionColumns: TableColumn<Subscription>[] = [
+    {
+      name: 'Thumbnail',
+      prop: 'thumbnail',
+      sortable: false,
+      width: 100,
+      cellFn: (item: any) => this.sanitizer.bypassSecurityTrustHtml(`<img src="${item.thumbnail}" width="50" height="50" alt="${item.name}" />`),
+    },
+    { name: 'Name', prop: 'name', sortable: true, width: 200 },
+    {
+      name: 'Subscribers',
+      prop: 'subscriberCount',
+      sortable: true,
+      width: 150,
+      cellFn: (item: any) => this.formatNumber(item.subscriberCount),
     },
     {
-      id: 'PL2',
-      name: 'React Development',
-      description: 'Modern React development techniques',
-      videoCount: 18,
-      privacy: 'public',
-      thumbnail: 'assets/playlist-2.jpg',
-      createdDate: 'Jun 2023',
-    },
-    {
-      id: 'PL3',
-      name: 'Personal Projects',
-      description: 'My coding side projects',
-      videoCount: 8,
-      privacy: 'private',
-      thumbnail: 'assets/playlist-3.jpg',
-      createdDate: 'Aug 2023',
+      name: 'Category',
+      prop: 'category',
+      sortable: true,
+      width: 150,
+      cellFn: (item: any) => this.sanitizer.bypassSecurityTrustHtml(`<ion-chip color="${this.getCategoryColor(item.category)}">${item.category}</ion-chip>`),
     },
   ];
 
-  playlistCount: number = 3;
-  playlistColumns = [];
-  playlistPageSize = 10;
-  playlistPageOffset = 0;
-  paginatedPlaylists: any[] = [];
-
-  // Subscriptions Data
-  subscriptions = [
-    {
-      id: 'UC1',
-      name: 'Tech Channel Pro',
-      subscriberCount: 2100000,
-      category: 'Technology',
-      thumbnail: 'assets/channel-1.jpg',
-    },
-    {
-      id: 'UC2',
-      name: 'Code Academy',
-      subscriberCount: 5800000,
-      category: 'Education',
-      thumbnail: 'assets/channel-2.jpg',
-    },
-    {
-      id: 'UC3',
-      name: 'Dev Talk',
-      subscriberCount: 987000,
-      category: 'Technology',
-      thumbnail: 'assets/channel-3.jpg',
-    },
-  ];
-  subscriptionCount: number = 3;
-  subscriptionColumns = [];
-  subscriptionPageSize = 10;
-  subscriptionPageOffset = 0;
-  paginatedSubscriptions: any[] = [];
-
-  // API Configuration
   apiConfig = {
     apiKey: '',
     clientId: '',
@@ -177,23 +187,31 @@ export class SettingsComponent implements OnInit {
     private storage: Storage,
     private settings: Settings,
     private authorization: Authorization,
-    private theme: ThemeService
-  ) {
-    this.filteredSubscriptions = [...this.subscriptions];
-  }
+    private theme: ThemeService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   async ngOnInit() {
     await this.storage.create();
     this.applyTheme();
     await this.checkApiConnection();
     this.loadUserProfile();
+    await this.loadPlaylists();
+    await this.loadSubscriptions();
   }
 
   async ionViewWillEnter() {
     await this.loadSavedSettings();
   }
 
-  // Load user profile from Authorization service
+  get playlistCount(): number {
+    return this.playlistState.items.length;
+  }
+
+  get subscriptionCount(): number {
+    return this.subscriptionState.items.length;
+  }
+
   loadUserProfile() {
     const profile = this.authorization.getProfile();
     if (profile) {
@@ -207,20 +225,15 @@ export class SettingsComponent implements OnInit {
   }
 
   async checkApiConnection() {
-    // First check if we have OAuth access
     if (this.authorization.isSignedIn()) {
       this.isApiConnected = true;
       return;
     }
-
-    // Fall back to API key check
     if (!this.apiConfig.apiKey) {
       this.isApiConnected = false;
       return;
     }
-
     this.isLoading = true;
-
     try {
       this.isApiConnected = true;
       await this.loadUserData();
@@ -232,38 +245,28 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  // Updated loadUserData to combine Authorization profile with YouTube API data
   async loadUserData() {
     this.isLoading = true;
     try {
-      // Get profile from Authorization service if available
       const authProfile = this.authorization.getProfile();
       if (authProfile) {
         this.userInfo = {
           ...this.userInfo,
           name: authProfile.name,
           email: authProfile.email,
-          avatar:
-            authProfile.picture || this.getDefaultAvatarUrl(authProfile.name),
+          avatar: authProfile.picture || this.getDefaultAvatarUrl(authProfile.name),
         };
       }
-
-      // Only fetch YouTube-specific data if we have an API connection
       if (this.isApiConnected) {
-        const channelResponse = await firstValueFrom(
-          this.settings.getMyChannel()
-        );
+        const channelResponse = await firstValueFrom(this.settings.getMyChannel());
         const channel = channelResponse.items[0];
-
         this.userInfo = {
           ...this.userInfo,
           channelId: channel.id,
           subscriberCount: parseInt(channel.statistics.subscriberCount),
           videoCount: parseInt(channel.statistics.videoCount),
           totalViews: parseInt(channel.statistics.viewCount),
-          joinedDate: new Date(
-            channel.snippet.publishedAt
-          ).toLocaleDateString(),
+          joinedDate: new Date(channel.snippet.publishedAt).toLocaleDateString(),
           description: channel.snippet.description,
         };
       }
@@ -280,173 +283,172 @@ export class SettingsComponent implements OnInit {
       .map((n) => n[0])
       .join('')
       .toUpperCase();
-
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
         <rect width="100" height="100" fill="#555"/>
         <text x="50%" y="55%" font-size="40" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
-      </svg>
-    `;
-
-    const encoded = btoa(
-      encodeURIComponent(svg).replace(/%([0-9A-F]{2})/g, (_, p1) =>
-        String.fromCharCode(parseInt(p1, 16))
-      )
-    );
-
-    return `data:image/svg+xml;base64,${encoded}`;
+      </svg>`;
+    return `data:image/svg+xml;base64,${btoa(encodeURIComponent(svg).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))))}`;
   }
 
-  // Updated loadPlaylists to use Settings service
-  async loadPlaylists() {
-    if (!this.isApiConnected) return;
-
-    this.paginatePlaylists();
-
+  async loadPlaylists(pageToken?: string): Promise<{ items: Playlist[]; nextPageToken?: string }> {
+    if (!this.isApiConnected) {
+      return { items: this.playlistState.items, nextPageToken: '' };
+    }
+    this.isLoading = true;
     try {
-      const playlistsResponse: any = await firstValueFrom(
-        this.settings.listPlaylistsPaginated()
-      );
-      this.playlists = playlistsResponse.items.map((item: any) => ({
+      const response: any = await firstValueFrom(this.settings.listPlaylistsPaginated(pageToken));
+      const items = response.items.map((item: any) => ({
         id: item.id,
         name: item.snippet.title,
         description: item.snippet.description,
-        videoCount: 0, // Would need another API call to get this
+        videoCount: 0, // Note: Requires additional API call if needed
         privacy: item.status.privacyStatus,
-        thumbnail:
-          item.snippet.thumbnails?.default?.url ||
-          'assets/playlist-default.jpg',
+        thumbnail: item.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
         createdDate: new Date(item.snippet.publishedAt).toLocaleDateString(),
       }));
-      this.playlistCount = this.playlists.length;
+      this.playlistState = {
+        ...this.playlistState,
+        items,
+        pages: pageToken ? [...this.playlistState.pages, items] : [items],
+        pageIndex: pageToken ? this.playlistState.pageIndex + 1 : 0,
+        nextPageToken: response.nextPageToken || null,
+        prevPageTokens: pageToken ? [...this.playlistState.prevPageTokens, pageToken] : [],
+      };
+      return { items, nextPageToken: response.nextPageToken };
     } catch (error) {
       console.error('Error loading playlists:', error);
+      return { items: this.playlistState.items, nextPageToken: '' };
+    } finally {
+      this.isLoading = false;
     }
   }
 
-  // Updated loadSubscriptions to use Settings service
-  async loadSubscriptions() {
-    if (!this.isApiConnected) return;
-
-    this.paginateSubscriptions();
-
-    try {
-      const subscriptionsResponse = await firstValueFrom(
-        this.settings.listSubscriptions()
-      );
-      this.subscriptions = subscriptionsResponse.items.map((item: any) => ({
-        id: item.snippet.resourceId.channelId,
-        name: item.snippet.title,
-        subscriberCount: 0, // Would need another API call to get this
-        category: '', // Not directly available in subscription response
-        thumbnail:
-          item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg',
-      }));
-      this.subscriptionCount = this.subscriptions.length;
-      this.filteredSubscriptions = [...this.subscriptions];
-    } catch (error) {
-      console.error('Error loading subscriptions:', error);
-    }
-  }
-
-  // Updated createPlaylist to use Settings service
   async createPlaylist() {
     if (!this.isApiConnected) return;
-
+    this.isLoading = true;
     try {
-      // In a real app, you'd get these values from a form
       const title = 'New Playlist';
       const description = 'Playlist created from the app';
       const privacyStatus = 'private';
-
-      const response = await firstValueFrom(
-        this.settings.createPlaylist(title, description, privacyStatus)
-      );
-
-      // Add the new playlist to our list
-      this.playlists.unshift({
+      const response = await firstValueFrom(this.settings.createPlaylist(title, description, privacyStatus));
+      const newPlaylist: Playlist = {
         id: response.id,
         name: response.snippet.title,
         description: response.snippet.description,
         videoCount: 0,
         privacy: response.status.privacyStatus,
-        thumbnail:
-          response.snippet.thumbnails?.default?.url ||
-          'assets/playlist-default.jpg',
-        createdDate: new Date(
-          response.snippet.publishedAt
-        ).toLocaleDateString(),
-      });
-      this.playlistCount = this.playlists.length;
+        thumbnail: response.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
+        createdDate: new Date(response.snippet.publishedAt).toLocaleDateString(),
+      };
+      this.playlistState = {
+        ...this.playlistState,
+        items: [newPlaylist, ...this.playlistState.items],
+        pages: [[newPlaylist, ...this.playlistState.items]],
+        pageIndex: 0,
+        nextPageToken: null,
+        prevPageTokens: [],
+      };
     } catch (error) {
       console.error('Error creating playlist:', error);
+    } finally {
+      this.isLoading = false;
     }
   }
 
-  // Updated deletePlaylist to use Settings service
-  async deletePlaylist(playlist: any) {
+  async deletePlaylist(playlist: Playlist) {
     try {
       await firstValueFrom(this.settings.deletePlaylist(playlist.id));
-      this.playlists = this.playlists.filter((p) => p.id !== playlist.id);
-      this.playlistCount = this.playlists.length;
+      this.playlistState = {
+        ...this.playlistState,
+        items: this.playlistState.items.filter((p: any) => p.id !== playlist.id),
+        pages: [[...this.playlistState.items.filter((p: any) => p.id !== playlist.id)]],
+        pageIndex: 0,
+        nextPageToken: null,
+        prevPageTokens: [],
+      };
     } catch (error) {
       console.error('Error deleting playlist:', error);
     }
   }
 
-  // Updated unsubscribe to use Settings service
-  async unsubscribe(channel: any) {
+  editPlaylist(playlist: Playlist) {
+    console.log('Edit playlist:', playlist);
+    // Implement edit logic (e.g., open a modal with a form)
+  }
+
+  async loadSubscriptions(pageToken?: string): Promise<{ items: Subscription[]; nextPageToken?: string }> {
+    if (!this.isApiConnected) {
+      return { items: this.subscriptionState.items, nextPageToken: '' };
+    }
+    this.isLoading = true;
     try {
-      // Note: This assumes the subscriptionId is the same as channelId
-      // In a real app, you'd need to find the actual subscriptionId
-      await firstValueFrom(this.settings.unsubscribe(channel.id));
-      this.subscriptions = this.subscriptions.filter(
-        (s) => s.id !== channel.id
-      );
-      this.subscriptionCount = this.subscriptions.length;
-      this.filterSubscriptions();
+      const response = await firstValueFrom(this.settings.listSubscriptionsPaginated(pageToken));
+      const items = response.items.map((item: any) => ({
+        id: item.snippet.resourceId.channelId,
+        name: item.snippet.title,
+        subscriberCount: 0, // Note: Requires additional API call if needed
+        category: '', // Not directly available
+        thumbnail: item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg',
+      }));
+      this.subscriptionState = {
+        ...this.subscriptionState,
+        items,
+        pages: pageToken ? [...this.subscriptionState.pages, items] : [items],
+        pageIndex: pageToken ? this.subscriptionState.pageIndex + 1 : 0,
+        nextPageToken: response.nextPageToken || null,
+        prevPageTokens: pageToken ? [...this.subscriptionState.prevPageTokens, pageToken] : [],
+      };
+      return { items, nextPageToken: response.nextPageToken };
+    } catch (error) {
+      console.error('Error loading subscriptions:', error);
+      return { items: this.subscriptionState.items, nextPageToken: '' };
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async unsubscribe(subscription: Subscription) {
+    try {
+      await firstValueFrom(this.settings.unsubscribe(subscription.id));
+      this.subscriptionState = {
+        ...this.subscriptionState,
+        items: this.subscriptionState.items.filter((s: any) => s.id !== subscription.id),
+        pages: [[...this.subscriptionState.items.filter((s: any) => s.id !== subscription.id)]],
+        pageIndex: 0,
+        nextPageToken: null,
+        prevPageTokens: [],
+      };
     } catch (error) {
       console.error('Error unsubscribing:', error);
     }
   }
 
+  viewChannel(subscription: Subscription) {
+    console.log('View channel:', subscription);
+    // Implement channel viewing logic
+  }
+
   async loadSavedSettings() {
-    // Load API config
     const savedApiConfig = await this.storage.get('youtubeApiConfig');
     if (savedApiConfig) {
       this.apiConfig = { ...this.apiConfig, ...savedApiConfig };
     }
-
-    // Load appearance settings
     const savedAppearance = await this.storage.get('appearanceSettings');
     if (savedAppearance) {
-      this.appearanceSettings = {
-        ...this.appearanceSettings,
-        ...savedAppearance,
-      };
+      this.appearanceSettings = { ...this.appearanceSettings, ...savedAppearance };
     }
-
-    // Load region/language settings
-    const savedRegionLanguage = await this.storage.get(
-      'regionLanguageSettings'
-    );
+    const savedRegionLanguage = await this.storage.get('regionLanguageSettings');
     if (savedRegionLanguage) {
-      this.regionLanguageSettings = {
-        ...this.regionLanguageSettings,
-        ...savedRegionLanguage,
-      };
+      this.regionLanguageSettings = { ...this.regionLanguageSettings, ...savedRegionLanguage };
     }
   }
 
   selectMainSection(section: string) {
     this.selectedMainSection = section;
-
-    // Optional: Save the last viewed section to storage
     this.storage.set('lastViewedSection', section).catch((err) => {
       console.error('Error saving last viewed section:', err);
     });
-
-    // Optional: Scroll to top when changing sections
     const content = document.querySelector('ion-content');
     if (content) {
       content.scrollToTop(300);
@@ -463,10 +465,7 @@ export class SettingsComponent implements OnInit {
       'api-key': 'API Configuration',
       about: 'About',
     };
-
-    return (
-      sectionTitles[this.selectedMainSection] || 'YouTube Data API Settings'
-    );
+    return sectionTitles[this.selectedMainSection] || 'YouTube Data API Settings';
   }
 
   applyTheme() {
@@ -483,10 +482,7 @@ export class SettingsComponent implements OnInit {
   }
 
   async saveRegionLanguageSettings() {
-    await this.storage.set(
-      'regionLanguageSettings',
-      this.regionLanguageSettings
-    );
+    await this.storage.set('regionLanguageSettings', this.regionLanguageSettings);
   }
 
   async saveApiConfig() {
@@ -514,14 +510,9 @@ export class SettingsComponent implements OnInit {
       this.isApiConnected = false;
       return;
     }
-
     this.isLoading = true;
-
     try {
-      // In a real app, you would make an actual API call here
-      // For demo purposes, we'll simulate a successful connection
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
       this.isApiConnected = true;
       await this.loadUserData();
     } catch (error) {
@@ -532,23 +523,8 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  filterSubscriptions() {
-    if (!this.subscriptionFilter) {
-      this.filteredSubscriptions = [...this.subscriptions];
-      return;
-    }
-
-    const filter = this.subscriptionFilter.toLowerCase();
-    this.filteredSubscriptions = this.subscriptions.filter(
-      (sub) =>
-        sub.name.toLowerCase().includes(filter) ||
-        sub.category.toLowerCase().includes(filter)
-    );
-  }
-
   refreshData() {
     if (!this.isApiConnected) return;
-
     this.isLoading = true;
     this.loadUserData().finally(() => {
       this.isLoading = false;
@@ -594,41 +570,7 @@ export class SettingsComponent implements OnInit {
   }
 
   getQuotaPercentage(): number {
-    return Math.round(
-      (this.apiConfig.quotaUsage / this.apiConfig.quotaLimit) * 100
-    );
-  }
-
-  editPlaylist(playlist: any) {
-    // In a real app, implement playlist editing logic
-    console.log('Edit playlist:', playlist);
-  }
-
-  paginatePlaylists() {
-    const start = this.playlistPageOffset * this.playlistPageSize;
-    this.paginatedPlaylists = this.playlists.slice(start, start + this.playlistPageSize);
-  }
-
-  // Re-run when subscriptions are filtered
-  paginateSubscriptions() {
-    const start = this.subscriptionPageOffset * this.subscriptionPageSize;
-    this.paginatedSubscriptions = this.filteredSubscriptions.slice(start, start + this.subscriptionPageSize);
-  }
-
-  // Page change handlers
-  onPlaylistPage({ offset }: { offset: number }) {
-    this.playlistPageOffset = offset;
-    this.paginatePlaylists();
-  }
-
-  onSubscriptionPage({ offset }: { offset: number }) {
-    this.subscriptionPageOffset = offset;
-    this.paginateSubscriptions();
-  }
-
-  viewChannel(channel: any) {
-    // In a real app, implement channel viewing logic
-    console.log('View channel:', channel);
+    return Math.round((this.apiConfig.quotaUsage / this.apiConfig.quotaLimit) * 100);
   }
 
   goBackToApp() {
@@ -636,12 +578,10 @@ export class SettingsComponent implements OnInit {
   }
 
   openWebsite() {
-    // Implement website opening logic
     window.open('https://yourwebsite.com', '_blank');
   }
 
   openPrivacyPolicy() {
-    // Implement privacy policy opening logic
     window.open('https://yourwebsite.com/privacy', '_blank');
   }
 }
