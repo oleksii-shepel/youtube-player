@@ -248,7 +248,7 @@ export interface AppearanceSettings {
                 <ion-label>Theme</ion-label>
                 <ion-select
                   [(ngModel)]="appearanceSettings.theme"
-                  (ionChange)="saveAppearanceSettings()"
+                  (ionChange)="onThemeChange()"
                   interface="popover"
                 >
                   <ion-select-option value="default">Default</ion-select-option>
