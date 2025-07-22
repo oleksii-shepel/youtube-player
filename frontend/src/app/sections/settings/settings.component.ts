@@ -202,7 +202,7 @@ import { firstValueFrom } from '@actioncrew/streamix';
                 >
                   <ion-select-option value="light">Light</ion-select-option>
                   <ion-select-option value="dark">Dark</ion-select-option>
-                  <ion-select-option value="default">System Default</ion-select-option>
+                  <ion-select-option value="default">Default</ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item>
@@ -588,7 +588,7 @@ export class SettingsComponent implements OnInit {
   userInfo = {
     name: '',
     channelId: '',
-    avatar: 'assets/youtube-default-avatar.png',
+    avatar: this.getDefaultAvatarUrl('Y'),
     email: '',
     subscriberCount: 0,
     videoCount: 0,
