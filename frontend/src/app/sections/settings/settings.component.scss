@@ -229,3 +229,13 @@
     transform: rotate(360deg);
   }
 }
+
+::ng-deep .ngx-datatable.material {
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
+}
+
+::ng-deep .ngx-datatable.material .datatable-header {
+  background: var(--ion-color-light-shade);
+  font-weight: 500;
+}

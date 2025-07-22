@@ -8,6 +8,7 @@ import { IonicModule } from '@ionic/angular';
 import { Settings } from 'src/app/services/settings.service';
 import { firstValueFrom } from '@actioncrew/streamix';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 
 export type AppTheme = 'default' | 'dark' | 'light'; // 'default' will now map to system preference
 export type AppFontSize = 'small' | 'medium' | 'large';
@@ -477,63 +478,71 @@ export interface AppearanceSettings {
           </div>
 
           <!-- Playlists Section -->
-          <div
-            *ngIf="selectedMainSection === 'playlists'"
-            class="content-section"
-          >
+          <div *ngIf="selectedMainSection === 'playlists'" class="content-section">
             <div class="section-card" *ngIf="isApiConnected">
               <div class="card-header">
                 <h3>Your Playlists</h3>
-                <ion-button
-                  size="small"
-                  fill="outline"
-                  (click)="createPlaylist()"
-                >
+                <ion-button size="small" fill="outline" (click)="createPlaylist()">
                   <ion-icon name="add-outline" slot="start"></ion-icon>
                   Create New
                 </ion-button>
               </div>
-              <div class="playlist-list">
-                <div class="playlist-item" *ngFor="let playlist of playlists">
-                  <div class="playlist-thumbnail">
-                    <img [src]="playlist.thumbnail" alt="Playlist thumbnail" />
-                    <div class="video-count">{{ playlist.videoCount }}</div>
-                  </div>
-                  <div class="playlist-info">
-                    <h4>{{ playlist.name }}</h4>
-                    <p>{{ playlist.description || 'No description' }}</p>
-                    <div class="playlist-meta">
-                      <ion-chip
-                        [color]="getPrivacyColor(playlist.privacy)"
-                        size="small"
-                      >
-                        {{ playlist.privacy }}
-                      </ion-chip>
-                      <span class="created-date">{{
-                        playlist.createdDate
-                      }}</span>
+
+              <ngx-datatable
+                class="material"
+                [rows]="paginatedPlaylists"
+                [columnMode]="'force'"
+                [headerHeight]="50"
+                [footerHeight]="50"
+                [rowHeight]="'auto'"
+                [limit]="playlistPageSize"
+                [count]="playlists.length"
+                [offset]="playlistPageOffset"
+                [scrollbarH]="true"
+                (page)="onPlaylistPage($event)"
+              >
+                <ngx-datatable-column name="Name" [flexGrow]="3" [sortable]="true" [resizeable]="true">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    <div class="playlist-name">
+                      <img [src]="row.thumbnail" class="thumbnail-small" />
+                      {{ row.name }}
                     </div>
-                  </div>
-                  <div class="playlist-actions">
-                    <ion-button
-                      fill="clear"
-                      size="small"
-                      (click)="editPlaylist(playlist)"
-                    >
+                  </ng-template>
+                </ngx-datatable-column>
+
+                <ngx-datatable-column name="Description" [flexGrow]="2" [sortable]="true" [resizeable]="true">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    {{ row.description || 'No description' | slice: 0:50 }}
+                  </ng-template>
+                </ngx-datatable-column>
+
+                <ngx-datatable-column name="Videos" [sortable]="true" [resizeable]="true">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    {{ row.videoCount }}
+                  </ng-template>
+                </ngx-datatable-column>
+
+                <ngx-datatable-column name="Privacy" [resizeable]="true">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    <ion-chip [color]="getPrivacyColor(row.privacy)" size="small">
+                      {{ row.privacy }}
+                    </ion-chip>
+                  </ng-template>
+                </ngx-datatable-column>
+
+                <ngx-datatable-column name="Actions" [resizeable]="false">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    <ion-button fill="clear" size="small" (click)="editPlaylist(row)">
                       <ion-icon name="create-outline"></ion-icon>
                     </ion-button>
-                    <ion-button
-                      fill="clear"
-                      size="small"
-                      color="danger"
-                      (click)="deletePlaylist(playlist)"
-                    >
+                    <ion-button fill="clear" size="small" color="danger" (click)="deletePlaylist(row)">
                       <ion-icon name="trash-outline"></ion-icon>
                     </ion-button>
-                  </div>
-                </div>
-              </div>
+                  </ng-template>
+                </ngx-datatable-column>
+              </ngx-datatable>
             </div>
+
             <div class="section-card" *ngIf="!isApiConnected">
               <div class="empty-state">
                 <ion-icon name="list-outline" size="large"></ion-icon>
@@ -542,60 +551,69 @@ export interface AppearanceSettings {
             </div>
           </div>
 
+
           <!-- Subscriptions Section -->
-          <div
-            *ngIf="selectedMainSection === 'subscriptions'"
-            class="content-section"
-          >
+          <div *ngIf="selectedMainSection === 'subscriptions'" class="content-section">
             <div class="section-card" *ngIf="isApiConnected">
               <div class="card-header">
                 <h3>Your Subscriptions</h3>
                 <ion-searchbar
                   [(ngModel)]="subscriptionFilter"
                   (ionInput)="filterSubscriptions()"
-                  placeholder="Search subscriptions..."
-                ></ion-searchbar>
+                  placeholder="Search subscriptions...">
+                </ion-searchbar>
               </div>
-              <div class="subscription-list">
-                <div
-                  class="subscription-item"
-                  *ngFor="let subscription of filteredSubscriptions"
-                >
-                  <div class="subscription-avatar">
-                    <img [src]="subscription.thumbnail" alt="Channel avatar" />
-                  </div>
-                  <div class="subscription-info">
-                    <h4>{{ subscription.name }}</h4>
-                    <p>
-                      {{
-                        formatNumber(subscription.subscriberCount)
-                      }}
-                      subscribers
-                    </p>
-                    <ion-chip size="small" color="tertiary">{{
-                      subscription.category
-                    }}</ion-chip>
-                  </div>
-                  <div class="subscription-actions">
-                    <ion-button
-                      fill="clear"
-                      size="small"
-                      (click)="viewChannel(subscription)"
-                    >
+
+              <ngx-datatable
+                class="material"
+                [rows]="paginatedSubscriptions"
+                [columnMode]="'force'"
+                [headerHeight]="50"
+                [footerHeight]="50"
+                [rowHeight]="'auto'"
+                [limit]="subscriptionPageSize"
+                [count]="filteredSubscriptions.length"
+                [offset]="subscriptionPageOffset"
+                [scrollbarH]="true"
+                (page)="onSubscriptionPage($event)"
+              >
+                <ngx-datatable-column name="Channel" [flexGrow]="3" [sortable]="true" [resizeable]="true">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    <div class="channel-info">
+                      <img [src]="row.thumbnail" class="channel-avatar" />
+                      {{ row.name }}
+                    </div>
+                  </ng-template>
+                </ngx-datatable-column>
+
+                <ngx-datatable-column name="Subscribers" [sortable]="true" [resizeable]="true">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    {{ formatNumber(row.subscriberCount) }}
+                  </ng-template>
+                </ngx-datatable-column>
+
+                <ngx-datatable-column name="Category" [sortable]="true" [resizeable]="true">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    <ion-chip [color]="getCategoryColor(row.category)" size="small">
+                      {{ row.category }}
+                    </ion-chip>
+                  </ng-template>
+                </ngx-datatable-column>
+
+                <ngx-datatable-column name="Actions" [resizeable]="false">
+                  <ng-template let-row="row" ngx-datatable-cell-template>
+                    <ion-button fill="clear" size="small" (click)="viewChannel(row)">
                       <ion-icon name="open-outline"></ion-icon>
                     </ion-button>
-                    <ion-button
-                      fill="clear"
-                      size="small"
-                      color="danger"
-                      (click)="unsubscribe(subscription)"
-                    >
+                    <ion-button fill="clear" size="small" color="danger" (click)="unsubscribe(row)">
                       <ion-icon name="person-remove-outline"></ion-icon>
                     </ion-button>
-                  </div>
-                </div>
-              </div>
+                  </ng-template>
+                </ngx-datatable-column>
+              </ngx-datatable>
+
             </div>
+
             <div class="section-card" *ngIf="!isApiConnected">
               <div class="empty-state">
                 <ion-icon name="people-outline" size="large"></ion-icon>
@@ -774,7 +792,7 @@ export interface AppearanceSettings {
   styleUrls: ['./settings.component.scss'],
   standalone: true,
   providers: [Storage],
-  imports: [CommonModule, FormsModule, IonicModule, IonicStorageModule],
+  imports: [CommonModule, FormsModule, IonicModule, IonicStorageModule, NgxDatatableModule],
 })
 export class SettingsComponent implements OnInit {
   selectedMainSection: string = 'appearance';
@@ -855,7 +873,12 @@ export class SettingsComponent implements OnInit {
       createdDate: 'Aug 2023',
     },
   ];
+
   playlistCount: number = 3;
+  playlistColumns = [];
+  playlistPageSize = 10;
+  playlistPageOffset = 0;
+  paginatedPlaylists: any[] = [];
 
   // Subscriptions Data
   subscriptions = [
@@ -882,6 +905,10 @@ export class SettingsComponent implements OnInit {
     },
   ];
   subscriptionCount: number = 3;
+  subscriptionColumns = [];
+  subscriptionPageSize = 10;
+  subscriptionPageOffset = 0;
+  paginatedSubscriptions: any[] = [];
 
   // API Configuration
   apiConfig = {
@@ -1024,6 +1051,8 @@ export class SettingsComponent implements OnInit {
   async loadPlaylists() {
     if (!this.isApiConnected) return;
 
+    this.paginatePlaylists();
+
     try {
       const playlistsResponse = await firstValueFrom(
         this.settings.listPlaylists()
@@ -1048,6 +1077,8 @@ export class SettingsComponent implements OnInit {
   // Updated loadSubscriptions to use Settings service
   async loadSubscriptions() {
     if (!this.isApiConnected) return;
+
+    this.paginateSubscriptions();
 
     try {
       const subscriptionsResponse = await firstValueFrom(
@@ -1282,6 +1313,19 @@ export class SettingsComponent implements OnInit {
     this.showClientSecret = !this.showClientSecret;
   }
 
+  getCategoryColor(category: string): string {
+    switch (category.toLowerCase()) {
+      case 'technology':
+        return 'primary';
+      case 'education':
+        return 'accent';
+      case 'gaming':
+        return 'warn';
+      default:
+        return '';
+    }
+  }
+
   getPrivacyColor(privacy: string): string {
     switch (privacy) {
       case 'public':
@@ -1308,6 +1352,28 @@ export class SettingsComponent implements OnInit {
   editPlaylist(playlist: any) {
     // In a real app, implement playlist editing logic
     console.log('Edit playlist:', playlist);
+  }
+
+  paginatePlaylists() {
+    const start = this.playlistPageOffset * this.playlistPageSize;
+    this.paginatedPlaylists = this.playlists.slice(start, start + this.playlistPageSize);
+  }
+
+  // Re-run when subscriptions are filtered
+  paginateSubscriptions() {
+    const start = this.subscriptionPageOffset * this.subscriptionPageSize;
+    this.paginatedSubscriptions = this.filteredSubscriptions.slice(start, start + this.subscriptionPageSize);
+  }
+
+  // Page change handlers
+  onPlaylistPage({ offset }: { offset: number }) {
+    this.playlistPageOffset = offset;
+    this.paginatePlaylists();
+  }
+
+  onSubscriptionPage({ offset }: { offset: number }) {
+    this.subscriptionPageOffset = offset;
+    this.paginateSubscriptions();
   }
 
   viewChannel(channel: any) {
