@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ToFriendlyDurationPipe } from './../../pipes/to-friendly-duration.pipe';
+import { ToFriendlyDurationPipe } from '../../pipes/to-friendly-duration.pipe';
 import {
   Component,
   EventEmitter,
@@ -10,10 +10,9 @@ import {
   AfterViewInit,
   OnDestroy,
   NgZone,
-  Renderer2,
   HostBinding
 } from '@angular/core';
-import { IonicModule, IonItemSliding } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
 import { DirectiveModule } from 'src/app/directives';
 
 @Component({
@@ -125,7 +124,7 @@ import { DirectiveModule } from 'src/app/directives';
       </ion-item>
     </div>
   `,
-  styleUrls: ['./playlist-track.component.scss'],
+  styleUrls: ['./track.component.scss'],
   standalone: true,
   imports: [CommonModule, IonicModule, DirectiveModule, ToFriendlyDurationPipe]
 })
