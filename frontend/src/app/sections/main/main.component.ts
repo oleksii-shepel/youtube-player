@@ -15,6 +15,7 @@ import { RecorderService } from 'src/app/services/recorder.service';
 import { PlaylistComponent } from '../../components/playlist/playlist.component';
 import { RecorderComponent } from '../../components/recorder/recorder.component';
 import { RouterModule } from '@angular/router';
+import { ThemeService } from 'src/app/services/theme.service';
 
 declare const YT: any;
 
@@ -79,7 +80,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   constructor(
     public playlistService: PlaylistService,
     public playerService: PlayerService,
-    public recorderService: RecorderService
+    public recorderService: RecorderService,
+    public theme: ThemeService
   ) {}
 
   ngAfterViewInit(): void {
