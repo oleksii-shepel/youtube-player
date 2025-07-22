@@ -10,6 +10,7 @@ export const HTTP_CLIENT = new InjectionToken('HttpClient');
 import { Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
+import { IonicStorageModule, Storage } from '@ionic/storage-angular';
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,7 @@ export class RootComponent {}
 bootstrapApplication(RootComponent, {
   providers: [
     provideRouter(routes),
+    IonicStorageModule.forRoot().providers!,
     IonicModule.forRoot().providers!,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: HTTP_CLIENT, useFactory: () => createHttpClient() }

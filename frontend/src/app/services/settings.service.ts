@@ -2,7 +2,6 @@ import { inject, Injectable } from '@angular/core';
 import { Authorization } from './authorization.service';
 import { HttpClient, readJson } from '@actioncrew/streamix/http';
 import { HTTP_CLIENT } from 'src/main';
-import { environment } from 'src/environments/environment';
 import { Stream } from '@actioncrew/streamix';
 
 @Injectable({ providedIn: 'root' })

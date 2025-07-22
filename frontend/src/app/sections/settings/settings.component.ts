@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { Settings } from 'src/app/services/settings.service';
 import { firstValueFrom } from '@actioncrew/streamix';
+import { Theme, ThemeService } from 'src/app/services/theme.service';
 
 @Component({
   selector: 'app-settings',
@@ -687,7 +688,7 @@ export class SettingsComponent implements OnInit {
     cacheDuration: 3600
   };
 
-  constructor(private router: Router, private storage: Storage, private settings: Settings, private authorization: Authorization) {
+  constructor(private router: Router, private storage: Storage, private settings: Settings, private authorization: Authorization, private theme: ThemeService) {
     this.filteredSubscriptions = [...this.subscriptions];
   }
 
@@ -946,11 +947,11 @@ export class SettingsComponent implements OnInit {
   }
 
   applyTheme() {
-    document.body.setAttribute('data-theme', this.appearanceSettings.theme);
+    this.theme.initTheme();
   }
 
   onThemeChange() {
-    this.applyTheme();
+    this.theme.setTheme(this.appearanceSettings.theme as Theme);
     this.saveAppearanceSettings();
   }
 
