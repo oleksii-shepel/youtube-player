@@ -347,8 +347,6 @@ export interface AppearanceSettings {
                   <ion-select-option value="5">5</ion-select-option>
                   <ion-select-option value="10">10</ion-select-option>
                   <ion-select-option value="25">25</ion-select-option>
-                  <ion-select-option value="50">50</ion-select-option>
-                  <ion-select-option value="100">100</ion-select-option>
                 </ion-select>
               </ion-item>
             </ion-list>
