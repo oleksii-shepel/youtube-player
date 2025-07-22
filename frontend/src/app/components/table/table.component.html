@@ -1,107 +1,33 @@
 <div class="unified-table ion-padding">
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>{{ label }}</ion-title>
-      <ion-buttons slot="end">
-        <ion-button
-          color="primary"
-          (click)="onAdd()"
-          [disabled]="!addItemFn || loading">
-          <ion-icon slot="start" name="add"></ion-icon>
-          Add
-        </ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
+  <ion-toolbar>
+    <ion-title>{{ label }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="primary" (click)="addItemFn?.()">
+        <ion-icon slot="start" name="add"></ion-icon>
+        Add
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
 
-  <ion-content class="ion-padding">
-    @if (errorMessage()) {
-      <ion-note color="danger" class="ion-margin-bottom">
-        <ion-icon name="warning"></ion-icon>
-        {{ errorMessage() }}
-      </ion-note>
-    }
-
-    @if (loading) {
-      <div class="loading-overlay">
-        <ion-spinner></ion-spinner>
-      </div>
-    }
-
-    <ion-searchbar
-      [(ngModel)]="filterValue"
-      (ionInput)="onFilterChange($event)"
-      placeholder="Filter results"
-      debounce="300"
-      [disabled]="loading">
-    </ion-searchbar>
-
-    @if (state.items.length) {
-      <ngx-datatable
-        class="material striped"
-        [rows]="state.items"
-        [columns]="ngxColumns"
-        [columnMode]="'force'"
-        [headerHeight]="50"
-        [footerHeight]="50"
-        [rowHeight]="'auto'"
-        [sortType]="sortType"
-        [externalSorting]="true"
-        (sort)="onSort($event)"
-        [loadingIndicator]="loading">
-
-        <ngx-datatable-column
-          *ngFor="let col of columns"
-          [name]="col.name"
-          [prop]="col.prop"
-          [sortable]="col.sortable !== false"
-          [width]="col.width">
-          <ng-template let-row="row" ngx-datatable-cell-template>
-            @if (col.cellFn) {
-              <div [innerHtml]="col.cellFn(row)"></div>
-            } @else {
-              {{ row[col.prop] }}
-            }
-          </ng-template>
-        </ngx-datatable-column>
-
-        <ngx-datatable-column name="Actions" [sortable]="false" [width]="150">
-          <ng-template let-row="row" ngx-datatable-cell-template>
-            <ion-buttons>
-              <ion-button fill="clear" size="small" (click)="onEdit(row)">
-                <ion-icon name="create-outline"></ion-icon>
-              </ion-button>
-              <ion-button fill="clear" size="small" color="danger" (click)="onDelete(row)">
-                <ion-icon name="trash-outline"></ion-icon>
-              </ion-button>
-            </ion-buttons>
-          </ng-template>
-        </ngx-datatable-column>
-      </ngx-datatable>
-    } @else {
-      <ion-card>
-        <ion-card-content class="ion-text-center">
-          <ion-icon name="information-circle-outline" size="large"></ion-icon>
-          <p>{{ emptyMessage }}</p>
-        </ion-card-content>
-      </ion-card>
-    }
-  </ion-content>
-
-  <ion-footer class="ion-padding ion-text-center">
-    <ion-button
-      (click)="prevPage()"
-      [disabled]="state.pageIndex === 0 || loading"
-      fill="outline">
-      <ion-icon slot="start" name="chevron-back"></ion-icon>
-      Previous
-    </ion-button>
-    <ion-button
-      (click)="nextPage()"
-      [disabled]="!state.nextPageToken || loading"
-      fill="outline">
-      Next
-      <ion-icon slot="end" name="chevron-forward"></ion-icon>
-    </ion-button>
-  </ion-footer>
+  <table datatable [dtOptions]="dtOptions" class="row-border hover">
+    <thead>
+      <tr>
+        <th *ngFor="let col of columns">{{ col.title }}</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of data">
+        <td *ngFor="let col of columns">{{ row[col.data] }}</td>
+        <td>
+          <ion-button fill="clear" size="small" (click)="editItemFn?.(row)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" size="small" color="danger" (click)="deleteItemFn?.(row)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>

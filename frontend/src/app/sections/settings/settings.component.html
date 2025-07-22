@@ -276,18 +276,17 @@
       <!-- Playlists Section -->
       <div *ngIf="selectedMainSection === 'playlists'" class="content-section">
         <div class="section-card" *ngIf="isApiConnected">
-          <app-table
-            label="Your Playlists"
-            [state]="playlistState"
-            [getPageFn]="loadPlaylists.bind(this)"
-            [columns]="playlistColumns"
+          <app-unified-table
+            [label]="'My Playlists'"
+            [data]="playlistState.pages![playlistState.pageIndex]"
+            [columns]="[
+              { title: 'Title', data: 'name' },
+              { title: 'Videos', data: 'videoCount' }
+            ]"
             [addItemFn]="createPlaylist.bind(this)"
-            [loading]="isLoading"
-            [emptyMessage]="'No playlists found'"
-            (deleteItem)="deletePlaylist($event)"
-            (editItem)="editPlaylist($event)"
-            (stateChange)="playlistState = $event">
-          </app-table>
+            [editItemFn]="editPlaylist.bind(this)"
+            [deleteItemFn]="deletePlaylist.bind(this)">
+          </app-unified-table>
         </div>
         <div class="section-card" *ngIf="!isApiConnected">
           <div class="empty-state">
@@ -300,17 +299,16 @@
       <!-- Subscriptions Section -->
       <div *ngIf="selectedMainSection === 'subscriptions'" class="content-section">
         <div class="section-card" *ngIf="isApiConnected">
-          <app-table
-            label="Your Subscriptions"
-            [state]="subscriptionState"
-            [getPageFn]="loadSubscriptions.bind(this)"
-            [columns]="subscriptionColumns"
-            [loading]="isLoading"
-            [emptyMessage]="'No subscriptions found'"
-            (deleteItem)="unsubscribe($event)"
-            (editItem)="viewChannel($event)"
-            (stateChange)="subscriptionState = $event">
-          </app-table>
+          <app-unified-table
+            [label]="'Your Subscriptions'"
+            [data]="subscriptionState.pages![subscriptionState.pageIndex]"
+            [columns]="[
+              { title: 'Channel', data: 'name' },
+              { title: 'Subscribers', data: 'subscriberCount' }
+            ]"
+            [editItemFn]="viewChannel.bind(this)"
+            [deleteItemFn]="unsubscribe.bind(this)">
+          </app-unified-table>
         </div>
         <div class="section-card" *ngIf="!isApiConnected">
           <div class="empty-state">

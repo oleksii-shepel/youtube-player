@@ -7,8 +7,8 @@ import { firstValueFrom } from '@actioncrew/streamix';
 import { Settings } from 'src/app/services/settings.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
-import { TableComponent, PageState, TableColumn } from '../../components/table/table.component';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { TableComponent } from '../../components/table/table.component';
+import { DomSanitizer } from '@angular/platform-browser';
 import { IonicModule } from '@ionic/angular';
 
 export type AppTheme = 'default' | 'dark' | 'light';
@@ -56,6 +56,18 @@ export interface Subscription {
   thumbnail: string;
 }
 
+export interface PageState<T> {
+  items: T[]; // flat list of currently visible items
+  pageIndex: number;
+  pageSize: number;
+  total: number;
+  pages?: T[][]; // optional caching per page
+  nextPageToken?: string | null;
+  prevPageToken?: string | null;
+  filter?: string;
+  sort?: { prop: string; dir: 'asc' | 'desc' };
+}
+
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
@@ -64,11 +76,11 @@ export interface Subscription {
   imports: [CommonModule, FormsModule, IonicModule, TableComponent],
 })
 export class SettingsComponent implements OnInit {
-  selectedMainSection: string = 'appearance';
-  isApiConnected: boolean = false;
-  isLoading: boolean = false;
-  showApiKey: boolean = false;
-  showClientSecret: boolean = false;
+  selectedMainSection = 'appearance';
+  isApiConnected = false;
+  isLoading = false;
+  showApiKey = false;
+  showClientSecret = false;
 
   appVersion = '1.0.0';
   releaseDate = '2023-11-15';
@@ -112,64 +124,22 @@ export class SettingsComponent implements OnInit {
     pages: [],
     pageIndex: 0,
     nextPageToken: null,
-    prevPageTokens: [],
+    prevPageToken: null,
     filter: '',
+    pageSize: 10,
+    total: 0,
   };
-
-  playlistColumns: TableColumn<Playlist>[] = [
-    {
-      name: 'Thumbnail',
-      prop: 'thumbnail',
-      sortable: false,
-      width: 100,
-      cellFn: (item: any) => this.sanitizer.bypassSecurityTrustHtml(`<img src="${item.thumbnail}" width="50" height="50" alt="${item.name}" />`),
-    },
-    { name: 'Name', prop: 'name', sortable: true, width: 200 },
-    { name: 'Description', prop: 'description', sortable: true, width: 300, cellFn: (item) => item.description || 'No description' },
-    { name: 'Videos', prop: 'videoCount', sortable: true, width: 100 },
-    {
-      name: 'Privacy',
-      prop: 'privacy',
-      sortable: true,
-      width: 100,
-      cellFn: (item: any) => this.sanitizer.bypassSecurityTrustHtml(`<ion-chip color="${this.getPrivacyColor(item.privacy)}">${item.privacy}</ion-chip>`),
-    },
-    { name: 'Created', prop: 'createdDate', sortable: true, width: 120 },
-  ];
 
   subscriptionState: PageState<Subscription> = {
     items: [],
     pages: [],
     pageIndex: 0,
     nextPageToken: null,
-    prevPageTokens: [],
+    prevPageToken: null,
     filter: '',
+    pageSize: 10,
+    total: 0,
   };
-
-  subscriptionColumns: TableColumn<Subscription>[] = [
-    {
-      name: 'Thumbnail',
-      prop: 'thumbnail',
-      sortable: false,
-      width: 100,
-      cellFn: (item: any) => this.sanitizer.bypassSecurityTrustHtml(`<img src="${item.thumbnail}" width="50" height="50" alt="${item.name}" />`),
-    },
-    { name: 'Name', prop: 'name', sortable: true, width: 200 },
-    {
-      name: 'Subscribers',
-      prop: 'subscriberCount',
-      sortable: true,
-      width: 150,
-      cellFn: (item: any) => this.formatNumber(item.subscriberCount),
-    },
-    {
-      name: 'Category',
-      prop: 'category',
-      sortable: true,
-      width: 150,
-      cellFn: (item: any) => this.sanitizer.bypassSecurityTrustHtml(`<ion-chip color="${this.getCategoryColor(item.category)}">${item.category}</ion-chip>`),
-    },
-  ];
 
   apiConfig = {
     apiKey: '',
@@ -200,6 +170,7 @@ export class SettingsComponent implements OnInit {
     await this.loadSubscriptions();
   }
 
+  // Ionic lifecycle, if used
   async ionViewWillEnter() {
     await this.loadSavedSettings();
   }
@@ -258,7 +229,7 @@ export class SettingsComponent implements OnInit {
         };
       }
       if (this.isApiConnected) {
-        const channelResponse = await firstValueFrom(this.settings.getMyChannel());
+        const channelResponse: any = await firstValueFrom(this.settings.getMyChannel());
         const channel = channelResponse.items[0];
         this.userInfo = {
           ...this.userInfo,
@@ -288,7 +259,8 @@ export class SettingsComponent implements OnInit {
         <rect width="100" height="100" fill="#555"/>
         <text x="50%" y="55%" font-size="40" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
       </svg>`;
-    return `data:image/svg+xml;base64,${btoa(encodeURIComponent(svg).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))))}`;
+    // Properly encode base64 of SVG
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
   }
 
   async loadPlaylists(pageToken?: string): Promise<{ items: Playlist[]; nextPageToken?: string }> {
@@ -302,7 +274,7 @@ export class SettingsComponent implements OnInit {
         id: item.id,
         name: item.snippet.title,
         description: item.snippet.description,
-        videoCount: 0, // Note: Requires additional API call if needed
+        videoCount: 0, // Additional API call needed for actual count
         privacy: item.status.privacyStatus,
         thumbnail: item.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
         createdDate: new Date(item.snippet.publishedAt).toLocaleDateString(),
@@ -310,10 +282,10 @@ export class SettingsComponent implements OnInit {
       this.playlistState = {
         ...this.playlistState,
         items,
-        pages: pageToken ? [...this.playlistState.pages, items] : [items],
+        pages: pageToken ? [...(this.playlistState.pages || []), items] : [items],
         pageIndex: pageToken ? this.playlistState.pageIndex + 1 : 0,
         nextPageToken: response.nextPageToken || null,
-        prevPageTokens: pageToken ? [...this.playlistState.prevPageTokens, pageToken] : [],
+        prevPageToken: pageToken || null,
       };
       return { items, nextPageToken: response.nextPageToken };
     } catch (error) {
@@ -331,7 +303,7 @@ export class SettingsComponent implements OnInit {
       const title = 'New Playlist';
       const description = 'Playlist created from the app';
       const privacyStatus = 'private';
-      const response = await firstValueFrom(this.settings.createPlaylist(title, description, privacyStatus));
+      const response: any = await firstValueFrom(this.settings.createPlaylist(title, description, privacyStatus));
       const newPlaylist: Playlist = {
         id: response.id,
         name: response.snippet.title,
@@ -347,7 +319,7 @@ export class SettingsComponent implements OnInit {
         pages: [[newPlaylist, ...this.playlistState.items]],
         pageIndex: 0,
         nextPageToken: null,
-        prevPageTokens: [],
+        prevPageToken: null,
       };
     } catch (error) {
       console.error('Error creating playlist:', error);
@@ -359,13 +331,14 @@ export class SettingsComponent implements OnInit {
   async deletePlaylist(playlist: Playlist) {
     try {
       await firstValueFrom(this.settings.deletePlaylist(playlist.id));
+      const filteredItems = this.playlistState.items.filter((p) => p.id !== playlist.id);
       this.playlistState = {
         ...this.playlistState,
-        items: this.playlistState.items.filter((p: any) => p.id !== playlist.id),
-        pages: [[...this.playlistState.items.filter((p: any) => p.id !== playlist.id)]],
+        items: filteredItems,
+        pages: [filteredItems],
         pageIndex: 0,
         nextPageToken: null,
-        prevPageTokens: [],
+        prevPageToken: null,
       };
     } catch (error) {
       console.error('Error deleting playlist:', error);
@@ -374,7 +347,7 @@ export class SettingsComponent implements OnInit {
 
   editPlaylist(playlist: Playlist) {
     console.log('Edit playlist:', playlist);
-    // Implement edit logic (e.g., open a modal with a form)
+    // TODO: open edit modal
   }
 
   async loadSubscriptions(pageToken?: string): Promise<{ items: Subscription[]; nextPageToken?: string }> {
@@ -383,21 +356,21 @@ export class SettingsComponent implements OnInit {
     }
     this.isLoading = true;
     try {
-      const response = await firstValueFrom(this.settings.listSubscriptionsPaginated(pageToken));
+      const response: any = await firstValueFrom(this.settings.listSubscriptionsPaginated(pageToken));
       const items = response.items.map((item: any) => ({
         id: item.snippet.resourceId.channelId,
         name: item.snippet.title,
-        subscriberCount: 0, // Note: Requires additional API call if needed
+        subscriberCount: 0, // Additional API call needed for actual count
         category: '', // Not directly available
         thumbnail: item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg',
       }));
       this.subscriptionState = {
         ...this.subscriptionState,
         items,
-        pages: pageToken ? [...this.subscriptionState.pages, items] : [items],
+        pages: pageToken ? [...(this.subscriptionState.pages || []), items] : [items],
         pageIndex: pageToken ? this.subscriptionState.pageIndex + 1 : 0,
         nextPageToken: response.nextPageToken || null,
-        prevPageTokens: pageToken ? [...this.subscriptionState.prevPageTokens, pageToken] : [],
+        prevPageToken: pageToken || null,
       };
       return { items, nextPageToken: response.nextPageToken };
     } catch (error) {
@@ -411,13 +384,14 @@ export class SettingsComponent implements OnInit {
   async unsubscribe(subscription: Subscription) {
     try {
       await firstValueFrom(this.settings.unsubscribe(subscription.id));
+      const filteredSubs = this.subscriptionState.items.filter((s) => s.id !== subscription.id);
       this.subscriptionState = {
         ...this.subscriptionState,
-        items: this.subscriptionState.items.filter((s: any) => s.id !== subscription.id),
-        pages: [[...this.subscriptionState.items.filter((s: any) => s.id !== subscription.id)]],
+        items: filteredSubs,
+        pages: [filteredSubs],
         pageIndex: 0,
         nextPageToken: null,
-        prevPageTokens: [],
+        prevPageToken: null,
       };
     } catch (error) {
       console.error('Error unsubscribing:', error);
@@ -426,7 +400,7 @@ export class SettingsComponent implements OnInit {
 
   viewChannel(subscription: Subscription) {
     console.log('View channel:', subscription);
-    // Implement channel viewing logic
+    // TODO: implement channel viewing logic
   }
 
   async loadSavedSettings() {
