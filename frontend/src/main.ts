@@ -1,16 +1,16 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/sections/main/main.component';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { IonicRouteStrategy } from '@ionic/angular';
 import { createHttpClient } from '@actioncrew/streamix/http';
 import { InjectionToken } from '@angular/core';
 import { routes } from './app/app-routing.module';
 
-export const HTTP_CLIENT = new InjectionToken('HttpClient');
 import { Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
-import { IonicStorageModule, Storage } from '@ionic/storage-angular';
+import { IonicStorageModule } from '@ionic/storage-angular';
+
+export const HTTP_CLIENT = new InjectionToken('HttpClient');
 
 @Component({
   selector: 'app-root',

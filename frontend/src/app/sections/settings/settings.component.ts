@@ -9,15 +9,35 @@ import { Settings } from 'src/app/services/settings.service';
 import { firstValueFrom } from '@actioncrew/streamix';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
 
+export type AppTheme = 'default' | 'dark' | 'light'; // 'default' will now map to system preference
+export type AppFontSize = 'small' | 'medium' | 'large';
+export type AppThumbnailSize = 'small' | 'medium' | 'large';
+export type AppDisplayResults = 'change' | 'search';
+export type AppAutoCompleteMode = 'chips' | 'list';
+
+export interface AppearanceSettings {
+  theme: AppTheme;
+  fontSize: AppFontSize;
+  thumbnailSize: AppThumbnailSize;
+  autoComplete: AppAutoCompleteMode;
+  enableDescription: boolean;
+  visibleBackdrop: boolean;
+  displayResults: AppDisplayResults;
+  maxItemsPerRequest: number;
+}
+
 @Component({
   selector: 'app-settings',
   template: `
-    <ion-content class="youtube-api-settings-content" [attr.data-theme]="appearanceSettings.theme">
+    <ion-content class="youtube-api-settings-content">
       <div class="settings-container scrollable">
         <div class="user-header">
           <div class="user-avatar">
             <img [src]="userInfo.avatar" alt="User Avatar" />
-            <div class="online-indicator" [class.connected]="isApiConnected"></div>
+            <div
+              class="online-indicator"
+              [class.connected]="isApiConnected"
+            ></div>
           </div>
           <div class="user-info">
             <h2>{{ userInfo.name || 'Not Connected' }}</h2>
@@ -54,6 +74,15 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
           >
             <ion-icon name="color-palette-outline"></ion-icon>
             <span>Appearance</span>
+          </div>
+
+          <div
+            class="nav-item"
+            [class.active]="selectedMainSection === 'user-info'"
+            (click)="selectMainSection('user-info')"
+          >
+            <ion-icon name="person-circle-outline"></ion-icon>
+            <span>User Info</span>
           </div>
 
           <div
@@ -125,7 +154,10 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
           </div>
 
           <!-- User Information Section -->
-          <div *ngIf="selectedMainSection === 'user-info'" class="content-section">
+          <div
+            *ngIf="selectedMainSection === 'user-info'"
+            class="content-section"
+          >
             <div class="section-card" *ngIf="isApiConnected">
               <div class="card-header">
                 <h3>Channel Information</h3>
@@ -135,49 +167,63 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
                   <ion-icon name="person-outline"></ion-icon>
                   <div class="detail-content">
                     <span class="label">Channel Name</span>
-                    <span class="value">{{ userInfo.name || 'Loading...' }}</span>
+                    <span class="value">{{
+                      userInfo.name || 'Loading...'
+                    }}</span>
                   </div>
                 </div>
                 <div class="detail-row">
                   <ion-icon name="mail-outline"></ion-icon>
                   <div class="detail-content">
                     <span class="label">Email</span>
-                    <span class="value">{{ userInfo.email || 'Not available' }}</span>
+                    <span class="value">{{
+                      userInfo.email || 'Not available'
+                    }}</span>
                   </div>
                 </div>
                 <div class="detail-row">
                   <ion-icon name="tv-outline"></ion-icon>
                   <div class="detail-content">
                     <span class="label">Channel ID</span>
-                    <span class="value">{{ userInfo.channelId || 'Loading...' }}</span>
+                    <span class="value">{{
+                      userInfo.channelId || 'Loading...'
+                    }}</span>
                   </div>
                 </div>
                 <div class="detail-row">
                   <ion-icon name="people-outline"></ion-icon>
                   <div class="detail-content">
                     <span class="label">Subscribers</span>
-                    <span class="value">{{ formatNumber(userInfo.subscriberCount) }}</span>
+                    <span class="value">{{
+                      formatNumber(userInfo.subscriberCount)
+                    }}</span>
                   </div>
                 </div>
                 <div class="detail-row">
                   <ion-icon name="videocam-outline"></ion-icon>
                   <div class="detail-content">
                     <span class="label">Total Videos</span>
-                    <span class="value">{{ formatNumber(userInfo.videoCount) }}</span>
+                    <span class="value">{{
+                      formatNumber(userInfo.videoCount)
+                    }}</span>
                   </div>
                 </div>
                 <div class="detail-row">
                   <ion-icon name="eye-outline"></ion-icon>
                   <div class="detail-content">
                     <span class="label">Total Views</span>
-                    <span class="value">{{ formatNumber(userInfo.totalViews) }}</span>
+                    <span class="value">{{
+                      formatNumber(userInfo.totalViews)
+                    }}</span>
                   </div>
                 </div>
                 <div class="detail-row">
                   <ion-icon name="calendar-outline"></ion-icon>
                   <div class="detail-content">
                     <span class="label">Joined</span>
-                    <span class="value">{{ userInfo.joinedDate || 'Not available' }}</span>
+                    <span class="value">{{
+                      userInfo.joinedDate || 'Not available'
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -191,62 +237,114 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
           </div>
 
           <!-- Appearance Section -->
-          <div *ngIf="selectedMainSection === 'appearance'" class="content-section">
+          <div
+            *ngIf="selectedMainSection === 'appearance'"
+            class="content-section"
+          >
             <ion-list>
+              <!-- Theme Selection -->
               <ion-item>
                 <ion-icon name="color-palette-outline" slot="start"></ion-icon>
                 <ion-label>Theme</ion-label>
                 <ion-select
                   [(ngModel)]="appearanceSettings.theme"
-                  (ionChange)="onThemeChange()"
+                  (ionChange)="saveAppearanceSettings()"
                   interface="popover"
                 >
+                  <ion-select-option value="default">Default</ion-select-option>
                   <ion-select-option value="light">Light</ion-select-option>
                   <ion-select-option value="dark">Dark</ion-select-option>
-                  <ion-select-option value="default">Default</ion-select-option>
                 </ion-select>
               </ion-item>
+
+              <!-- Font Size -->
               <ion-item>
-                <ion-icon name="brush-outline" slot="start"></ion-icon>
-                <ion-label>Accent Color</ion-label>
-                <input
-                  type="color"
-                  [(ngModel)]="appearanceSettings.accentColor"
-                  (change)="saveAppearanceSettings()"
-                  class="color-picker"
-                >
-              </ion-item>
-              <ion-item>
-                <ion-icon name="contract-outline" slot="start"></ion-icon>
-                <ion-label>Compact Mode</ion-label>
-                <ion-toggle
-                  [(ngModel)]="appearanceSettings.compactMode"
+                <ion-icon name="text-outline" slot="start"></ion-icon>
+                <ion-label>Font Size</ion-label>
+                <ion-select
+                  [(ngModel)]="appearanceSettings.fontSize"
                   (ionChange)="saveAppearanceSettings()"
-                ></ion-toggle>
+                  interface="popover"
+                >
+                  <ion-select-option value="small">Small</ion-select-option>
+                  <ion-select-option value="medium">Medium</ion-select-option>
+                  <ion-select-option value="large">Large</ion-select-option>
+                </ion-select>
               </ion-item>
+
+              <!-- Thumbnail Size -->
               <ion-item>
                 <ion-icon name="image-outline" slot="start"></ion-icon>
-                <ion-label>Show Thumbnails</ion-label>
-                <ion-toggle
-                  [(ngModel)]="appearanceSettings.showThumbnails"
-                  (ionChange)="saveAppearanceSettings()"
-                ></ion-toggle>
-              </ion-item>
-              <ion-item>
-                <ion-icon name="play-outline" slot="start"></ion-icon>
-                <ion-label>Auto-play Videos</ion-label>
-                <ion-toggle
-                  [(ngModel)]="appearanceSettings.autoplay"
-                  (ionChange)="saveAppearanceSettings()"
-                ></ion-toggle>
-              </ion-item>
-              <ion-item>
-                <ion-icon name="list-outline" slot="start"></ion-icon>
-                <ion-label>Items per Page</ion-label>
+                <ion-label>Thumbnail Size</ion-label>
                 <ion-select
-                  [(ngModel)]="appearanceSettings.itemsPerPage"
+                  [(ngModel)]="appearanceSettings.thumbnailSize"
                   (ionChange)="saveAppearanceSettings()"
+                  interface="popover"
                 >
+                  <ion-select-option value="small">Small</ion-select-option>
+                  <ion-select-option value="medium">Medium</ion-select-option>
+                  <ion-select-option value="large">Large</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Auto-complete Mode -->
+              <ion-item>
+                <ion-icon name="search-outline" slot="start"></ion-icon>
+                <ion-label>Search Suggestions</ion-label>
+                <ion-select
+                  [(ngModel)]="appearanceSettings.autoComplete"
+                  (ionChange)="saveAppearanceSettings()"
+                  interface="popover"
+                >
+                  <ion-select-option value="chips">Chips</ion-select-option>
+                  <ion-select-option value="list">Dropdown List</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Description Toggle -->
+              <ion-item>
+                <ion-icon name="document-text-outline" slot="start"></ion-icon>
+                <ion-label>Show Descriptions</ion-label>
+                <ion-toggle
+                  [(ngModel)]="appearanceSettings.enableDescription"
+                  (ionChange)="saveAppearanceSettings()"
+                ></ion-toggle>
+              </ion-item>
+
+              <!-- Backdrop Visibility -->
+              <ion-item>
+                <ion-icon name="layers-outline" slot="start"></ion-icon>
+                <ion-label>Show Backdrop Effects</ion-label>
+                <ion-toggle
+                  [(ngModel)]="appearanceSettings.visibleBackdrop"
+                  (ionChange)="saveAppearanceSettings()"
+                ></ion-toggle>
+              </ion-item>
+
+              <!-- Display Results -->
+              <ion-item>
+                <ion-icon name="search-outline" slot="start"></ion-icon>
+                <ion-label>Display Results</ion-label>
+                <ion-select
+                  [(ngModel)]="appearanceSettings.displayResults"
+                  (ionChange)="saveAppearanceSettings()"
+                  interface="popover"
+                >
+                  <ion-select-option value="change">On Change</ion-select-option>
+                  <ion-select-option value="search">On Search</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Items per Request -->
+              <ion-item>
+                <ion-icon name="server-outline" slot="start"></ion-icon>
+                <ion-label>Max Items per Request</ion-label>
+                <ion-select
+                  [(ngModel)]="appearanceSettings.maxItemsPerRequest"
+                  (ionChange)="saveAppearanceSettings()"
+                  interface="popover"
+                >
+                  <ion-select-option value="5">5</ion-select-option>
                   <ion-select-option value="10">10</ion-select-option>
                   <ion-select-option value="25">25</ion-select-option>
                   <ion-select-option value="50">50</ion-select-option>
@@ -257,7 +355,10 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
           </div>
 
           <!-- Region & Language Section -->
-          <div *ngIf="selectedMainSection === 'region-language'" class="content-section">
+          <div
+            *ngIf="selectedMainSection === 'region-language'"
+            class="content-section"
+          >
             <ion-list>
               <ion-item>
                 <ion-icon name="flag-outline" slot="start"></ion-icon>
@@ -266,8 +367,12 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
                   [(ngModel)]="regionLanguageSettings.country"
                   (ionChange)="saveRegionLanguageSettings()"
                 >
-                  <ion-select-option value="US">United States</ion-select-option>
-                  <ion-select-option value="GB">United Kingdom</ion-select-option>
+                  <ion-select-option value="US"
+                    >United States</ion-select-option
+                  >
+                  <ion-select-option value="GB"
+                    >United Kingdom</ion-select-option
+                  >
                   <ion-select-option value="CA">Canada</ion-select-option>
                   <ion-select-option value="AU">Australia</ion-select-option>
                   <ion-select-option value="DE">Germany</ion-select-option>
@@ -306,16 +411,36 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
                   [(ngModel)]="regionLanguageSettings.timezone"
                   (ionChange)="saveRegionLanguageSettings()"
                 >
-                  <ion-select-option value="America/New_York">Eastern Time</ion-select-option>
-                  <ion-select-option value="America/Chicago">Central Time</ion-select-option>
-                  <ion-select-option value="America/Denver">Mountain Time</ion-select-option>
-                  <ion-select-option value="America/Los_Angeles">Pacific Time</ion-select-option>
-                  <ion-select-option value="Europe/London">London</ion-select-option>
-                  <ion-select-option value="Europe/Paris">Paris</ion-select-option>
-                  <ion-select-option value="Europe/Berlin">Berlin</ion-select-option>
-                  <ion-select-option value="Asia/Tokyo">Tokyo</ion-select-option>
-                  <ion-select-option value="Asia/Seoul">Seoul</ion-select-option>
-                  <ion-select-option value="Asia/Kolkata">Mumbai</ion-select-option>
+                  <ion-select-option value="America/New_York"
+                    >Eastern Time</ion-select-option
+                  >
+                  <ion-select-option value="America/Chicago"
+                    >Central Time</ion-select-option
+                  >
+                  <ion-select-option value="America/Denver"
+                    >Mountain Time</ion-select-option
+                  >
+                  <ion-select-option value="America/Los_Angeles"
+                    >Pacific Time</ion-select-option
+                  >
+                  <ion-select-option value="Europe/London"
+                    >London</ion-select-option
+                  >
+                  <ion-select-option value="Europe/Paris"
+                    >Paris</ion-select-option
+                  >
+                  <ion-select-option value="Europe/Berlin"
+                    >Berlin</ion-select-option
+                  >
+                  <ion-select-option value="Asia/Tokyo"
+                    >Tokyo</ion-select-option
+                  >
+                  <ion-select-option value="Asia/Seoul"
+                    >Seoul</ion-select-option
+                  >
+                  <ion-select-option value="Asia/Kolkata"
+                    >Mumbai</ion-select-option
+                  >
                 </ion-select>
               </ion-item>
               <ion-item>
@@ -325,10 +450,18 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
                   [(ngModel)]="regionLanguageSettings.dateFormat"
                   (ionChange)="saveRegionLanguageSettings()"
                 >
-                  <ion-select-option value="MM/dd/yyyy">MM/DD/YYYY</ion-select-option>
-                  <ion-select-option value="dd/MM/yyyy">DD/MM/YYYY</ion-select-option>
-                  <ion-select-option value="yyyy-MM-dd">YYYY-MM-DD</ion-select-option>
-                  <ion-select-option value="dd.MM.yyyy">DD.MM.YYYY</ion-select-option>
+                  <ion-select-option value="MM/dd/yyyy"
+                    >MM/DD/YYYY</ion-select-option
+                  >
+                  <ion-select-option value="dd/MM/yyyy"
+                    >DD/MM/YYYY</ion-select-option
+                  >
+                  <ion-select-option value="yyyy-MM-dd"
+                    >YYYY-MM-DD</ion-select-option
+                  >
+                  <ion-select-option value="dd.MM.yyyy"
+                    >DD.MM.YYYY</ion-select-option
+                  >
                 </ion-select>
               </ion-item>
               <ion-item>
@@ -346,11 +479,18 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
           </div>
 
           <!-- Playlists Section -->
-          <div *ngIf="selectedMainSection === 'playlists'" class="content-section">
+          <div
+            *ngIf="selectedMainSection === 'playlists'"
+            class="content-section"
+          >
             <div class="section-card" *ngIf="isApiConnected">
               <div class="card-header">
                 <h3>Your Playlists</h3>
-                <ion-button size="small" fill="outline" (click)="createPlaylist()">
+                <ion-button
+                  size="small"
+                  fill="outline"
+                  (click)="createPlaylist()"
+                >
                   <ion-icon name="add-outline" slot="start"></ion-icon>
                   Create New
                 </ion-button>
@@ -358,24 +498,38 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
               <div class="playlist-list">
                 <div class="playlist-item" *ngFor="let playlist of playlists">
                   <div class="playlist-thumbnail">
-                    <img [src]="playlist.thumbnail" alt="Playlist thumbnail">
+                    <img [src]="playlist.thumbnail" alt="Playlist thumbnail" />
                     <div class="video-count">{{ playlist.videoCount }}</div>
                   </div>
                   <div class="playlist-info">
                     <h4>{{ playlist.name }}</h4>
                     <p>{{ playlist.description || 'No description' }}</p>
                     <div class="playlist-meta">
-                      <ion-chip [color]="getPrivacyColor(playlist.privacy)" size="small">
+                      <ion-chip
+                        [color]="getPrivacyColor(playlist.privacy)"
+                        size="small"
+                      >
                         {{ playlist.privacy }}
                       </ion-chip>
-                      <span class="created-date">{{ playlist.createdDate }}</span>
+                      <span class="created-date">{{
+                        playlist.createdDate
+                      }}</span>
                     </div>
                   </div>
                   <div class="playlist-actions">
-                    <ion-button fill="clear" size="small" (click)="editPlaylist(playlist)">
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      (click)="editPlaylist(playlist)"
+                    >
                       <ion-icon name="create-outline"></ion-icon>
                     </ion-button>
-                    <ion-button fill="clear" size="small" color="danger" (click)="deletePlaylist(playlist)">
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      color="danger"
+                      (click)="deletePlaylist(playlist)"
+                    >
                       <ion-icon name="trash-outline"></ion-icon>
                     </ion-button>
                   </div>
@@ -391,7 +545,10 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
           </div>
 
           <!-- Subscriptions Section -->
-          <div *ngIf="selectedMainSection === 'subscriptions'" class="content-section">
+          <div
+            *ngIf="selectedMainSection === 'subscriptions'"
+            class="content-section"
+          >
             <div class="section-card" *ngIf="isApiConnected">
               <div class="card-header">
                 <h3>Your Subscriptions</h3>
@@ -402,20 +559,39 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
                 ></ion-searchbar>
               </div>
               <div class="subscription-list">
-                <div class="subscription-item" *ngFor="let subscription of filteredSubscriptions">
+                <div
+                  class="subscription-item"
+                  *ngFor="let subscription of filteredSubscriptions"
+                >
                   <div class="subscription-avatar">
-                    <img [src]="subscription.thumbnail" alt="Channel avatar">
+                    <img [src]="subscription.thumbnail" alt="Channel avatar" />
                   </div>
                   <div class="subscription-info">
                     <h4>{{ subscription.name }}</h4>
-                    <p>{{ formatNumber(subscription.subscriberCount) }} subscribers</p>
-                    <ion-chip size="small" color="tertiary">{{ subscription.category }}</ion-chip>
+                    <p>
+                      {{
+                        formatNumber(subscription.subscriberCount)
+                      }}
+                      subscribers
+                    </p>
+                    <ion-chip size="small" color="tertiary">{{
+                      subscription.category
+                    }}</ion-chip>
                   </div>
                   <div class="subscription-actions">
-                    <ion-button fill="clear" size="small" (click)="viewChannel(subscription)">
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      (click)="viewChannel(subscription)"
+                    >
                       <ion-icon name="open-outline"></ion-icon>
                     </ion-button>
-                    <ion-button fill="clear" size="small" color="danger" (click)="unsubscribe(subscription)">
+                    <ion-button
+                      fill="clear"
+                      size="small"
+                      color="danger"
+                      (click)="unsubscribe(subscription)"
+                    >
                       <ion-icon name="person-remove-outline"></ion-icon>
                     </ion-button>
                   </div>
@@ -431,7 +607,10 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
           </div>
 
           <!-- API Configuration Section -->
-          <div *ngIf="selectedMainSection === 'api-key'" class="content-section">
+          <div
+            *ngIf="selectedMainSection === 'api-key'"
+            class="content-section"
+          >
             <div class="section-card">
               <ion-list>
                 <ion-item>
@@ -448,11 +627,16 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
                     slot="end"
                     (click)="toggleApiKeyVisibility()"
                   >
-                    <ion-icon [name]="showApiKey ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+                    <ion-icon
+                      [name]="showApiKey ? 'eye-off-outline' : 'eye-outline'"
+                    ></ion-icon>
                   </ion-button>
                 </ion-item>
                 <ion-item>
-                  <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+                  <ion-icon
+                    name="person-circle-outline"
+                    slot="start"
+                  ></ion-icon>
                   <ion-input
                     label="Client ID (Optional)"
                     labelPlacement="stacked"
@@ -474,7 +658,11 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
                     slot="end"
                     (click)="toggleClientSecretVisibility()"
                   >
-                    <ion-icon [name]="showClientSecret ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+                    <ion-icon
+                      [name]="
+                        showClientSecret ? 'eye-off-outline' : 'eye-outline'
+                      "
+                    ></ion-icon>
                   </ion-button>
                 </ion-item>
               </ion-list>
@@ -486,90 +674,109 @@ import { Theme, ThemeService } from 'src/app/services/theme.service';
               </div>
               <div class="quota-info">
                 <div class="quota-bar">
-                  <div class="quota-progress" [style.width.%]="getQuotaPercentage()"></div>
+                  <div
+                    class="quota-progress"
+                    [style.width.%]="getQuotaPercentage()"
+                  ></div>
                 </div>
                 <div class="quota-text">
-                  <span>{{ formatNumber(apiConfig.quotaUsage) }} / {{ formatNumber(apiConfig.quotaLimit) }} </span>
+                  <span
+                    >{{ formatNumber(apiConfig.quotaUsage) }} /
+                    {{ formatNumber(apiConfig.quotaLimit) }}
+                  </span>
                   <span>({{ getQuotaPercentage() }}% used)</span>
                 </div>
               </div>
-
             </div>
           </div>
 
           <!-- Add About Section -->
-        <div *ngIf="selectedMainSection === 'about'" class="content-section">
-          <div class="section-card">
-            <div class="card-header">
-              <h3>About This App</h3>
-            </div>
-            <div class="about-content">
-              <div class="app-info">
-                <img src="assets/icons/icon-512x512.png" alt="App Logo" class="app-logo">
-                <h4>YouTube API Manager</h4>
-                <p>Version {{ appVersion }}</p>
+          <div *ngIf="selectedMainSection === 'about'" class="content-section">
+            <div class="section-card">
+              <div class="card-header">
+                <h3>About This App</h3>
               </div>
-
-              <div class="about-details">
-                <p>A powerful tool for managing your YouTube channel through the YouTube Data API.</p>
-
-                <div class="detail-row">
-                  <ion-icon name="code-outline"></ion-icon>
-                  <div class="detail-content">
-                    <span class="label">Developed By</span>
-                    <span class="value">{{ developerInfo }}</span>
-                  </div>
+              <div class="about-content">
+                <div class="app-info">
+                  <img
+                    src="assets/icons/icon-512x512.png"
+                    alt="App Logo"
+                    class="app-logo"
+                  />
+                  <h4>YouTube API Manager</h4>
+                  <p>Version {{ appVersion }}</p>
                 </div>
 
-                <div class="detail-row">
-                  <ion-icon name="calendar-outline"></ion-icon>
-                  <div class="detail-content">
-                    <span class="label">Release Date</span>
-                    <span class="value">{{ releaseDate }}</span>
-                  </div>
-                </div>
+                <div class="about-details">
+                  <p>
+                    A powerful tool for managing your YouTube channel through
+                    the YouTube Data API.
+                  </p>
 
-                <div class="detail-row">
-                  <ion-icon name="document-text-outline"></ion-icon>
-                  <div class="detail-content">
-                    <span class="label">License</span>
-                    <span class="value">{{ licenseInfo }}</span>
+                  <div class="detail-row">
+                    <ion-icon name="code-outline"></ion-icon>
+                    <div class="detail-content">
+                      <span class="label">Developed By</span>
+                      <span class="value">{{ developerInfo }}</span>
+                    </div>
                   </div>
-                </div>
 
-                <div class="action-buttons">
-                  <ion-button expand="block" fill="outline" (click)="openWebsite()">
-                    <ion-icon name="globe-outline" slot="start"></ion-icon>
-                    Visit Website
-                  </ion-button>
-                  <ion-button expand="block" fill="outline" (click)="openPrivacyPolicy()">
-                    <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
-                    Privacy Policy
-                  </ion-button>
+                  <div class="detail-row">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <div class="detail-content">
+                      <span class="label">Release Date</span>
+                      <span class="value">{{ releaseDate }}</span>
+                    </div>
+                  </div>
+
+                  <div class="detail-row">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <div class="detail-content">
+                      <span class="label">License</span>
+                      <span class="value">{{ licenseInfo }}</span>
+                    </div>
+                  </div>
+
+                  <div class="action-buttons">
+                    <ion-button
+                      expand="block"
+                      fill="outline"
+                      (click)="openWebsite()"
+                    >
+                      <ion-icon name="globe-outline" slot="start"></ion-icon>
+                      Visit Website
+                    </ion-button>
+                    <ion-button
+                      expand="block"
+                      fill="outline"
+                      (click)="openPrivacyPolicy()"
+                    >
+                      <ion-icon
+                        name="shield-checkmark-outline"
+                        slot="start"
+                      ></ion-icon>
+                      Privacy Policy
+                    </ion-button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div *ngIf="!selectedMainSection" class="empty-state">
-          <ion-icon name="settings-outline" size="large"></ion-icon>
-          <p class="empty-state-message">
-            Select a category from the left menu to view YouTube API settings.
-          </p>
+          <div *ngIf="!selectedMainSection" class="empty-state">
+            <ion-icon name="settings-outline" size="large"></ion-icon>
+            <p class="empty-state-message">
+              Select a category from the left menu to view YouTube API settings.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-  </ion-content>
+    </ion-content>
   `,
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  providers: [
-    Storage
-  ],
-  imports: [
-    CommonModule, FormsModule, IonicModule, IonicStorageModule
-]
+  providers: [Storage],
+  imports: [CommonModule, FormsModule, IonicModule, IonicStorageModule],
 })
 export class SettingsComponent implements OnInit {
   selectedMainSection: string = 'appearance';
@@ -595,17 +802,19 @@ export class SettingsComponent implements OnInit {
     videoCount: 0,
     totalViews: 0,
     joinedDate: '',
-    description: ''
+    description: '',
   };
 
   // Appearance Settings
   appearanceSettings = {
     theme: 'default',
-    accentColor: '#ff0000',
-    compactMode: false,
-    showThumbnails: true,
-    itemsPerPage: 25,
-    autoplay: true
+    fontSize: 'medium',
+    thumbnailSize: 'medium',
+    autoComplete: 'chips',
+    enableDescription: true,
+    visibleBackdrop: true,
+    displayResults: 'search',
+    maxItemsPerRequest: '5'
   };
 
   // Region & Language Settings
@@ -615,7 +824,7 @@ export class SettingsComponent implements OnInit {
     timezone: 'America/New_York',
     dateFormat: 'MM/dd/yyyy',
     timeFormat: '12h',
-    numberFormat: 'en-US'
+    numberFormat: 'en-US',
   };
 
   // Playlists Data
@@ -627,7 +836,7 @@ export class SettingsComponent implements OnInit {
       videoCount: 25,
       privacy: 'public',
       thumbnail: 'assets/playlist-1.jpg',
-      createdDate: 'Mar 2023'
+      createdDate: 'Mar 2023',
     },
     {
       id: 'PL2',
@@ -636,7 +845,7 @@ export class SettingsComponent implements OnInit {
       videoCount: 18,
       privacy: 'public',
       thumbnail: 'assets/playlist-2.jpg',
-      createdDate: 'Jun 2023'
+      createdDate: 'Jun 2023',
     },
     {
       id: 'PL3',
@@ -645,8 +854,8 @@ export class SettingsComponent implements OnInit {
       videoCount: 8,
       privacy: 'private',
       thumbnail: 'assets/playlist-3.jpg',
-      createdDate: 'Aug 2023'
-    }
+      createdDate: 'Aug 2023',
+    },
   ];
   playlistCount: number = 3;
 
@@ -657,22 +866,22 @@ export class SettingsComponent implements OnInit {
       name: 'Tech Channel Pro',
       subscriberCount: 2100000,
       category: 'Technology',
-      thumbnail: 'assets/channel-1.jpg'
+      thumbnail: 'assets/channel-1.jpg',
     },
     {
       id: 'UC2',
       name: 'Code Academy',
       subscriberCount: 5800000,
       category: 'Education',
-      thumbnail: 'assets/channel-2.jpg'
+      thumbnail: 'assets/channel-2.jpg',
     },
     {
       id: 'UC3',
       name: 'Dev Talk',
       subscriberCount: 987000,
       category: 'Technology',
-      thumbnail: 'assets/channel-3.jpg'
-    }
+      thumbnail: 'assets/channel-3.jpg',
+    },
   ];
   subscriptionCount: number = 3;
 
@@ -685,10 +894,16 @@ export class SettingsComponent implements OnInit {
     quotaLimit: 10000,
     rateLimitEnabled: true,
     cacheEnabled: true,
-    cacheDuration: 3600
+    cacheDuration: 3600,
   };
 
-  constructor(private router: Router, private storage: Storage, private settings: Settings, private authorization: Authorization, private theme: ThemeService) {
+  constructor(
+    private router: Router,
+    private storage: Storage,
+    private settings: Settings,
+    private authorization: Authorization,
+    private theme: ThemeService
+  ) {
     this.filteredSubscriptions = [...this.subscriptions];
   }
 
@@ -708,7 +923,7 @@ export class SettingsComponent implements OnInit {
         ...this.userInfo,
         name: profile.name,
         email: profile.email,
-        avatar: profile.picture || this.getDefaultAvatarUrl(profile.name)
+        avatar: profile.picture || this.getDefaultAvatarUrl(profile.name),
       };
     }
   }
@@ -750,13 +965,16 @@ export class SettingsComponent implements OnInit {
           ...this.userInfo,
           name: authProfile.name,
           email: authProfile.email,
-          avatar: authProfile.picture || this.getDefaultAvatarUrl(authProfile.name)
+          avatar:
+            authProfile.picture || this.getDefaultAvatarUrl(authProfile.name),
         };
       }
 
       // Only fetch YouTube-specific data if we have an API connection
       if (this.isApiConnected) {
-        const channelResponse = await firstValueFrom(this.settings.getMyChannel());
+        const channelResponse = await firstValueFrom(
+          this.settings.getMyChannel()
+        );
         const channel = channelResponse.items[0];
 
         this.userInfo = {
@@ -765,8 +983,10 @@ export class SettingsComponent implements OnInit {
           subscriberCount: parseInt(channel.statistics.subscriberCount),
           videoCount: parseInt(channel.statistics.videoCount),
           totalViews: parseInt(channel.statistics.viewCount),
-          joinedDate: new Date(channel.snippet.publishedAt).toLocaleDateString(),
-          description: channel.snippet.description
+          joinedDate: new Date(
+            channel.snippet.publishedAt
+          ).toLocaleDateString(),
+          description: channel.snippet.description,
         };
 
         await this.loadPlaylists();
@@ -782,7 +1002,7 @@ export class SettingsComponent implements OnInit {
   getDefaultAvatarUrl(name: string): string {
     const initials = name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase();
 
@@ -807,15 +1027,19 @@ export class SettingsComponent implements OnInit {
     if (!this.isApiConnected) return;
 
     try {
-      const playlistsResponse = await firstValueFrom(this.settings.listPlaylists());
+      const playlistsResponse = await firstValueFrom(
+        this.settings.listPlaylists()
+      );
       this.playlists = playlistsResponse.items.map((item: any) => ({
         id: item.id,
         name: item.snippet.title,
         description: item.snippet.description,
         videoCount: 0, // Would need another API call to get this
         privacy: item.status.privacyStatus,
-        thumbnail: item.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
-        createdDate: new Date(item.snippet.publishedAt).toLocaleDateString()
+        thumbnail:
+          item.snippet.thumbnails?.default?.url ||
+          'assets/playlist-default.jpg',
+        createdDate: new Date(item.snippet.publishedAt).toLocaleDateString(),
       }));
       this.playlistCount = this.playlists.length;
     } catch (error) {
@@ -828,13 +1052,16 @@ export class SettingsComponent implements OnInit {
     if (!this.isApiConnected) return;
 
     try {
-      const subscriptionsResponse = await firstValueFrom(this.settings.listSubscriptions());
+      const subscriptionsResponse = await firstValueFrom(
+        this.settings.listSubscriptions()
+      );
       this.subscriptions = subscriptionsResponse.items.map((item: any) => ({
         id: item.snippet.resourceId.channelId,
         name: item.snippet.title,
         subscriberCount: 0, // Would need another API call to get this
         category: '', // Not directly available in subscription response
-        thumbnail: item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg'
+        thumbnail:
+          item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg',
       }));
       this.subscriptionCount = this.subscriptions.length;
       this.filteredSubscriptions = [...this.subscriptions];
@@ -864,8 +1091,12 @@ export class SettingsComponent implements OnInit {
         description: response.snippet.description,
         videoCount: 0,
         privacy: response.status.privacyStatus,
-        thumbnail: response.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
-        createdDate: new Date(response.snippet.publishedAt).toLocaleDateString()
+        thumbnail:
+          response.snippet.thumbnails?.default?.url ||
+          'assets/playlist-default.jpg',
+        createdDate: new Date(
+          response.snippet.publishedAt
+        ).toLocaleDateString(),
       });
       this.playlistCount = this.playlists.length;
     } catch (error) {
@@ -877,7 +1108,7 @@ export class SettingsComponent implements OnInit {
   async deletePlaylist(playlist: any) {
     try {
       await firstValueFrom(this.settings.deletePlaylist(playlist.id));
-      this.playlists = this.playlists.filter(p => p.id !== playlist.id);
+      this.playlists = this.playlists.filter((p) => p.id !== playlist.id);
       this.playlistCount = this.playlists.length;
     } catch (error) {
       console.error('Error deleting playlist:', error);
@@ -890,7 +1121,9 @@ export class SettingsComponent implements OnInit {
       // Note: This assumes the subscriptionId is the same as channelId
       // In a real app, you'd need to find the actual subscriptionId
       await firstValueFrom(this.settings.unsubscribe(channel.id));
-      this.subscriptions = this.subscriptions.filter(s => s.id !== channel.id);
+      this.subscriptions = this.subscriptions.filter(
+        (s) => s.id !== channel.id
+      );
       this.subscriptionCount = this.subscriptions.length;
       this.filterSubscriptions();
     } catch (error) {
@@ -908,13 +1141,21 @@ export class SettingsComponent implements OnInit {
     // Load appearance settings
     const savedAppearance = await this.storage.get('appearanceSettings');
     if (savedAppearance) {
-      this.appearanceSettings = { ...this.appearanceSettings, ...savedAppearance };
+      this.appearanceSettings = {
+        ...this.appearanceSettings,
+        ...savedAppearance,
+      };
     }
 
     // Load region/language settings
-    const savedRegionLanguage = await this.storage.get('regionLanguageSettings');
+    const savedRegionLanguage = await this.storage.get(
+      'regionLanguageSettings'
+    );
     if (savedRegionLanguage) {
-      this.regionLanguageSettings = { ...this.regionLanguageSettings, ...savedRegionLanguage };
+      this.regionLanguageSettings = {
+        ...this.regionLanguageSettings,
+        ...savedRegionLanguage,
+      };
     }
   }
 
@@ -922,7 +1163,7 @@ export class SettingsComponent implements OnInit {
     this.selectedMainSection = section;
 
     // Optional: Save the last viewed section to storage
-    this.storage.set('lastViewedSection', section).catch(err => {
+    this.storage.set('lastViewedSection', section).catch((err) => {
       console.error('Error saving last viewed section:', err);
     });
 
@@ -934,16 +1175,19 @@ export class SettingsComponent implements OnInit {
   }
 
   getSectionTitle(): string {
-    const sectionTitles: {[key: string]: string} = {
-      'appearance': 'Theme Settings',
+    const sectionTitles: { [key: string]: string } = {
+      'user-info': 'User Details',
+      appearance: 'Theme Settings',
       'region-language': 'Region & Language',
-      'playlists': 'Playlists Management',
-      'subscriptions': 'Subscriptions',
+      playlists: 'Playlists Management',
+      subscriptions: 'Subscriptions',
       'api-key': 'API Configuration',
-      'about': 'About'
+      about: 'About',
     };
 
-    return sectionTitles[this.selectedMainSection] || 'YouTube Data API Settings';
+    return (
+      sectionTitles[this.selectedMainSection] || 'YouTube Data API Settings'
+    );
   }
 
   applyTheme() {
@@ -960,7 +1204,10 @@ export class SettingsComponent implements OnInit {
   }
 
   async saveRegionLanguageSettings() {
-    await this.storage.set('regionLanguageSettings', this.regionLanguageSettings);
+    await this.storage.set(
+      'regionLanguageSettings',
+      this.regionLanguageSettings
+    );
   }
 
   async saveApiConfig() {
@@ -977,7 +1224,7 @@ export class SettingsComponent implements OnInit {
       quotaLimit: 10000,
       rateLimitEnabled: true,
       cacheEnabled: true,
-      cacheDuration: 3600
+      cacheDuration: 3600,
     };
     await this.storage.remove('youtubeApiConfig');
     this.isApiConnected = false;
@@ -994,7 +1241,7 @@ export class SettingsComponent implements OnInit {
     try {
       // In a real app, you would make an actual API call here
       // For demo purposes, we'll simulate a successful connection
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       this.isApiConnected = true;
       await this.loadUserData();
@@ -1013,9 +1260,10 @@ export class SettingsComponent implements OnInit {
     }
 
     const filter = this.subscriptionFilter.toLowerCase();
-    this.filteredSubscriptions = this.subscriptions.filter(sub =>
-      sub.name.toLowerCase().includes(filter) ||
-      sub.category.toLowerCase().includes(filter)
+    this.filteredSubscriptions = this.subscriptions.filter(
+      (sub) =>
+        sub.name.toLowerCase().includes(filter) ||
+        sub.category.toLowerCase().includes(filter)
     );
   }
 
@@ -1038,10 +1286,14 @@ export class SettingsComponent implements OnInit {
 
   getPrivacyColor(privacy: string): string {
     switch (privacy) {
-      case 'public': return 'success';
-      case 'private': return 'danger';
-      case 'unlisted': return 'warning';
-      default: return 'medium';
+      case 'public':
+        return 'success';
+      case 'private':
+        return 'danger';
+      case 'unlisted':
+        return 'warning';
+      default:
+        return 'medium';
     }
   }
 
@@ -1050,7 +1302,9 @@ export class SettingsComponent implements OnInit {
   }
 
   getQuotaPercentage(): number {
-    return Math.round((this.apiConfig.quotaUsage / this.apiConfig.quotaLimit) * 100);
+    return Math.round(
+      (this.apiConfig.quotaUsage / this.apiConfig.quotaLimit) * 100
+    );
   }
 
   editPlaylist(playlist: any) {
