@@ -439,10 +439,10 @@
   --ion-text-color: #2c3e50; /* Darker blue-grey for readability */
   --ion-text-color-rgb: 44, 62, 80;
 
-  --ion-text-color-secondary: #5e6d7e; /* Lighter secondary text */
-  --ion-text-color-muted: #8c9ba5; /* Muted light text */
+  --ion-text-color-secondary: #394a5d; /* Lighter secondary text */
+  --ion-text-color-muted: #536a85; /* Muted light text */
   --ion-text-color-heading: #1e2a36; /* Darkest for headings */
-  --ion-text-color-subheading: #4a5c6c; /* Slightly lighter than heading */
+  --ion-text-color-subheading: #2c3d4d; /* Slightly lighter than heading */
 
   --ion-text-color-link: var(--ion-color-primary-shade);
   --ion-text-color-link-hover: var(--ion-color-primary);
@@ -460,11 +460,11 @@
   --ion-color-primary-tint: #4fbbe9;
 
   /* Secondary Accent - Light Neutral Blue-Grey */
-  --ion-color-secondary: #aebfd0;
+  --ion-color-secondary: #346da7;
   --ion-color-secondary-rgb: 174, 191, 208;
   --ion-color-secondary-contrast: var(--ion-text-color-heading);
-  --ion-color-secondary-shade: #96a9ba;
-  --ion-color-secondary-tint: #c1d2e1;
+  --ion-color-secondary-shade: #214664;
+  --ion-color-secondary-tint: #446684;
 
   /* Tertiary Accent - Aligned with Muted Text */
   --ion-color-tertiary: #6c7a89; /* A medium blue-grey */
