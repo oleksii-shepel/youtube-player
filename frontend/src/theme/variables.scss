@@ -17,6 +17,7 @@
 
   /* Background Image */
   --ion-background-image: url('/assets/background.png');
+  --ion-logo-image: url('/assets/logo-styled.png');
   --ion-background-image-opacity: 0.5; /* Adjust as needed */
 
   /* ==================================== */
@@ -226,6 +227,7 @@
 
   /* Background Image */
   --ion-background-image: url('/assets/background-dark.png'); /* Using the attached dark image */
+  --ion-logo-image: url('/assets/logo-styled-dark.png');
   --ion-background-image-opacity: 0.3; /* Adjusted for better visibility with pure grey */
 
   /* ==================================== */
@@ -431,6 +433,7 @@
 
   /* Background Image */
   --ion-background-image: url('/assets/background-light.png'); /* Using the attached light image */
+  --ion-logo-image: url('/assets/logo-styled-light.png');
   --ion-background-image-opacity: 0.8; /* Adjusted as needed for visibility */
 
   /* ==================================== */

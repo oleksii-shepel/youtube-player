@@ -6,8 +6,7 @@
   background: transparent;
   overflow: hidden; // Prevent double scrollbars
 
-  background-image:
-    url('/assets/logo-styled.png');
+  background-image: var(--ion-logo-image);
 
   background-color: transparent;
   background-repeat: no-repeat;
