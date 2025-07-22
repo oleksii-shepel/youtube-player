@@ -1,3 +1,4 @@
+import { Authorization } from './../../services/authorization.service';
 import { Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { IonicStorageModule, Storage } from '@ionic/storage-angular';
@@ -585,15 +586,15 @@ export class SettingsComponent implements OnInit {
 
   // User Information
   userInfo = {
-    name: 'Tech Creator',
-    channelId: 'UC1234567890abcdef',
+    name: '',
+    channelId: '',
     avatar: 'assets/youtube-default-avatar.png',
-    email: 'creator@example.com',
-    subscriberCount: 125000,
-    videoCount: 47,
-    totalViews: 1250000,
-    joinedDate: 'Jan 15, 2020',
-    description: 'Technology and programming content creator'
+    email: '',
+    subscriberCount: 0,
+    videoCount: 0,
+    totalViews: 0,
+    joinedDate: '',
+    description: ''
   };
 
   // Appearance Settings
@@ -686,19 +687,39 @@ export class SettingsComponent implements OnInit {
     cacheDuration: 3600
   };
 
-  constructor(private router: Router, private storage: Storage, private settings: Settings) {
+  constructor(private router: Router, private storage: Storage, private settings: Settings, private authorization: Authorization) {
     this.filteredSubscriptions = [...this.subscriptions];
   }
 
-   async ngOnInit() {
+  async ngOnInit() {
     await this.storage.create();
     await this.loadSavedSettings();
     this.applyTheme();
-    await this.checkApiConnection(); // Made this async
+    await this.checkApiConnection();
+    this.loadUserProfile();
   }
 
-  // Updated checkApiConnection to use Settings service
+  // Load user profile from Authorization service
+  loadUserProfile() {
+    const profile = this.authorization.getProfile();
+    if (profile) {
+      this.userInfo = {
+        ...this.userInfo,
+        name: profile.name,
+        email: profile.email,
+        avatar: profile.picture || this.getDefaultAvatarUrl(profile.name)
+      };
+    }
+  }
+
   async checkApiConnection() {
+    // First check if we have OAuth access
+    if (this.authorization.isSignedIn()) {
+      this.isApiConnected = true;
+      return;
+    }
+
+    // Fall back to API key check
     if (!this.apiConfig.apiKey) {
       this.isApiConnected = false;
       return;
@@ -707,8 +728,6 @@ export class SettingsComponent implements OnInit {
     this.isLoading = true;
 
     try {
-      // Use the Settings service to check connection
-      const channelData = await firstValueFrom(this.settings.getMyChannel());
       this.isApiConnected = true;
       await this.loadUserData();
     } catch (error) {
@@ -719,35 +738,67 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  // Updated loadUserData to use Settings service
+  // Updated loadUserData to combine Authorization profile with YouTube API data
   async loadUserData() {
-    if (!this.isApiConnected) return;
-
     this.isLoading = true;
     try {
-      // Get channel data
-      const channelResponse = await firstValueFrom(this.settings.getMyChannel());
-      const channel = channelResponse.items[0];
+      // Get profile from Authorization service if available
+      const authProfile = this.authorization.getProfile();
+      if (authProfile) {
+        this.userInfo = {
+          ...this.userInfo,
+          name: authProfile.name,
+          email: authProfile.email,
+          avatar: authProfile.picture || this.getDefaultAvatarUrl(authProfile.name)
+        };
+      }
 
-      this.userInfo = {
-        name: channel.snippet.title,
-        channelId: channel.id,
-        avatar: channel.snippet.thumbnails?.default?.url || 'assets/youtube-default-avatar.png',
-        email: '', // Not available in basic response
-        subscriberCount: parseInt(channel.statistics.subscriberCount),
-        videoCount: parseInt(channel.statistics.videoCount),
-        totalViews: parseInt(channel.statistics.viewCount),
-        joinedDate: new Date(channel.snippet.publishedAt).toLocaleDateString(),
-        description: channel.snippet.description
-      };
+      // Only fetch YouTube-specific data if we have an API connection
+      if (this.isApiConnected) {
+        const channelResponse = await firstValueFrom(this.settings.getMyChannel());
+        const channel = channelResponse.items[0];
 
-      await this.loadPlaylists();
-      await this.loadSubscriptions();
+        this.userInfo = {
+          ...this.userInfo,
+          channelId: channel.id,
+          subscriberCount: parseInt(channel.statistics.subscriberCount),
+          videoCount: parseInt(channel.statistics.videoCount),
+          totalViews: parseInt(channel.statistics.viewCount),
+          joinedDate: new Date(channel.snippet.publishedAt).toLocaleDateString(),
+          description: channel.snippet.description
+        };
+
+        await this.loadPlaylists();
+        await this.loadSubscriptions();
+      }
     } catch (error) {
       console.error('Error loading user data:', error);
     } finally {
       this.isLoading = false;
     }
+  }
+
+  getDefaultAvatarUrl(name: string): string {
+    const initials = name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+        <rect width="100" height="100" fill="#555"/>
+        <text x="50%" y="55%" font-size="40" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
+      </svg>
+    `;
+
+    const encoded = btoa(
+      encodeURIComponent(svg).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+        String.fromCharCode(parseInt(p1, 16))
+      )
+    );
+
+    return `data:image/svg+xml;base64,${encoded}`;
   }
 
   // Updated loadPlaylists to use Settings service
