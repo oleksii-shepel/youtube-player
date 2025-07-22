@@ -34,14 +34,37 @@ export class Settings {
   }
 
   /** 📺 List user's playlists */
-  listPlaylists(): Stream<any> {
+  listPlaylistsPaginated(pageToken?: string): Stream<any> {
+    const params: any = {
+      part: 'snippet,status',
+      mine: 'true',
+      maxResults: '10',
+    };
+    if (pageToken) {
+      params.pageToken = pageToken;
+    }
+
     return this.http.get(`${this.baseUrl}/playlists`, readJson, {
-      params: {
-        part: 'snippet,status',
-        mine: 'true',
-        maxResults: '50'
-      },
-      headers: this.authHeaders()
+      params,
+      headers: this.authHeaders(),
+    });
+  }
+
+  /** 📄 List user's subscriptions with pagination */
+  listSubscriptionsPaginated(pageToken?: string): Stream<any> {
+    const params: any = {
+      part: 'snippet',
+      mine: 'true',
+      maxResults: '10',
+      order: 'alphabetical'
+    };
+    if (pageToken) {
+      params.pageToken = pageToken;
+    }
+
+    return this.http.get(`${this.baseUrl}/subscriptions`, readJson, {
+      params,
+      headers: this.authHeaders(),
     });
   }
 

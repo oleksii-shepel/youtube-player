@@ -1,0 +1,561 @@
+<ion-content class="youtube-api-settings-content">
+  <div class="settings-container scrollable">
+    <div class="user-header">
+      <div class="user-avatar">
+        <img [src]="userInfo.avatar" alt="User Avatar" />
+        <div class="online-indicator" [class.connected]="isApiConnected"></div>
+      </div>
+      <div class="user-info">
+        <h2>{{ userInfo.name || 'Not Connected' }}</h2>
+        <p>{{ userInfo.channelId || 'YouTube Data API Settings' }}</p>
+        <ion-chip [color]="isApiConnected ? 'success' : 'danger'" size="small">
+          <ion-icon [name]="isApiConnected ? 'checkmark-circle' : 'close-circle'" slot="start"></ion-icon>
+          {{ isApiConnected ? 'Connected' : 'Disconnected' }}
+        </ion-chip>
+      </div>
+      <div class="back-button-container">
+        <ion-button fill="outline" color="primary" (click)="goBackToApp()" class="back-button">
+          <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+          Back to App
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="settings-nav scrollable">
+      <div class="nav-item" [class.active]="selectedMainSection === 'appearance'"
+        (click)="selectMainSection('appearance')">
+        <ion-icon name="color-palette-outline"></ion-icon>
+        <span>Appearance</span>
+      </div>
+
+      <div class="nav-item" [class.active]="selectedMainSection === 'user-info'"
+        (click)="selectMainSection('user-info')">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <span>User Info</span>
+      </div>
+
+      <div class="nav-item" [class.active]="selectedMainSection === 'region-language'"
+        (click)="selectMainSection('region-language')">
+        <ion-icon name="globe-outline"></ion-icon>
+        <span>Region & Language</span>
+      </div>
+
+      <div class="nav-item" [class.active]="selectedMainSection === 'playlists'"
+        (click)="selectMainSection('playlists')">
+        <ion-icon name="list-outline"></ion-icon>
+        <span>Playlists</span>
+        <ion-badge color="primary">{{ playlistCount }}</ion-badge>
+      </div>
+
+      <div class="nav-item" [class.active]="selectedMainSection === 'subscriptions'"
+        (click)="selectMainSection('subscriptions')">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>Subscriptions</span>
+        <ion-badge color="secondary">{{ subscriptionCount }}</ion-badge>
+      </div>
+
+      <div class="nav-item" [class.active]="selectedMainSection === 'api-key'" (click)="selectMainSection('api-key')">
+        <ion-icon name="key-outline"></ion-icon>
+        <span>API Configuration</span>
+      </div>
+
+      <div class="nav-item" [class.active]="selectedMainSection === 'about'" (click)="selectMainSection('about')">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>About</span>
+      </div>
+    </div>
+
+    <div class="settings-main scrollable">
+      <div class="settings-header">
+        <h1>{{ getSectionTitle() }}</h1>
+        <div class="header-actions">
+          <ion-button fill="outline" size="small" (click)="refreshData()" [disabled]="!isApiConnected || isLoading">
+            <ion-icon name="refresh-outline" slot="start" [class.rotating]="isLoading"></ion-icon>
+            Refresh
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- User Information Section -->
+      <div *ngIf="selectedMainSection === 'user-info'" class="content-section">
+        <div class="section-card" *ngIf="isApiConnected">
+          <div class="card-header">
+            <h3>Channel Information</h3>
+          </div>
+          <div class="user-details">
+            <div class="detail-row">
+              <ion-icon name="person-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Channel Name</span>
+                <span class="value">{{
+                  userInfo.name || 'Loading...'
+                  }}</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="mail-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Email</span>
+                <span class="value">{{
+                  userInfo.email || 'Not available'
+                  }}</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="tv-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Channel ID</span>
+                <span class="value">{{
+                  userInfo.channelId || 'Loading...'
+                  }}</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="people-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Subscribers</span>
+                <span class="value">{{
+                  formatNumber(userInfo.subscriberCount)
+                  }}</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="videocam-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Total Videos</span>
+                <span class="value">{{
+                  formatNumber(userInfo.videoCount)
+                  }}</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="eye-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Total Views</span>
+                <span class="value">{{
+                  formatNumber(userInfo.totalViews)
+                  }}</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Joined</span>
+                <span class="value">{{
+                  userInfo.joinedDate || 'Not available'
+                  }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="section-card" *ngIf="!isApiConnected">
+          <div class="empty-state">
+            <ion-icon name="cloud-offline-outline" size="large"></ion-icon>
+            <p>Connect to YouTube API to view user information</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appearance Section -->
+      <div *ngIf="selectedMainSection === 'appearance'" class="content-section">
+        <ion-list>
+          <!-- Theme Selection -->
+          <ion-item>
+            <ion-icon name="color-palette-outline" slot="start"></ion-icon>
+            <ion-label>Theme</ion-label>
+            <ion-select [(ngModel)]="appearanceSettings.theme" (ionChange)="onThemeChange()" interface="popover">
+              <ion-select-option value="default">Default</ion-select-option>
+              <ion-select-option value="light">Light</ion-select-option>
+              <ion-select-option value="dark">Dark</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Font Size -->
+          <ion-item>
+            <ion-icon name="text-outline" slot="start"></ion-icon>
+            <ion-label>Font Size</ion-label>
+            <ion-select [(ngModel)]="appearanceSettings.fontSize" (ionChange)="saveAppearanceSettings()"
+              interface="popover">
+              <ion-select-option value="small">Small</ion-select-option>
+              <ion-select-option value="medium">Medium</ion-select-option>
+              <ion-select-option value="large">Large</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Thumbnail Size -->
+          <ion-item>
+            <ion-icon name="image-outline" slot="start"></ion-icon>
+            <ion-label>Thumbnail Size</ion-label>
+            <ion-select [(ngModel)]="appearanceSettings.thumbnailSize" (ionChange)="saveAppearanceSettings()"
+              interface="popover">
+              <ion-select-option value="small">Small</ion-select-option>
+              <ion-select-option value="medium">Medium</ion-select-option>
+              <ion-select-option value="large">Large</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Auto-complete Mode -->
+          <ion-item>
+            <ion-icon name="search-outline" slot="start"></ion-icon>
+            <ion-label>Search Suggestions</ion-label>
+            <ion-select [(ngModel)]="appearanceSettings.autoComplete" (ionChange)="saveAppearanceSettings()"
+              interface="popover">
+              <ion-select-option value="chips">Chips</ion-select-option>
+              <ion-select-option value="list">Dropdown List</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Description Toggle -->
+          <ion-item>
+            <ion-icon name="document-text-outline" slot="start"></ion-icon>
+            <ion-label>Show Descriptions</ion-label>
+            <ion-toggle [(ngModel)]="appearanceSettings.enableDescription"
+              (ionChange)="saveAppearanceSettings()"></ion-toggle>
+          </ion-item>
+
+          <!-- Backdrop Visibility -->
+          <ion-item>
+            <ion-icon name="layers-outline" slot="start"></ion-icon>
+            <ion-label>Show Backdrop Effects</ion-label>
+            <ion-toggle [(ngModel)]="appearanceSettings.visibleBackdrop"
+              (ionChange)="saveAppearanceSettings()"></ion-toggle>
+          </ion-item>
+
+          <!-- Display Results -->
+          <ion-item>
+            <ion-icon name="search-outline" slot="start"></ion-icon>
+            <ion-label>Display Results</ion-label>
+            <ion-select [(ngModel)]="appearanceSettings.displayResults" (ionChange)="saveAppearanceSettings()"
+              interface="popover">
+              <ion-select-option value="change">On Change</ion-select-option>
+              <ion-select-option value="search">On Search</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Items per Request -->
+          <ion-item>
+            <ion-icon name="server-outline" slot="start"></ion-icon>
+            <ion-label>Max Items per Request</ion-label>
+            <ion-select [(ngModel)]="appearanceSettings.maxItemsPerRequest" (ionChange)="saveAppearanceSettings()"
+              interface="popover">
+              <ion-select-option value="5">5</ion-select-option>
+              <ion-select-option value="10">10</ion-select-option>
+              <ion-select-option value="25">25</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-list>
+      </div>
+
+      <!-- Region & Language Section -->
+      <div *ngIf="selectedMainSection === 'region-language'" class="content-section">
+        <ion-list>
+          <ion-item>
+            <ion-icon name="flag-outline" slot="start"></ion-icon>
+            <ion-label>Country/Region</ion-label>
+            <ion-select [(ngModel)]="regionLanguageSettings.country" (ionChange)="saveRegionLanguageSettings()">
+              <ion-select-option value="US">United States</ion-select-option>
+              <ion-select-option value="GB">United Kingdom</ion-select-option>
+              <ion-select-option value="CA">Canada</ion-select-option>
+              <ion-select-option value="AU">Australia</ion-select-option>
+              <ion-select-option value="DE">Germany</ion-select-option>
+              <ion-select-option value="FR">France</ion-select-option>
+              <ion-select-option value="ES">Spain</ion-select-option>
+              <ion-select-option value="IT">Italy</ion-select-option>
+              <ion-select-option value="JP">Japan</ion-select-option>
+              <ion-select-option value="KR">South Korea</ion-select-option>
+              <ion-select-option value="IN">India</ion-select-option>
+              <ion-select-option value="BR">Brazil</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="language-outline" slot="start"></ion-icon>
+            <ion-label>Language</ion-label>
+            <ion-select [(ngModel)]="regionLanguageSettings.language" (ionChange)="saveRegionLanguageSettings()">
+              <ion-select-option value="en">English</ion-select-option>
+              <ion-select-option value="es">Spanish</ion-select-option>
+              <ion-select-option value="fr">French</ion-select-option>
+              <ion-select-option value="de">German</ion-select-option>
+              <ion-select-option value="it">Italian</ion-select-option>
+              <ion-select-option value="pt">Portuguese</ion-select-option>
+              <ion-select-option value="ja">Japanese</ion-select-option>
+              <ion-select-option value="ko">Korean</ion-select-option>
+              <ion-select-option value="zh">Chinese</ion-select-option>
+              <ion-select-option value="hi">Hindi</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="time-outline" slot="start"></ion-icon>
+            <ion-label>Timezone</ion-label>
+            <ion-select [(ngModel)]="regionLanguageSettings.timezone" (ionChange)="saveRegionLanguageSettings()">
+              <ion-select-option value="America/New_York">Eastern Time</ion-select-option>
+              <ion-select-option value="America/Chicago">Central Time</ion-select-option>
+              <ion-select-option value="America/Denver">Mountain Time</ion-select-option>
+              <ion-select-option value="America/Los_Angeles">Pacific Time</ion-select-option>
+              <ion-select-option value="Europe/London">London</ion-select-option>
+              <ion-select-option value="Europe/Paris">Paris</ion-select-option>
+              <ion-select-option value="Europe/Berlin">Berlin</ion-select-option>
+              <ion-select-option value="Asia/Tokyo">Tokyo</ion-select-option>
+              <ion-select-option value="Asia/Seoul">Seoul</ion-select-option>
+              <ion-select-option value="Asia/Kolkata">Mumbai</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="calendar-outline" slot="start"></ion-icon>
+            <ion-label>Date Format</ion-label>
+            <ion-select [(ngModel)]="regionLanguageSettings.dateFormat" (ionChange)="saveRegionLanguageSettings()">
+              <ion-select-option value="MM/dd/yyyy">MM/DD/YYYY</ion-select-option>
+              <ion-select-option value="dd/MM/yyyy">DD/MM/YYYY</ion-select-option>
+              <ion-select-option value="yyyy-MM-dd">YYYY-MM-DD</ion-select-option>
+              <ion-select-option value="dd.MM.yyyy">DD.MM.YYYY</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="time-outline" slot="start"></ion-icon>
+            <ion-label>Time Format</ion-label>
+            <ion-select [(ngModel)]="regionLanguageSettings.timeFormat" (ionChange)="saveRegionLanguageSettings()">
+              <ion-select-option value="12h">12 Hour</ion-select-option>
+              <ion-select-option value="24h">24 Hour</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-list>
+      </div>
+
+      <!-- Playlists Section -->
+      <div *ngIf="selectedMainSection === 'playlists'" class="content-section">
+        <div class="section-card" *ngIf="isApiConnected">
+          <div class="card-header">
+            <h3>Your Playlists</h3>
+            <ion-button size="small" fill="outline" (click)="createPlaylist()">
+              <ion-icon name="add-outline" slot="start"></ion-icon>
+              Create New
+            </ion-button>
+          </div>
+
+          <ngx-datatable class="material" [rows]="paginatedPlaylists" [columnMode]="'force'" [headerHeight]="50"
+            [footerHeight]="50" [rowHeight]="'auto'" [limit]="playlistPageSize" [count]="playlists.length"
+            [offset]="playlistPageOffset" [scrollbarH]="true" (page)="onPlaylistPage($event)">
+            <ngx-datatable-column name="Name" [flexGrow]="3" [sortable]="true" [resizeable]="true">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                <div class="playlist-name">
+                  <img [src]="row.thumbnail" class="thumbnail-small" />
+                  {{ row.name }}
+                </div>
+              </ng-template>
+            </ngx-datatable-column>
+
+            <ngx-datatable-column name="Description" [flexGrow]="2" [sortable]="true" [resizeable]="true">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                {{ row.description || 'No description' | slice: 0:50 }}
+              </ng-template>
+            </ngx-datatable-column>
+
+            <ngx-datatable-column name="Videos" [sortable]="true" [resizeable]="true">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                {{ row.videoCount }}
+              </ng-template>
+            </ngx-datatable-column>
+
+            <ngx-datatable-column name="Privacy" [resizeable]="true">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                <ion-chip [color]="getPrivacyColor(row.privacy)" size="small">
+                  {{ row.privacy }}
+                </ion-chip>
+              </ng-template>
+            </ngx-datatable-column>
+
+            <ngx-datatable-column name="Actions" [resizeable]="false">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                <ion-button fill="clear" size="small" (click)="editPlaylist(row)">
+                  <ion-icon name="create-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="deletePlaylist(row)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </ion-button>
+              </ng-template>
+            </ngx-datatable-column>
+          </ngx-datatable>
+        </div>
+
+        <div class="section-card" *ngIf="!isApiConnected">
+          <div class="empty-state">
+            <ion-icon name="list-outline" size="large"></ion-icon>
+            <p>Connect to YouTube API to manage playlists</p>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Subscriptions Section -->
+      <div *ngIf="selectedMainSection === 'subscriptions'" class="content-section">
+        <div class="section-card" *ngIf="isApiConnected">
+          <div class="card-header">
+            <h3>Your Subscriptions</h3>
+            <ion-searchbar [(ngModel)]="subscriptionFilter" (ionInput)="filterSubscriptions()"
+              placeholder="Search subscriptions...">
+            </ion-searchbar>
+          </div>
+
+          <ngx-datatable class="material" [rows]="paginatedSubscriptions" [columnMode]="'force'" [headerHeight]="50"
+            [footerHeight]="50" [rowHeight]="'auto'" [limit]="subscriptionPageSize"
+            [count]="filteredSubscriptions.length" [offset]="subscriptionPageOffset" [scrollbarH]="true"
+            (page)="onSubscriptionPage($event)">
+            <ngx-datatable-column name="Channel" [flexGrow]="3" [sortable]="true" [resizeable]="true">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                <div class="channel-info">
+                  <img [src]="row.thumbnail" class="channel-avatar" />
+                  {{ row.name }}
+                </div>
+              </ng-template>
+            </ngx-datatable-column>
+
+            <ngx-datatable-column name="Subscribers" [sortable]="true" [resizeable]="true">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                {{ formatNumber(row.subscriberCount) }}
+              </ng-template>
+            </ngx-datatable-column>
+
+            <ngx-datatable-column name="Category" [sortable]="true" [resizeable]="true">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                <ion-chip [color]="getCategoryColor(row.category)" size="small">
+                  {{ row.category }}
+                </ion-chip>
+              </ng-template>
+            </ngx-datatable-column>
+
+            <ngx-datatable-column name="Actions" [resizeable]="false">
+              <ng-template let-row="row" ngx-datatable-cell-template>
+                <ion-button fill="clear" size="small" (click)="viewChannel(row)">
+                  <ion-icon name="open-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="unsubscribe(row)">
+                  <ion-icon name="person-remove-outline"></ion-icon>
+                </ion-button>
+              </ng-template>
+            </ngx-datatable-column>
+          </ngx-datatable>
+
+        </div>
+
+        <div class="section-card" *ngIf="!isApiConnected">
+          <div class="empty-state">
+            <ion-icon name="people-outline" size="large"></ion-icon>
+            <p>Connect to YouTube API to view subscriptions</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Configuration Section -->
+      <div *ngIf="selectedMainSection === 'api-key'" class="content-section">
+        <div class="section-card">
+          <ion-list>
+            <ion-item>
+              <ion-icon name="key-outline" slot="start"></ion-icon>
+              <ion-input label="YouTube API Key" labelPlacement="stacked" [(ngModel)]="apiConfig.apiKey"
+                [type]="showApiKey ? 'text' : 'password'" placeholder="Enter your YouTube Data API key"></ion-input>
+              <ion-button fill="clear" slot="end" (click)="toggleApiKeyVisibility()">
+                <ion-icon [name]="showApiKey ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </ion-button>
+            </ion-item>
+            <ion-item>
+              <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+              <ion-input label="Client ID (Optional)" labelPlacement="stacked" [(ngModel)]="apiConfig.clientId"
+                placeholder="OAuth 2.0 Client ID"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+              <ion-input label="Client Secret (Optional)" labelPlacement="stacked" [(ngModel)]="apiConfig.clientSecret"
+                [type]="showClientSecret ? 'text' : 'password'" placeholder="OAuth 2.0 Client Secret"></ion-input>
+              <ion-button fill="clear" slot="end" (click)="toggleClientSecretVisibility()">
+                <ion-icon [name]="
+                        showClientSecret ? 'eye-off-outline' : 'eye-outline'
+                      "></ion-icon>
+              </ion-button>
+            </ion-item>
+          </ion-list>
+        </div>
+
+        <div class="section-card">
+          <div class="card-header">
+            <h3>Quota Usage</h3>
+          </div>
+          <div class="quota-info">
+            <div class="quota-bar">
+              <div class="quota-progress" [style.width.%]="getQuotaPercentage()"></div>
+            </div>
+            <div class="quota-text">
+              <span>{{ formatNumber(apiConfig.quotaUsage) }} /
+                {{ formatNumber(apiConfig.quotaLimit) }}
+              </span>
+              <span>({{ getQuotaPercentage() }}% used)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add About Section -->
+      <div *ngIf="selectedMainSection === 'about'" class="content-section">
+        <div class="section-card">
+          <div class="card-header">
+            <h3>About This App</h3>
+          </div>
+          <div class="about-content">
+            <div class="app-info">
+              <img src="assets/icons/icon-512x512.png" alt="App Logo" class="app-logo" />
+              <h4>YouTube API Manager</h4>
+              <p>Version {{ appVersion }}</p>
+            </div>
+
+            <div class="about-details">
+              <p>
+                A powerful tool for managing your YouTube channel through
+                the YouTube Data API.
+              </p>
+
+              <div class="detail-row">
+                <ion-icon name="code-outline"></ion-icon>
+                <div class="detail-content">
+                  <span class="label">Developed By</span>
+                  <span class="value">{{ developerInfo }}</span>
+                </div>
+              </div>
+
+              <div class="detail-row">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <div class="detail-content">
+                  <span class="label">Release Date</span>
+                  <span class="value">{{ releaseDate }}</span>
+                </div>
+              </div>
+
+              <div class="detail-row">
+                <ion-icon name="document-text-outline"></ion-icon>
+                <div class="detail-content">
+                  <span class="label">License</span>
+                  <span class="value">{{ licenseInfo }}</span>
+                </div>
+              </div>
+
+              <div class="action-buttons">
+                <ion-button expand="block" fill="outline" (click)="openWebsite()">
+                  <ion-icon name="globe-outline" slot="start"></ion-icon>
+                  Visit Website
+                </ion-button>
+                <ion-button expand="block" fill="outline" (click)="openPrivacyPolicy()">
+                  <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+                  Privacy Policy
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!selectedMainSection" class="empty-state">
+        <ion-icon name="settings-outline" size="large"></ion-icon>
+        <p class="empty-state-message">
+          Select a category from the left menu to view YouTube API settings.
+        </p>
+      </div>
+    </div>
+  </div>
+</ion-content>

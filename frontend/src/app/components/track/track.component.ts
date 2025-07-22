@@ -128,7 +128,7 @@ import { DirectiveModule } from 'src/app/directives';
   standalone: true,
   imports: [CommonModule, IonicModule, DirectiveModule, ToFriendlyDurationPipe]
 })
-export class PlaylistTrackComponent implements AfterViewInit, OnDestroy {
+export class TrackComponent implements AfterViewInit, OnDestroy {
   @ViewChild('slidingItem', { read: ElementRef }) private slidingItemEl!: ElementRef;
 
   @Input() track!: any;

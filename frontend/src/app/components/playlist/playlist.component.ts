@@ -13,7 +13,7 @@ import {
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { Subscription } from '@actioncrew/streamix';
 import { Options } from 'sortablejs';
-import { PlaylistTrackComponent } from '../playlist-track/playlist-track.component';
+import { TrackComponent } from '../track/track.component';
 import { DirectiveModule } from 'src/app/directives';
 
 @Component({
@@ -51,7 +51,7 @@ import { DirectiveModule } from 'src/app/directives';
               </svg>
             }
           </ion-button>
-    
+
           <ion-button
             fill="clear"
             (click)="playPrevious()"
@@ -59,7 +59,7 @@ import { DirectiveModule } from 'src/app/directives';
             >
             <ion-icon name="play-skip-back"></ion-icon>
           </ion-button>
-    
+
           <ion-button
             fill="clear"
             (click)="togglePlay()"
@@ -67,11 +67,11 @@ import { DirectiveModule } from 'src/app/directives';
             >
             <ion-icon [name]="isPlaying ? 'pause' : 'play'"></ion-icon>
           </ion-button>
-    
+
           <ion-button fill="clear" (click)="playNext()" [disabled]="!hasNext">
             <ion-icon name="play-skip-forward"></ion-icon>
           </ion-button>
-    
+
           <ion-button
             fill="clear"
             (click)="toggleRepeat()"
@@ -96,7 +96,7 @@ import { DirectiveModule } from 'src/app/directives';
                 <path d="M21 13v1a4 4 0 0 1-4 4H3" />
               </svg>
             }
-    
+
             @if (repeatMode === 'one') {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -117,7 +117,7 @@ import { DirectiveModule } from 'src/app/directives';
                 <path d="M11 10h1v4" />
               </svg>
             }
-    
+
             @if (repeatMode === 'none') {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -148,7 +148,7 @@ import { DirectiveModule } from 'src/app/directives';
             </ion-button>
           </div>
         </div>
-    
+
         <div class="scrollable">
           <div id="playlist" [appSortable]="playlist" [sortableOptions]="sortablePlaylistOptions" (sortUpdate)="onPlaylistSort($event)">
             @for (track of playlist; track track; let i = $index) {
@@ -164,7 +164,7 @@ import { DirectiveModule } from 'src/app/directives';
             }
           </div>
         </div>
-    
+
         <!-- Playlist Action Buttons -->
         @if (playlist.length > 0) {
           <ion-footer class="playlist-footer-actions">
@@ -231,7 +231,7 @@ import { DirectiveModule } from 'src/app/directives';
     `,
   styleUrls: ['playlist.component.scss'],
   standalone: true,
-  imports: [IonicModule, PlaylistTrackComponent, DirectiveModule]
+  imports: [IonicModule, TrackComponent, DirectiveModule]
 })
 export class PlaylistComponent implements OnInit, OnDestroy {
   @Input() playlist: any[] = [];
