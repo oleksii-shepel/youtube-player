@@ -75,7 +75,7 @@ export interface PageState<T> {
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, TableComponent],
+  imports: [CommonModule, FormsModule, IonicModule, TableComponent, CountrySelectModalComponent],
 })
 export class SettingsComponent implements OnInit {
   selectedMainSection = 'appearance';
@@ -114,8 +114,8 @@ export class SettingsComponent implements OnInit {
 
   regionLanguageSettings = {
     useAutoLocation: false,
-    country: 'US',
-    language: 'en',
+    country: null,
+    language: null,
     dateFormat: 'MM/dd/yyyy',
     timeFormat: '12h',
     numberFormat: 'en-US',
@@ -123,15 +123,8 @@ export class SettingsComponent implements OnInit {
     detectedLanguage: ''
   };
 
-  countryCodes: string[] = [];
-  countriesList: Array<{ code: string; name: string }> = [];
-
-  languagesList: Array<{ code: string; name: string; nativeName: string }> = [];
-
-  filteredCountries: any[] = [];
-  filteredLanguages: any[] = [];
-  countrySearchTerm: string = '';
-  languageSearchTerm: string = '';
+  isCountryModalOpen = false;
+  isLanguageModalOpen = false;
 
   playlistState: PageState<Playlist> = {
     items: [],
@@ -166,13 +159,15 @@ export class SettingsComponent implements OnInit {
     cacheDuration: 3600,
   };
 
+  country!: HTMLIonModalElement;
+  language!: HTMLIonModalElement;
+
   constructor(
     private router: Router,
     private storage: Storage,
     private settings: Settings,
     private authorization: Authorization,
     private theme: ThemeService,
-    private modalCtrl: ModalController
   ) {}
 
   async ngOnInit() {
@@ -184,44 +179,8 @@ export class SettingsComponent implements OnInit {
     await this.loadSubscriptions();
   }
 
-  async openCountrySearchModal() {
-    const modal = await this.modalCtrl.create({
-      component: CountrySelectModalComponent,
-      componentProps: {
-        countries: this.countriesList,
-        selectedCountry: this.regionLanguageSettings.country
-      },
-      cssClass: 'search-modal'
-    });
-
-    modal.onDidDismiss().then(({ data }) => {
-      if (data) {
-        this.regionLanguageSettings.country = data;
-        this.saveRegionLanguageSettings();
-      }
-    });
-
-    await modal.present();
-  }
-
-  async openLanguageSearchModal() {
-    const modal = await this.modalCtrl.create({
-      component: LanguageSelectModalComponent,
-      componentProps: {
-        languages: this.languagesList,
-        selectedLanguage: this.regionLanguageSettings.language
-      },
-      cssClass: 'search-modal'
-    });
-
-    modal.onDidDismiss().then(({ data }) => {
-      if (data) {
-        this.regionLanguageSettings.language = data;
-        this.saveRegionLanguageSettings();
-      }
-    });
-
-    await modal.present();
+  handleCountrySelection(country: any) {
+    this.regionLanguageSettings.country = country;
   }
 
   // Ionic lifecycle, if used

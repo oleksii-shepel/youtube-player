@@ -236,3 +236,64 @@
   width: 100%;
   height: 100%;
 }
+
+ion-modal.country-select-modal-override {
+  /* Override the modal's overall height variable to allow flexibility */
+  --height: auto !important;
+  --max-height: 100% !important; /* Ensure it doesn't exceed viewport height */
+  --min-height: unset !important; /* Remove any default min-height */
+}
+
+/* Target the internal modal wrapper (often the direct container for your component) */
+ion-modal.country-select-modal-override::part(backdrop) {
+  /* Ensure backdrop is visible at 0.5 breakpoint if it was hidden by default */
+  opacity: var(--backdrop-opacity); /* Use Ionic's default variable */
+  visibility: visible;
+}
+
+
+ion-modal.country-select-modal-override::part(content) {
+  /* This is the container for your <ng-template> content */
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important; /* Ensure it fills the modal's available height */
+  max-height: 100% !important; /* Crucial: prevent it from exceeding 100% */
+  overflow: hidden !important; /* Prevent scrollbars on this container */
+  contain: layout size style !important; /* Optimize rendering, but can be removed if issues arise */
+}
+
+/* Target your app-country-select-modal component directly within the modal */
+ion-modal.country-select-modal-override app-country-select-modal {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important; /* Make it grow to fill available space */
+  flex-shrink: 1 !important; /* Allow it to shrink */
+  height: 100% !important; /* Ensure it takes 100% of its parent's height */
+  min-height: 0 !important; /* Allow it to shrink to minimum content if needed */
+  overflow: hidden !important; /* Your component should not have its own scrollbar */
+}
+
+/* Ensure ion-list within your component doesn't interfere */
+ion-modal.country-select-modal-override app-country-select-modal ion-list {
+  height: auto !important; /* Remove any fixed height */
+  overflow: visible !important; /* Let the parent .modal-content handle scrolling */
+}
+
+/* Re-confirm styles for your custom divs within app-country-select-modal */
+ion-modal.country-select-modal-override app-country-select-modal .modal-header,
+ion-modal.country-select-modal-override app-country-select-modal .modal-footer {
+  flex-shrink: 0 !important;
+}
+
+ion-modal.country-select-modal-override app-country-select-modal .modal-content {
+  flex-grow: 1 !important;
+  flex-shrink: 1 !important;
+  overflow-y: auto !important; /* This is where the actual scrolling happens */
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.scrollable {
+  height: 100%;
+  width: 100%;
+}

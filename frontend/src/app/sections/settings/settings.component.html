@@ -221,18 +221,11 @@
             <ion-icon name="flag-outline" slot="start"></ion-icon>
             <ion-label class="main-label">Country/Region</ion-label>
             <div class="action-buttons">
-              <ion-button fill="clear" (click)="openCountrySearchModal()" class="search-button">
-                <ion-icon name="search-outline"></ion-icon>
-              </ion-button>
-            </div>
-          </ion-item>
-
-          <!-- Language Select -->
-          <ion-item [disabled]="regionLanguageSettings.useAutoLocation" class="language-item">
-            <ion-icon name="language-outline" slot="start"></ion-icon>
-            <ion-label class="main-label">Language</ion-label>
-            <div class="action-buttons">
-              <ion-button fill="clear" (click)="openLanguageSearchModal()" class="search-button">
+              <ion-button
+                fill="clear"
+                (click)="isCountryModalOpen = true"
+                class="search-button"
+                [disabled]="regionLanguageSettings.useAutoLocation">
                 <ion-icon name="search-outline"></ion-icon>
               </ion-button>
             </div>
@@ -381,3 +374,25 @@
     </div>
   </div>
 </ion-content>
+
+<ion-modal
+  [isOpen]="isCountryModalOpen"
+  (didDismiss)="isCountryModalOpen = false"
+  [canDismiss]="true"
+  [backdropBreakpoint]="0.5"
+  [breakpoints]="[0.5, 0.75, 1]"
+  [initialBreakpoint]="0.5"
+  handle="true"
+  expandToScroll="true"
+  class="country-select-modal-override">
+
+  <ng-template>
+    <div class="scrollable">
+      <app-country-select-modal
+        [selectedCountry]="regionLanguageSettings.country"
+        (countrySelected)="handleCountrySelection($event)"
+        (isOpenChange)="isCountryModalOpen = $event">
+      </app-country-select-modal>
+    </div>
+  </ng-template>
+</ion-modal>
