@@ -1,3 +1,4 @@
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { IonicRouteStrategy } from '@ionic/angular';
@@ -9,6 +10,8 @@ import { Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { IonicStorageModule } from '@ionic/storage-angular';
+import { providePrimeNG } from 'primeng/config'
+
 
 export const HTTP_CLIENT = new InjectionToken('HttpClient');
 
@@ -26,7 +29,16 @@ export class RootComponent {}
 
 bootstrapApplication(RootComponent, {
   providers: [
+    provideAnimationsAsync(),
     provideRouter(routes),
+    providePrimeNG({
+      theme: {
+        preset: {
+          primitive: {}, // even empty is okay
+          semantic: {}
+        }
+      }
+    }),
     IonicStorageModule.forRoot().providers!,
     IonicModule.forRoot().providers!,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },

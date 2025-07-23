@@ -280,12 +280,10 @@
             [label]="'My Playlists'"
             [data]="playlistState.pages![playlistState.pageIndex]"
             [columns]="[
-              { title: 'Title', data: 'name' },
-              { title: 'Videos', data: 'videoCount' }
+              { name: 'Title', prop: 'name' },
+              { name: 'Videos', prop: 'videoCount' }
             ]"
-            [addItemFn]="createPlaylist.bind(this)"
-            [editItemFn]="editPlaylist.bind(this)"
-            [deleteItemFn]="deletePlaylist.bind(this)">
+            [addItemFn]="createPlaylist.bind(this)">
           </app-unified-table>
         </div>
         <div class="section-card" *ngIf="!isApiConnected">
@@ -301,13 +299,11 @@
         <div class="section-card" *ngIf="isApiConnected">
           <app-unified-table
             [label]="'Your Subscriptions'"
-            [data]="subscriptionState.pages![subscriptionState.pageIndex]"
+            [data]="subscriptionState.pages![subscriptionState.pageIndex] || []"
             [columns]="[
-              { title: 'Channel', data: 'name' },
-              { title: 'Subscribers', data: 'subscriberCount' }
-            ]"
-            [editItemFn]="viewChannel.bind(this)"
-            [deleteItemFn]="unsubscribe.bind(this)">
+              { name: 'Channel', prop: 'name' },
+              { name: 'Subscribers', prop: 'subscriberCount' }
+            ]">
           </app-unified-table>
         </div>
         <div class="section-card" *ngIf="!isApiConnected">

@@ -1,33 +1,76 @@
 <div class="unified-table ion-padding">
-  <ion-toolbar>
-    <ion-title>{{ label }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button color="primary" (click)="addItemFn?.()">
-        <ion-icon slot="start" name="add"></ion-icon>
-        Add
+  <ion-toolbar class="table-header">
+    <div class="header-content">
+      <ion-title class="title">{{ label }}</ion-title>
+      <ion-button color="primary" (click)="addItem()" class="add-button">
+        <ion-icon slot="start" name="add" class="add-icon"></ion-icon>
+        <span class="button-text">Add</span>
       </ion-button>
-    </ion-buttons>
+    </div>
   </ion-toolbar>
 
-  <table datatable [dtOptions]="dtOptions" class="row-border hover">
-    <thead>
-      <tr>
-        <th *ngFor="let col of columns">{{ col.title }}</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let row of data">
-        <td *ngFor="let col of columns">{{ row[col.data] }}</td>
-        <td>
-          <ion-button fill="clear" size="small" (click)="editItemFn?.(row)">
-            <ion-icon name="create-outline"></ion-icon>
+  <ngx-datatable
+    [rows]="rows"
+    [columns]="datatableColumns"
+    [columnMode]="columnMode"
+    [headerHeight]="headerHeight"
+    [footerHeight]="footerHeight"
+    [rowHeight]="rowHeight"
+    [limit]="limit"
+    [offset]="offset"
+    [count]="count"
+    (page)="onPage($event)"
+    class="modern-table"
+  >
+    <ngx-datatable-column *ngFor="let col of datatableColumns" [prop]="col.prop" [name]="col.name" [sortable]="col.sortable" [resizeable]="col.resizeable">
+      <ng-template ngx-datatable-header-template let-column="column">
+        <span class="column-header-text">{{ column.name }}</span>
+      </ng-template>
+      <ng-template ngx-datatable-cell-template let-row="row" let-value="value" let-column="column">
+        <ng-container *ngIf="getColumnByProp(column.prop?.toString()!).cellFn; else defaultCell">
+          <span class="cell-content" [innerHTML]="sanitizeHtml(getColumnByProp(column.prop?.toString()!).cellFn!(row))"></span>
+        </ng-container>
+        <ng-template #defaultCell>
+          <span class="cell-text">{{ value }}</span>
+        </ng-template>
+      </ng-template>
+    </ngx-datatable-column>
+
+    <ngx-datatable-column name="Actions">
+      <ng-template ngx-datatable-cell-template let-row="row">
+        <div class="action-buttons">
+          <ion-button fill="clear" size="small" class="action-button edit-button" (click)="editItem(row)">
+            <ion-icon name="create-outline" class="action-icon edit-icon"></ion-icon>
           </ion-button>
-          <ion-button fill="clear" size="small" color="danger" (click)="deleteItemFn?.(row)">
-            <ion-icon name="trash-outline"></ion-icon>
+          <ion-button fill="clear" size="small" color="danger" class="action-button delete-button" (click)="deleteItem(row)">
+            <ion-icon name="trash-outline" class="action-icon delete-icon"></ion-icon>
           </ion-button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+        </div>
+      </ng-template>
+    </ngx-datatable-column>
+
+    <ngx-datatable-footer>
+      <ng-template ngx-datatable-footer-template let-rowCount="rowCount" let-pageSize="pageSize" let-selectedCount="selectedCount" let-curPage="curPage" let-offset="offset">
+        <div class="empty-message-container" *ngIf="rowCount === 0">
+          <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
+          <div class="empty-message">No data found.</div>
+          <div class="empty-subtext">Try adjusting your search or filters</div>
+        </div>
+      </ng-template>
+    </ngx-datatable-footer>
+  </ngx-datatable>
+
+  <div class="custom-paginator">
+    <div class="paginator-left">
+      <span class="paginator-current">Showing {{ offset + 1 }} - {{ Math.min(offset + limit, count) }} of {{ count }}</span>
+    </div>
+    <div class="paginator-right">
+      <span class="rows-per-page-label">Rows per page:</span>
+      <ion-select [value]="limit" (ionChange)="onRowsPerPageChange($event.detail.value)" interface="popover" class="rows-per-page-select">
+        <ion-select-option *ngFor="let option of rowsPerPageOptions" [value]="option">
+          {{ option }}
+        </ion-select-option>
+      </ion-select>
+    </div>
+  </div>
 </div>

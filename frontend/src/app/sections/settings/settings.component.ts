@@ -7,7 +7,7 @@ import { firstValueFrom } from '@actioncrew/streamix';
 import { Settings } from 'src/app/services/settings.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
-import { TableComponent } from '../../components/table/table.component';
+import { TableComponent, TableData } from '../../components/table/table.component';
 import { DomSanitizer } from '@angular/platform-browser';
 import { IonicModule } from '@ionic/angular';
 
@@ -349,6 +349,18 @@ export class SettingsComponent implements OnInit {
     console.log('Edit playlist:', playlist);
     // TODO: open edit modal
   }
+
+  editItemFn = (item: TableData) => {
+    if ('privacy' in item) {
+      this.editPlaylist(item as Playlist);
+    }
+  };
+
+  deleteItemFn = (item: TableData) => {
+    if ('privacy' in item) {
+      this.deletePlaylist(item as Playlist);
+    }
+  };
 
   async loadSubscriptions(pageToken?: string): Promise<{ items: Subscription[]; nextPageToken?: string }> {
     if (!this.isApiConnected) {

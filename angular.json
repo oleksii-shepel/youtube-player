@@ -38,12 +38,9 @@
             ],
             "styles": [
               "frontend/src/global.scss",
-              "frontend/src/theme/variables.scss",
-              "node_modules/datatables.net-dt/css/jquery.dataTables.min.css"
+              "frontend/src/theme/variables.scss"
             ],
             "scripts": [
-              "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/datatables.net/js/jquery.dataTables.min.js"
             ]
           },
           "configurations": {
