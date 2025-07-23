@@ -8,8 +8,10 @@ import { Settings } from 'src/app/services/settings.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
 import { TableComponent, TableData } from '../../components/table/table.component';
-import { DomSanitizer } from '@angular/platform-browser';
 import { IonicModule } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
+import { LanguageSelectModalComponent } from '../../components/language/language.component';
+import { CountrySelectModalComponent } from '../../components/country/country.component';
 
 export type AppTheme = 'default' | 'dark' | 'light';
 export type AppFontSize = 'small' | 'medium' | 'large';
@@ -111,13 +113,25 @@ export class SettingsComponent implements OnInit {
   };
 
   regionLanguageSettings = {
+    useAutoLocation: false,
     country: 'US',
     language: 'en',
-    timezone: 'America/New_York',
     dateFormat: 'MM/dd/yyyy',
     timeFormat: '12h',
     numberFormat: 'en-US',
+    detectedCountry: '',
+    detectedLanguage: ''
   };
+
+  countryCodes: string[] = [];
+  countriesList: Array<{ code: string; name: string }> = [];
+
+  languagesList: Array<{ code: string; name: string; nativeName: string }> = [];
+
+  filteredCountries: any[] = [];
+  filteredLanguages: any[] = [];
+  countrySearchTerm: string = '';
+  languageSearchTerm: string = '';
 
   playlistState: PageState<Playlist> = {
     items: [],
@@ -158,7 +172,7 @@ export class SettingsComponent implements OnInit {
     private settings: Settings,
     private authorization: Authorization,
     private theme: ThemeService,
-    private sanitizer: DomSanitizer
+    private modalCtrl: ModalController
   ) {}
 
   async ngOnInit() {
@@ -168,6 +182,46 @@ export class SettingsComponent implements OnInit {
     this.loadUserProfile();
     await this.loadPlaylists();
     await this.loadSubscriptions();
+  }
+
+  async openCountrySearchModal() {
+    const modal = await this.modalCtrl.create({
+      component: CountrySelectModalComponent,
+      componentProps: {
+        countries: this.countriesList,
+        selectedCountry: this.regionLanguageSettings.country
+      },
+      cssClass: 'search-modal'
+    });
+
+    modal.onDidDismiss().then(({ data }) => {
+      if (data) {
+        this.regionLanguageSettings.country = data;
+        this.saveRegionLanguageSettings();
+      }
+    });
+
+    await modal.present();
+  }
+
+  async openLanguageSearchModal() {
+    const modal = await this.modalCtrl.create({
+      component: LanguageSelectModalComponent,
+      componentProps: {
+        languages: this.languagesList,
+        selectedLanguage: this.regionLanguageSettings.language
+      },
+      cssClass: 'search-modal'
+    });
+
+    modal.onDidDismiss().then(({ data }) => {
+      if (data) {
+        this.regionLanguageSettings.language = data;
+        this.saveRegionLanguageSettings();
+      }
+    });
+
+    await modal.present();
   }
 
   // Ionic lifecycle, if used
@@ -443,7 +497,7 @@ export class SettingsComponent implements OnInit {
 
   getSectionTitle(): string {
     const sectionTitles: { [key: string]: string } = {
-      'user-info': 'User Details',
+      'channel-info': 'Channel Info',
       appearance: 'Theme Settings',
       'region-language': 'Region & Language',
       playlists: 'Playlists Management',
@@ -553,6 +607,15 @@ export class SettingsComponent implements OnInit {
 
   formatNumber(num: number): string {
     return num.toLocaleString(this.regionLanguageSettings.numberFormat);
+  }
+
+  async onAutoLocationToggle() {
+    if (this.regionLanguageSettings.useAutoLocation) {
+     const { country, language } = await this.settings.detectRegionAndLanguage();
+     this.regionLanguageSettings.detectedCountry = country;
+     this.regionLanguageSettings.detectedLanguage = language;
+    }
+    this.saveRegionLanguageSettings();
   }
 
   getQuotaPercentage(): number {

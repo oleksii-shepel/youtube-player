@@ -26,9 +26,9 @@
         <ion-icon name="color-palette-outline"></ion-icon>
         <span>Appearance</span>
       </div>
-      <div class="nav-item" [class.active]="selectedMainSection === 'user-info'" (click)="selectMainSection('user-info')">
+      <div class="nav-item" [class.active]="selectedMainSection === 'channel-info'" (click)="selectMainSection('channel-info')">
         <ion-icon name="person-circle-outline"></ion-icon>
-        <span>User Info</span>
+        <span>Channel Info</span>
       </div>
       <div class="nav-item" [class.active]="selectedMainSection === 'region-language'" (click)="selectMainSection('region-language')">
         <ion-icon name="globe-outline"></ion-icon>
@@ -65,12 +65,9 @@
         </div>
       </div>
 
-      <!-- User Information Section -->
-      <div *ngIf="selectedMainSection === 'user-info'" class="content-section">
+      <!-- Channel Information Section -->
+      <div *ngIf="selectedMainSection === 'channel-info'" class="content-section">
         <div class="section-card" *ngIf="isApiConnected">
-          <div class="card-header">
-            <h3>Channel Information</h3>
-          </div>
           <div class="user-details">
             <div class="detail-row">
               <ion-icon name="person-outline"></ion-icon>
@@ -200,75 +197,45 @@
       </div>
 
       <!-- Region & Language Section -->
+
       <div *ngIf="selectedMainSection === 'region-language'" class="content-section">
         <ion-list>
-          <ion-item>
+          <!-- Toggle: Use current location (unchanged) -->
+          <ion-item lines="full">
+            <ion-icon name="locate-outline" slot="start"></ion-icon>
+            <ion-label>
+              Use Current Location
+              <small *ngIf="regionLanguageSettings.detectedCountry || regionLanguageSettings.detectedLanguage"
+                    style="display: block; font-weight: normal; font-size: 0.85em; margin-top: 2px; color: var(--ion-text-color-secondary);">
+                Detected: {{ regionLanguageSettings.detectedCountry || '...' }} / {{ regionLanguageSettings.detectedLanguage || '...' }}
+              </small>
+            </ion-label>
+            <ion-toggle
+              [(ngModel)]="regionLanguageSettings.useAutoLocation"
+              (ionChange)="onAutoLocationToggle()">
+            </ion-toggle>
+          </ion-item>
+
+          <!-- Country/Region Select -->
+          <ion-item [disabled]="regionLanguageSettings.useAutoLocation">
             <ion-icon name="flag-outline" slot="start"></ion-icon>
             <ion-label>Country/Region</ion-label>
-            <ion-select [(ngModel)]="regionLanguageSettings.country" (ionChange)="saveRegionLanguageSettings()">
-              <ion-select-option value="US">United States</ion-select-option>
-              <ion-select-option value="GB">United Kingdom</ion-select-option>
-              <ion-select-option value="CA">Canada</ion-select-option>
-              <ion-select-option value="AU">Australia</ion-select-option>
-              <ion-select-option value="DE">Germany</ion-select-option>
-              <ion-select-option value="FR">France</ion-select-option>
-              <ion-select-option value="ES">Spain</ion-select-option>
-              <ion-select-option value="IT">Italy</ion-select-option>
-              <ion-select-option value="JP">Japan</ion-select-option>
-              <ion-select-option value="KR">South Korea</ion-select-option>
-              <ion-select-option value="IN">India</ion-select-option>
-              <ion-select-option value="BR">Brazil</ion-select-option>
-            </ion-select>
+
+            <!-- Search Button -->
+            <ion-button fill="clear" (click)="openCountrySearchModal()">
+              <ion-icon name="search-outline"></ion-icon>
+            </ion-button>
           </ion-item>
-          <ion-item>
+
+          <!-- Language Select -->
+          <ion-item [disabled]="regionLanguageSettings.useAutoLocation">
             <ion-icon name="language-outline" slot="start"></ion-icon>
             <ion-label>Language</ion-label>
-            <ion-select [(ngModel)]="regionLanguageSettings.language" (ionChange)="saveRegionLanguageSettings()">
-              <ion-select-option value="en">English</ion-select-option>
-              <ion-select-option value="es">Spanish</ion-select-option>
-              <ion-select-option value="fr">French</ion-select-option>
-              <ion-select-option value="de">German</ion-select-option>
-              <ion-select-option value="it">Italian</ion-select-option>
-              <ion-select-option value="pt">Portuguese</ion-select-option>
-              <ion-select-option value="ja">Japanese</ion-select-option>
-              <ion-select-option value="ko">Korean</ion-select-option>
-              <ion-select-option value="zh">Chinese</ion-select-option>
-              <ion-select-option value="hi">Hindi</ion-select-option>
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-icon name="time-outline" slot="start"></ion-icon>
-            <ion-label>Timezone</ion-label>
-            <ion-select [(ngModel)]="regionLanguageSettings.timezone" (ionChange)="saveRegionLanguageSettings()">
-              <ion-select-option value="America/New_York">Eastern Time</ion-select-option>
-              <ion-select-option value="America/Chicago">Central Time</ion-select-option>
-              <ion-select-option value="America/Denver">Mountain Time</ion-select-option>
-              <ion-select-option value="America/Los_Angeles">Pacific Time</ion-select-option>
-              <ion-select-option value="Europe/London">London</ion-select-option>
-              <ion-select-option value="Europe/Paris">Paris</ion-select-option>
-              <ion-select-option value="Europe/Berlin">Berlin</ion-select-option>
-              <ion-select-option value="Asia/Tokyo">Tokyo</ion-select-option>
-              <ion-select-option value="Asia/Seoul">Seoul</ion-select-option>
-              <ion-select-option value="Asia/Kolkata">Mumbai</ion-select-option>
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-icon name="calendar-outline" slot="start"></ion-icon>
-            <ion-label>Date Format</ion-label>
-            <ion-select [(ngModel)]="regionLanguageSettings.dateFormat" (ionChange)="saveRegionLanguageSettings()">
-              <ion-select-option value="MM/dd/yyyy">MM/DD/YYYY</ion-select-option>
-              <ion-select-option value="dd/MM/yyyy">DD/MM/YYYY</ion-select-option>
-              <ion-select-option value="yyyy-MM-dd">YYYY-MM-DD</ion-select-option>
-              <ion-select-option value="dd.MM.yyyy">DD.MM.YYYY</ion-select-option>
-            </ion-select>
-          </ion-item>
-          <ion-item>
-            <ion-icon name="time-outline" slot="start"></ion-icon>
-            <ion-label>Time Format</ion-label>
-            <ion-select [(ngModel)]="regionLanguageSettings.timeFormat" (ionChange)="saveRegionLanguageSettings()">
-              <ion-select-option value="12h">12 Hour</ion-select-option>
-              <ion-select-option value="24h">24 Hour</ion-select-option>
-            </ion-select>
+
+            <!-- Search Button -->
+            <ion-button fill="clear" (click)="openLanguageSearchModal()">
+              <ion-icon name="search-outline"></ion-icon>
+            </ion-button>
           </ion-item>
         </ion-list>
       </div>

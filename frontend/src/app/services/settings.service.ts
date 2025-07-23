@@ -203,4 +203,41 @@ export class Settings {
       headers: this.authHeaders()
     });
   }
+
+  /** 🌍 Detect user's region and language via geolocation and IP */
+  detectRegionAndLanguage(): Promise<{ country: string; language: string }> {
+    return new Promise(resolve => {
+      const fallback = () => {
+        fetch('https://ipapi.co/json')
+          .then(res => res.json())
+          .then(data => {
+            resolve({
+              country: data.country || 'US',
+              language: (data.languages?.split(',')[0]) || 'en',
+            });
+          });
+      };
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const { latitude, longitude } = pos.coords;
+            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
+              .then(res => res.json())
+              .then(data => {
+                resolve({
+                  country: data.countryCode || 'US',
+                  language: navigator.language.split('-')[0] || 'en',
+                });
+              })
+              .catch(() => fallback());
+          },
+          () => fallback(),
+          { timeout: 5000 }
+        );
+      } else {
+        fallback();
+      }
+    });
+  }
 }

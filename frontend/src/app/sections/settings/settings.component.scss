@@ -229,3 +229,18 @@
     transform: rotate(360deg);
   }
 }
+
+ion-item {
+  .label-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem; // spacing between search icon and label
+  }
+
+  .search-btn {
+    --padding-start: 0;
+    --padding-end: 0;
+    --icon-size: 18px;
+    height: auto;
+  }
+}
