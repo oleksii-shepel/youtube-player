@@ -84,10 +84,14 @@
       border-bottom: 1px solid var(--table-border);
 
       .datatable-header-cell {
-        padding: 16px;
+        padding: 0;
         display: flex;
-        align-items: center;
+        align-items: stretch;
+        justify-content: stretch;
         border-right: 1px solid var(--table-border);
+        flex-direction: column;
+        border-right: 1px solid var(--table-border);
+        box-sizing: border-box;
 
         &:last-child {
           border-right: none;

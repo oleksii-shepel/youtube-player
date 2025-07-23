@@ -9,6 +9,8 @@
     </div>
   </ion-toolbar>
 
+  <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="onSearch()" placeholder="Search table"></ion-searchbar>
+
   <ngx-datatable
     [rows]="rows"
     [columns]="datatableColumns"
@@ -20,11 +22,18 @@
     [offset]="offset"
     [count]="count"
     (page)="onPage($event)"
+    [sorts]="sorts"
+    (sort)="onSort($event)"
     class="modern-table"
   >
     <ngx-datatable-column *ngFor="let col of datatableColumns" [prop]="col.prop" [name]="col.name" [sortable]="col.sortable" [resizeable]="col.resizeable">
-      <ng-template ngx-datatable-header-template let-column="column">
-        <span class="column-header-text">{{ column.name }}</span>
+      <ng-template ngx-datatable-header-template let-column="column" let-sortDir="sortDir">
+        <div class="header-container" (click)="onHeaderClick(column.prop?.toString()!)">
+          <span class="column-header-text">{{ column.name }}</span>
+          <span class="sort-indicator" *ngIf="isSorted(column.prop?.toString()!)">
+            {{ sorts[0].dir === SortDirection.asc ? ' ↑' : ' ↓' }}
+          </span>
+        </div>
       </ng-template>
       <ng-template ngx-datatable-cell-template let-row="row" let-value="value" let-column="column">
         <ng-container *ngIf="getColumnByProp(column.prop?.toString()!).cellFn; else defaultCell">
@@ -37,6 +46,11 @@
     </ngx-datatable-column>
 
     <ngx-datatable-column name="Actions">
+      <ng-template ngx-datatable-header-template let-column="column" let-sortDir="sortDir">
+        <div class="header-container">
+          <span class="column-header-text">Actions</span>
+        </div>
+      </ng-template>
       <ng-template ngx-datatable-cell-template let-row="row">
         <div class="action-buttons">
           <ion-button fill="clear" size="small" class="action-button edit-button" (click)="editItem(row)">
