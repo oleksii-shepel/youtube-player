@@ -611,9 +611,9 @@ export class SettingsComponent implements OnInit {
 
   async onAutoLocationToggle() {
     if (this.regionLanguageSettings.useAutoLocation) {
-     const { country, language } = await this.settings.detectRegionAndLanguage();
-     this.regionLanguageSettings.detectedCountry = country;
-     this.regionLanguageSettings.detectedLanguage = language;
+     const { countryName, languageName } = await this.settings.detectRegionAndLanguage();
+     this.regionLanguageSettings.detectedCountry = countryName;
+     this.regionLanguageSettings.detectedLanguage = languageName;
     }
     this.saveRegionLanguageSettings();
   }

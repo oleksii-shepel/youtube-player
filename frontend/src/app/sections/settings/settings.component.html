@@ -200,42 +200,42 @@
 
       <div *ngIf="selectedMainSection === 'region-language'" class="content-section">
         <ion-list>
-          <!-- Toggle: Use current location (unchanged) -->
-          <ion-item lines="full">
+          <!-- Toggle: Use current location -->
+          <ion-item class="location-item">
             <ion-icon name="locate-outline" slot="start"></ion-icon>
-            <ion-label>
+            <ion-label class="main-label">
               Use Current Location
-              <small *ngIf="regionLanguageSettings.detectedCountry || regionLanguageSettings.detectedLanguage"
-                    style="display: block; font-weight: normal; font-size: 0.85em; margin-top: 2px; color: var(--ion-text-color-secondary);">
-                Detected: {{ regionLanguageSettings.detectedCountry || '...' }} / {{ regionLanguageSettings.detectedLanguage || '...' }}
+              <br><small class="subtext"
+                *ngIf="regionLanguageSettings.detectedCountry || regionLanguageSettings.detectedLanguage">
+                Detected: {{ regionLanguageSettings.detectedCountry || '...' }} / {{ regionLanguageSettings.detectedLanguage
+                || '...' }}
               </small>
             </ion-label>
-            <ion-toggle
-              [(ngModel)]="regionLanguageSettings.useAutoLocation"
-              (ionChange)="onAutoLocationToggle()">
+            <ion-toggle [(ngModel)]="regionLanguageSettings.useAutoLocation" (ionChange)="onAutoLocationToggle()"
+              class="location-toggle">
             </ion-toggle>
           </ion-item>
 
           <!-- Country/Region Select -->
-          <ion-item [disabled]="regionLanguageSettings.useAutoLocation">
+          <ion-item [disabled]="regionLanguageSettings.useAutoLocation" class="region-item">
             <ion-icon name="flag-outline" slot="start"></ion-icon>
-            <ion-label>Country/Region</ion-label>
-
-            <!-- Search Button -->
-            <ion-button fill="clear" (click)="openCountrySearchModal()">
-              <ion-icon name="search-outline"></ion-icon>
-            </ion-button>
+            <ion-label class="main-label">Country/Region</ion-label>
+            <div class="action-buttons">
+              <ion-button fill="clear" (click)="openCountrySearchModal()" class="search-button">
+                <ion-icon name="search-outline"></ion-icon>
+              </ion-button>
+            </div>
           </ion-item>
 
           <!-- Language Select -->
-          <ion-item [disabled]="regionLanguageSettings.useAutoLocation">
+          <ion-item [disabled]="regionLanguageSettings.useAutoLocation" class="language-item">
             <ion-icon name="language-outline" slot="start"></ion-icon>
-            <ion-label>Language</ion-label>
-
-            <!-- Search Button -->
-            <ion-button fill="clear" (click)="openLanguageSearchModal()">
-              <ion-icon name="search-outline"></ion-icon>
-            </ion-button>
+            <ion-label class="main-label">Language</ion-label>
+            <div class="action-buttons">
+              <ion-button fill="clear" (click)="openLanguageSearchModal()" class="search-button">
+                <ion-icon name="search-outline"></ion-icon>
+              </ion-button>
+            </div>
           </ion-item>
         </ion-list>
       </div>

@@ -2,7 +2,11 @@ import { inject, Injectable } from '@angular/core';
 import { Authorization } from './authorization.service';
 import { HttpClient, readJson } from '@actioncrew/streamix/http';
 import { HTTP_CLIENT } from 'src/main';
-import { Stream } from '@actioncrew/streamix';
+import { Stream, firstValueFrom } from '@actioncrew/streamix';
+import ISO6391 from 'iso-639-1';
+import * as countries from 'i18n-iso-countries';
+import englishCountries from 'i18n-iso-countries/langs/en.json';
+
 
 @Injectable({ providedIn: 'root' })
 export class Settings {
@@ -13,6 +17,7 @@ export class Settings {
 
   constructor(private authorization: Authorization) {
     this.http = inject<HttpClient>(HTTP_CLIENT);
+    countries.registerLocale(englishCountries);
   }
 
   private authHeaders() {
@@ -205,15 +210,27 @@ export class Settings {
   }
 
   /** 🌍 Detect user's region and language via geolocation and IP */
-  detectRegionAndLanguage(): Promise<{ country: string; language: string }> {
+  /** 🌍 Detect user's region and language via geolocation and IP using http.get */
+  detectRegionAndLanguage(): Promise<{ countryCode: string; countryName: string; languageCode: string; languageName: string }> {
     return new Promise(resolve => {
       const fallback = () => {
-        fetch('https://ipapi.co/json')
-          .then(res => res.json())
-          .then(data => {
+        firstValueFrom(this.http.get('https://ipapi.co/json', readJson))
+          .then((data: any) => {
+            const countryCode = data.country || 'US';
+            const languageCode = (data.languages?.split(',')[0]) || 'en';
             resolve({
-              country: data.country || 'US',
-              language: (data.languages?.split(',')[0]) || 'en',
+              countryCode,
+              countryName: countries.getName(countryCode, 'en') || countryCode,
+              languageCode,
+              languageName: ISO6391.getName(languageCode) || 'English'
+            });
+          })
+          .catch(() => {
+            resolve({
+              countryCode: 'US',
+              countryName: countries.getName('US', 'en') || 'United States',
+              languageCode: 'en',
+              languageName: 'English'
             });
           });
       };
@@ -222,12 +239,15 @@ export class Settings {
         navigator.geolocation.getCurrentPosition(
           pos => {
             const { latitude, longitude } = pos.coords;
-            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
-              .then(res => res.json())
-              .then(data => {
+            firstValueFrom(this.http.get(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`, readJson))
+              .then((data: any) => {
+                const countryCode = data.countryCode || 'US';
+                const languageCode = navigator.language.split('-')[0] || 'en';
                 resolve({
-                  country: data.countryCode || 'US',
-                  language: navigator.language.split('-')[0] || 'en',
+                  countryCode,
+                  countryName: countries.getName(countryCode, 'en') || countryCode,
+                  languageCode,
+                  languageName: ISO6391.getName(languageCode) || 'English'
                 });
               })
               .catch(() => fallback());
