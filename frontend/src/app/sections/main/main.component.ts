@@ -6,6 +6,7 @@ import {
   AfterViewInit,
   OnDestroy,
   ElementRef,
+  ViewEncapsulation,
 } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../../components/youtube-player/youtube-player.component';
@@ -59,7 +60,7 @@ declare const YT: any;
     YoutubePlayerComponent,
     RecorderComponent,
     RouterModule
-],
+]
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   selectedVideoId = '';
