@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Storage } from '@ionic/storage-angular';
@@ -12,6 +12,7 @@ import { IonicModule } from '@ionic/angular';
 import { ModalController } from '@ionic/angular';
 import { LanguageSelectModalComponent } from '../../components/language/language.component';
 import { CountrySelectModalComponent } from '../../components/country/country.component';
+import { ModalResizeHandleDirective } from 'src/app/directives/modal/modal.directive';
 
 export type AppTheme = 'default' | 'dark' | 'light';
 export type AppFontSize = 'small' | 'medium' | 'large';
@@ -75,7 +76,7 @@ export interface PageState<T> {
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, TableComponent, CountrySelectModalComponent],
+  imports: [CommonModule, FormsModule, IonicModule, TableComponent, CountrySelectModalComponent, ModalResizeHandleDirective],
 })
 export class SettingsComponent implements OnInit {
   selectedMainSection = 'appearance';
@@ -167,7 +168,7 @@ export class SettingsComponent implements OnInit {
     private storage: Storage,
     private settings: Settings,
     private authorization: Authorization,
-    private theme: ThemeService,
+    private theme: ThemeService
   ) {}
 
   async ngOnInit() {

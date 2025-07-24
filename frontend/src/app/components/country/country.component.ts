@@ -20,7 +20,6 @@ interface Country {
     IonicModule
   ],
   template: `
-    <!-- Custom Header Div -->
     <div class="modal-header">
       <ion-toolbar>
         <ion-title>Select Country</ion-title>
@@ -41,15 +40,12 @@ interface Country {
       </ion-toolbar>
     </div>
 
-    <!-- Custom Content Div -->
     <div class="modal-content scrollable">
-      <!-- Loading State -->
       <div *ngIf="isLoading" class="loading-container">
         <ion-spinner name="crescent"></ion-spinner>
         <p>Loading countries...</p>
       </div>
 
-      <!-- Country List -->
       <ion-list *ngIf="!isLoading">
         <ion-item
           *ngFor="let country of filteredCountries"
@@ -72,7 +68,6 @@ interface Country {
         </ion-item>
       </ion-list>
 
-      <!-- Empty State -->
       <div
         *ngIf="filteredCountries.length === 0 && searchTerm && !isLoading"
         class="empty-state"
@@ -82,7 +77,6 @@ interface Country {
         <p class="empty-subtext">Try adjusting your search terms</p>
       </div>
 
-      <!-- Results Counter -->
       <div
         class="results-info"
         *ngIf="searchTerm && filteredCountries.length > 0"
@@ -91,27 +85,24 @@ interface Country {
       </div>
     </div>
 
-    <!-- Custom Footer Div -->
     <div class="modal-footer">
       <ion-toolbar>
-        <ion-button expand="block" fill="solid" (click)="confirmSelection()">
+        <ion-button expand="block" fill="solid" (click)="confirmSelection()" [disabled]="!selectedCountry">
           Select {{ selectedCountry?.name ?? '' }}
         </ion-button>
       </ion-toolbar>
     </div>
   `,
   styles: [`
-    /* Host styles to control the modal's overall layout */
     :host {
       display: flex;
       flex-direction: column;
-      max-height: var(--modal-height, 80vh); /* Fallback to 80vh */
-      height: auto; /* Allow shrinking to content */
-      overflow: hidden; /* Prevent host scrollbar */
+      max-height: var(--modal-height, 80vh);
+      height: auto;
+      overflow: hidden;
       user-select: none;
     }
 
-    /* Styles for the custom header div */
     .modal-header {
       flex-shrink: 0;
       background: var(--ion-background-color, #fff);
@@ -119,7 +110,6 @@ interface Country {
       z-index: 10;
     }
 
-    /* Styles for the custom content div */
     .modal-content {
       flex-grow: 1;
       flex-shrink: 1;
@@ -127,12 +117,10 @@ interface Country {
       overflow-x: hidden;
       background: var(--ion-background-color, #fff);
       -webkit-overflow-scrolling: touch;
-      /* Dynamic height based on modal height minus header and footer */
       max-height: calc(var(--modal-height, 80vh) - var(--header-height, 112px) - var(--footer-height, 64px));
-      min-height: 100px; /* Prevent collapsing too much */
+      min-height: 100px;
     }
 
-    /* Styles for the custom footer div */
     .modal-footer {
       flex-shrink: 0;
       background: var(--ion-background-color, #fff);
@@ -152,7 +140,6 @@ interface Country {
       margin: 8px 16px;
     }
 
-    /* Generic styles for content */
     .loading-container {
       display: flex;
       flex-direction: column;
@@ -216,15 +203,6 @@ interface Country {
       display: inline-block;
       margin-top: 4px;
     }
-
-    /* Hide scrollbars */
-    .modal-content.no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .modal-content.no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
   `]
 })
 export class CountrySelectModalComponent {
@@ -238,15 +216,20 @@ export class CountrySelectModalComponent {
   searchTerm = '';
   isLoading = true;
 
+  private initialized = false;
+
   constructor(private modalController: ModalController) {
     countries.registerLocale(englishCountries);
-    this.loadCountries();
+  }
+
+  async ngOnInit() {
+    await this.loadCountries();
   }
 
   async loadCountries() {
+    this.isLoading = true;
     try {
-      this.isLoading = true;
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 300)); // simulate loading delay
       const countryCodes = countries.getAlpha2Codes();
       this.allCountries = Object.entries(countryCodes)
         .map(([code, name]) => ({
@@ -254,9 +237,8 @@ export class CountrySelectModalComponent {
           name: name as string,
           nativeName: countries.getName(code, 'en') || (name as string)
         }))
-        .filter(country => country.name && country.nativeName)
+        .filter(c => c.name && c.nativeName)
         .sort((a, b) => a.name.localeCompare(b.name));
-      console.log('Loaded countries:', this.allCountries.length);
       this.filteredCountries = [...this.allCountries];
     } catch (error) {
       console.error('Error loading countries:', error);
@@ -271,14 +253,12 @@ export class CountrySelectModalComponent {
       this.filteredCountries = [...this.allCountries];
     } else {
       const term = this.searchTerm.toLowerCase();
-      this.filteredCountries = this.allCountries.filter(
-        country => country.name.toLowerCase().includes(term) ||
-                  country.nativeName.toLowerCase().includes(term) ||
-                  country.code.toLowerCase().includes(term)
+      this.filteredCountries = this.allCountries.filter(c =>
+        c.name.toLowerCase().includes(term) ||
+        c.nativeName.toLowerCase().includes(term) ||
+        c.code.toLowerCase().includes(term)
       );
     }
-    console.log('Filtered countries:', this.filteredCountries.length);
-    // Update height after filtering
     this.updateModalHeight();
   }
 
@@ -301,18 +281,19 @@ export class CountrySelectModalComponent {
 
   async updateModalHeight() {
     const modal = await this.modalController.getTop();
-    if (modal) {
-      modal.onDidDismiss().then(() => {});
-      modal.onWillDismiss().then(() => {});
+    if (!modal) return;
+
+    if (!this.initialized) {
       modal.addEventListener('ionBreakpointDidChange', (event: any) => {
         const breakpoint = event.detail.breakpoint;
         const modalHeight = `${breakpoint * 100}vh`;
         document.documentElement.style.setProperty('--modal-height', modalHeight);
       });
-      // Set initial height
-      const currentBreakpoint = await modal.getCurrentBreakpoint() || 0.5;
-      const modalHeight = `${currentBreakpoint * 100}vh`;
-      document.documentElement.style.setProperty('--modal-height', modalHeight);
+      this.initialized = true;
     }
+
+    const currentBreakpoint = await modal.getCurrentBreakpoint();
+    const modalHeight = `${(currentBreakpoint || 0.5) * 100}vh`;
+    document.documentElement.style.setProperty('--modal-height', modalHeight);
   }
 }
