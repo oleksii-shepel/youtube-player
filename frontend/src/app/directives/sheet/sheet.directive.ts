@@ -7,8 +7,7 @@ import {
   OnInit,
   OnDestroy,
   Renderer2,
-  HostListener,
-  NgZone
+  HostListener
 } from '@angular/core';
 
 export interface SheetBreakpoint {
@@ -53,7 +52,6 @@ export class SheetDirective implements OnInit, OnDestroy {
   private startHeight = 0;
   private animationId: number | null = null;
 
-  private readonly DRAG_THRESHOLD = 10;
   private readonly ANIMATION_DURATION = 300;
   private readonly VELOCITY_THRESHOLD = 0.5;
 
@@ -68,8 +66,7 @@ export class SheetDirective implements OnInit, OnDestroy {
 
   constructor(
     private elementRef: ElementRef<HTMLElement>,
-    private renderer: Renderer2,
-    private ngZone: NgZone
+    private renderer: Renderer2
   ) {}
 
   ngOnInit() {
@@ -123,10 +120,13 @@ export class SheetDirective implements OnInit, OnDestroy {
 
     // Container styles (positioning and behavior)
     this.renderer.setStyle(this.modalContainer, 'position', 'absolute');
-    this.renderer.setStyle(this.modalContainer, 'margin', 'auto');
+    this.renderer.setStyle(this.modalContainer, 'margin', '0 auto'); // Center horizontally
     this.renderer.setStyle(this.modalContainer, 'bottom', '0');
-    this.renderer.setStyle(this.modalContainer, 'left', '50%');
-    this.renderer.setStyle(this.modalContainer, 'z-index', '1001'); // Ensure it's above backdrop
+    this.renderer.setStyle(this.modalContainer, 'left', '0');
+    this.renderer.setStyle(this.modalContainer, 'right', '0');
+    this.renderer.setStyle(this.modalContainer, 'z-index', '1001');
+    this.renderer.setStyle(this.modalContainer, 'transform', 'translateY(100vh)');
+    this.renderer.setStyle(this.modalContainer, 'transition', 'transform 0.3s ease');
     this.renderer.setStyle(this.modalContainer, 'display', 'flex');
     this.renderer.setStyle(this.modalContainer, 'flex-direction', 'column');
 
@@ -278,7 +278,7 @@ export class SheetDirective implements OnInit, OnDestroy {
 
     this.renderer.setStyle(this.modalContainer, 'height', `${breakpoint.height}%`);
     // Ensure transform is reset to 0 when setting a breakpoint (bringing it into view)
-    this.renderer.setStyle(this.modalContainer, 'transform', 'translateY(0) translateX(-50%)');
+    this.renderer.setStyle(this.modalContainer, 'transform', 'translateY(0)');
 
 
     if (!animate) {
@@ -322,7 +322,7 @@ export class SheetDirective implements OnInit, OnDestroy {
       this.willDismiss.emit();
 
       // Animate container to fully hidden state (transformY(100vh)) and height: 0
-      this.renderer.setStyle(this.modalContainer, 'transform', 'translateY(100vh) translateX(-50%)');
+      this.renderer.setStyle(this.modalContainer, 'transform', 'translateY(100vh)');
       this.renderer.setStyle(this.modalContainer, 'height', '0');
 
       // Hide backdrop opacity by removing visible class
