@@ -153,7 +153,6 @@ export class CountrySelectModalComponent implements OnInit {
   async loadCountries() {
     this.isLoading = true;
     try {
-      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate loading delay
       const countryCodes = countries.getAlpha2Codes();
       this.allCountries = Object.entries(countryCodes)
         .map(([code, name]) => ({

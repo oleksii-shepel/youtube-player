@@ -1,5 +1,6 @@
 
 <app-country-select-modal
+  *ngIf="isCountryModalOpen"
   [isOpen]="isCountryModalOpen"
   [selectedCountry]="regionLanguageSettings.country"
   (close)="onCloseCountryModal()"
@@ -7,6 +8,16 @@
   (select)="onSelectCountry($event)"
   [appSheet]="countrySelectSheetConfig">
 </app-country-select-modal>
+
+<app-language-select-modal
+  *ngIf="isLanguageModalOpen"
+  [isOpen]="isLanguageModalOpen"
+  [selectedLanguage]="regionLanguageSettings.language"
+  (close)="onCloseLanguageModal()"
+  (cancel)="onCancelLanguageModal()"
+  (select)="onSelectLanguage($event)"
+  [appSheet]="languageSelectSheetConfig">
+</app-language-select-modal>
 
 <ion-content class="youtube-api-settings-content">
   <div class="settings-container scrollable">
@@ -234,6 +245,21 @@
               <ion-button
                 fill="clear"
                 (click)="openCountryModal()"
+                class="search-button"
+                [disabled]="regionLanguageSettings.useAutoLocation">
+                <ion-icon name="search-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-item>
+
+          <!-- Language Select -->
+          <ion-item [disabled]="regionLanguageSettings.useAutoLocation" class="region-item">
+            <ion-icon name="flag-outline" slot="start"></ion-icon>
+            <ion-label class="main-label">Language</ion-label>
+            <div class="action-buttons">
+              <ion-button
+                fill="clear"
+                (click)="openLanguageModal()"
                 class="search-button"
                 [disabled]="regionLanguageSettings.useAutoLocation">
                 <ion-icon name="search-outline"></ion-icon>
