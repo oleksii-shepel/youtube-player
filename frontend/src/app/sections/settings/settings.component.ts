@@ -1,4 +1,5 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { SheetConfig, SheetDirective } from 'src/app/directives/sheet/sheet.directive';
+import { Component, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Storage } from '@ionic/storage-angular';
@@ -9,10 +10,10 @@ import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
 import { TableComponent, TableData } from '../../components/table/table.component';
 import { IonicModule } from '@ionic/angular';
-import { ModalController } from '@ionic/angular';
 import { LanguageSelectModalComponent } from '../../components/language/language.component';
 import { CountrySelectModalComponent } from '../../components/country/country.component';
-import { ModalResizeHandleDirective } from 'src/app/directives/modal/modal.directive';
+import { DirectiveModule } from 'src/app/directives';
+
 
 export type AppTheme = 'default' | 'dark' | 'light';
 export type AppFontSize = 'small' | 'medium' | 'large';
@@ -76,7 +77,7 @@ export interface PageState<T> {
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, TableComponent, CountrySelectModalComponent, ModalResizeHandleDirective],
+  imports: [CommonModule, FormsModule, IonicModule, TableComponent, CountrySelectModalComponent, DirectiveModule],
 })
 export class SettingsComponent implements OnInit {
   selectedMainSection = 'appearance';
@@ -125,7 +126,30 @@ export class SettingsComponent implements OnInit {
   };
 
   isCountryModalOpen = false;
+  countrySelectSheetConfig: SheetConfig = {
+    breakpoints: [
+      { id: 'small', height: 40 },    // Show search and few countries
+      { id: 'medium', height: 70 },   // Show more countries
+      { id: 'full', height: 90 }      // Full list with all features
+    ],
+    initialBreakpoint: 'medium',
+    backdropDismiss: true,
+    showBackdrop: true,
+    canDismiss: true
+  };
+
   isLanguageModalOpen = false;
+  languageSelectSheetConfig: SheetConfig = {
+    breakpoints: [
+      { id: 'small', height: 40 },    // Show search and few countries
+      { id: 'medium', height: 70 },   // Show more countries
+      { id: 'full', height: 90 }      // Full list with all features
+    ],
+    initialBreakpoint: 'medium',
+    backdropDismiss: true,
+    showBackdrop: true,
+    canDismiss: true
+  };
 
   playlistState: PageState<Playlist> = {
     items: [],
@@ -163,6 +187,8 @@ export class SettingsComponent implements OnInit {
   country!: HTMLIonModalElement;
   language!: HTMLIonModalElement;
 
+  @ViewChild(SheetDirective) sheetDirective!: SheetDirective;
+
   constructor(
     private router: Router,
     private storage: Storage,
@@ -180,8 +206,29 @@ export class SettingsComponent implements OnInit {
     await this.loadSubscriptions();
   }
 
-  handleCountrySelection(country: any) {
+   async openCountryModal() {
+    this.isCountryModalOpen = true; // Show the wrapper div
+    // Use setTimeout to ensure the DOM element is rendered before calling present
+    await new Promise(resolve => setTimeout(resolve, 0));
+    this.sheetDirective.present();
+  }
+
+  onCloseCountryModal() {
+    this.sheetDirective.dismiss(); // smoothly closes modal if SheetDirective is used
+    this.isCountryModalOpen = false;
+  }
+
+  onCancelCountryModal() {
+    console.log('Country selection cancelled');
+    this.sheetDirective.dismiss();
+    this.isCountryModalOpen = false;
+  }
+
+  onSelectCountry(country: any) {
     this.regionLanguageSettings.country = country;
+    this.saveRegionLanguageSettings(); // optional: persist setting
+    this.sheetDirective.dismiss();
+    this.isCountryModalOpen = false;
   }
 
   // Ionic lifecycle, if used

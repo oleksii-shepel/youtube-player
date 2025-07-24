@@ -1,9 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnInit,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
 import * as countries from 'i18n-iso-countries';
 import englishCountries from 'i18n-iso-countries/langs/en.json';
+import { DirectiveModule } from 'src/app/directives';
 
 interface Country {
   code: string;
@@ -14,211 +22,127 @@ interface Country {
 @Component({
   selector: 'app-country-select-modal',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule
-  ],
+  imports: [CommonModule, FormsModule, IonicModule, DirectiveModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="modal-header">
-      <ion-toolbar>
-        <ion-title>Select Country</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="dismiss()">
-            <ion-icon name="close"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-      <ion-toolbar>
-        <ion-searchbar
-          placeholder="Search countries..."
-          [(ngModel)]="searchTerm"
-          (ionInput)="filterCountries()"
-          debounce="300"
-          show-clear-button="focus"
-        ></ion-searchbar>
-      </ion-toolbar>
-    </div>
+    <div
+      class="modal-backdrop"
+      [class.hidden]="!isOpen"
+      (click)="onClose()"
+    >
+      <div
+        class="modal-container"
+        [class.hidden]="!isOpen"
+        [class.with-border]="showBorder"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Header -->
+        <div class="modal-header">
+          <ion-toolbar>
+            <ion-title>Select Country</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="onClose()">
+                <ion-icon name="close"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+          <ion-toolbar>
+            <ion-searchbar
+              placeholder="Search countries..."
+              [(ngModel)]="searchTerm"
+              (ionInput)="filterCountries()"
+              debounce="300"
+              show-clear-button="focus"
+            ></ion-searchbar>
+          </ion-toolbar>
+        </div>
 
-    <div class="modal-content scrollable">
-      <div *ngIf="isLoading" class="loading-container">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>Loading countries...</p>
-      </div>
+        <!-- Content -->
+        <div class="modal-content scrollable">
+          @if (isLoading) {
+            <div class="status-message">
+              <ion-spinner name="crescent"></ion-spinner>
+              Loading countries...
+            </div>
+          } @else {
+            @if (filteredCountries.length === 0 && searchTerm) {
+              <div class="overlay">
+                <ion-icon name="search-outline" size="large"></ion-icon>
+                <p>No countries found</p>
+                <p>Try adjusting your search terms</p>
+              </div>
+            } @else {
+              <ion-list>
+                @for (country of filteredCountries; track country.code) {
+                  <ion-item
+                    button
+                    (click)="selectCountry(country)"
+                    [class.selected]="selectedCountry?.code === country.code"
+                  >
+                    <ion-label>
+                      <h3>{{ country.name }}</h3>
+                      <p>{{ country.nativeName }}</p>
+                      <p class="country-code">{{ country.code }}</p>
+                    </ion-label>
+                    @if (selectedCountry?.code === country.code) {
+                      <ion-icon
+                        name="checkmark-circle"
+                        slot="end"
+                        color="primary"
+                      ></ion-icon>
+                    }
+                  </ion-item>
+                }
+              </ion-list>
+              @if (searchTerm && filteredCountries.length > 0) {
+                <div class="status-message">
+                  {{ filteredCountries.length }} of {{ allCountries.length }} countries
+                </div>
+              }
+            }
+          }
+        </div>
 
-      <ion-list *ngIf="!isLoading">
-        <ion-item
-          *ngFor="let country of filteredCountries"
-          button
-          (click)="selectCountry(country)"
-          [class.selected]="selectedCountry?.code === country.code"
-        >
-          <ion-label>
-            <h3>{{ country.name }}</h3>
-            <p>{{ country.nativeName }}</p>
-            <p class="country-code">{{ country.code }}</p>
-          </ion-label>
-
-          <ion-icon
-            *ngIf="selectedCountry?.code === country.code"
-            name="checkmark-circle"
-            slot="end"
+        <!-- Controls -->
+        <div class="controls">
+          <ion-button
+            (click)="onCountrySelect(selectedCountry)"
+            fill="solid"
             color="primary"
-          ></ion-icon>
-        </ion-item>
-      </ion-list>
-
-      <div
-        *ngIf="filteredCountries.length === 0 && searchTerm && !isLoading"
-        class="empty-state"
-      >
-        <ion-icon name="search-outline"></ion-icon>
-        <p>No countries found</p>
-        <p class="empty-subtext">Try adjusting your search terms</p>
+            [disabled]="!selectedCountry"
+          >
+            <ion-icon name="checkmark" slot="start"></ion-icon>
+            Select {{ selectedCountry?.name ?? 'Country' }}
+          </ion-button>
+          <ion-button
+            (click)="onClose()"
+            fill="clear"
+            color="primary"
+            class="close-btn"
+          >
+            <ion-icon name="close" slot="start"></ion-icon>
+            Cancel
+          </ion-button>
+        </div>
       </div>
-
-      <div
-        class="results-info"
-        *ngIf="searchTerm && filteredCountries.length > 0"
-      >
-        <small>{{ filteredCountries.length }} of {{ allCountries.length }} countries</small>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <ion-toolbar>
-        <ion-button expand="block" fill="solid" (click)="confirmSelection()" [disabled]="!selectedCountry">
-          Select {{ selectedCountry?.name ?? '' }}
-        </ion-button>
-      </ion-toolbar>
     </div>
   `,
-  styles: [`
-    :host {
-      display: flex;
-      flex-direction: column;
-      max-height: var(--modal-height, 80vh);
-      height: auto;
-      overflow: hidden;
-      user-select: none;
-    }
-
-    .modal-header {
-      flex-shrink: 0;
-      background: var(--ion-background-color, #fff);
-      box-shadow: var(--ion-box-shadow-xs);
-      z-index: 10;
-    }
-
-    .modal-content {
-      flex-grow: 1;
-      flex-shrink: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      background: var(--ion-background-color, #fff);
-      -webkit-overflow-scrolling: touch;
-      max-height: calc(var(--modal-height, 80vh) - var(--header-height, 112px) - var(--footer-height, 64px));
-      min-height: 100px;
-    }
-
-    .modal-footer {
-      flex-shrink: 0;
-      background: var(--ion-background-color, #fff);
-      box-shadow: var(--ion-box-shadow-xs);
-      z-index: 10;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .modal-footer ion-toolbar {
-      --padding-start: 0;
-      --padding-end: 0;
-      --padding-top: 0;
-      --padding-bottom: 0;
-    }
-
-    .modal-footer ion-button {
-      margin: 8px 16px;
-    }
-
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      color: var(--ion-color-medium);
-      min-height: 80px;
-    }
-    .loading-container ion-spinner {
-      margin-bottom: 16px;
-    }
-    .selected {
-      --background: var(--ion-color-primary-tint);
-      --color: var(--ion-color-primary-shade);
-    }
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--ion-color-medium);
-      min-height: 80px;
-    }
-    .empty-state ion-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
-    .empty-subtext {
-      font-size: 0.875rem;
-      margin-top: 8px;
-      opacity: 0.7;
-    }
-    .results-info {
-      text-align: center;
-      padding: 8px;
-      color: var(--ion-color-medium);
-      border-top: 1px solid var(--ion-border-color);
-      background: var(--ion-color-light);
-      flex-shrink: 0;
-    }
-    ion-list {
-      width: 100%;
-    }
-    ion-item h3 {
-      margin: 0 0 4px 0;
-      font-weight: 600;
-      color: var(--ion-text-color);
-    }
-    ion-item p {
-      margin: 2px 0;
-      font-size: 0.875rem;
-      color: var(--ion-color-medium);
-    }
-    .country-code {
-      font-family: 'Courier New', monospace;
-      font-size: 0.75rem !important;
-      text-transform: uppercase;
-      background: var(--ion-color-light);
-      padding: 2px 6px;
-      border-radius: 4px;
-      display: inline-block;
-      margin-top: 4px;
-    }
-  `]
+  styleUrls: ['country.component.scss'],
 })
-export class CountrySelectModalComponent {
+export class CountrySelectModalComponent implements OnInit {
   @Input() isOpen = false;
+  @Input() showBorder = true;
   @Input() selectedCountry: Country | null = null;
-  @Output() isOpenChange = new EventEmitter<boolean>();
-  @Output() countrySelected = new EventEmitter<Country>();
+  @Output() close = new EventEmitter<void>();
+  @Output() cancel = new EventEmitter<void>();
+  @Output() select = new EventEmitter<any>();
 
   allCountries: Country[] = [];
   filteredCountries: Country[] = [];
   searchTerm = '';
   isLoading = true;
 
-  private initialized = false;
-
-  constructor(private modalController: ModalController) {
+  constructor() {
     countries.registerLocale(englishCountries);
   }
 
@@ -229,13 +153,13 @@ export class CountrySelectModalComponent {
   async loadCountries() {
     this.isLoading = true;
     try {
-      await new Promise(resolve => setTimeout(resolve, 300)); // simulate loading delay
+      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate loading delay
       const countryCodes = countries.getAlpha2Codes();
       this.allCountries = Object.entries(countryCodes)
         .map(([code, name]) => ({
           code,
           name: name as string,
-          nativeName: countries.getName(code, 'en') || (name as string)
+          nativeName: countries.getName(code, 'en') || (name as string),
         }))
         .filter(c => c.name && c.nativeName)
         .sort((a, b) => a.name.localeCompare(b.name));
@@ -244,7 +168,6 @@ export class CountrySelectModalComponent {
       console.error('Error loading countries:', error);
     } finally {
       this.isLoading = false;
-      this.updateModalHeight();
     }
   }
 
@@ -253,47 +176,28 @@ export class CountrySelectModalComponent {
       this.filteredCountries = [...this.allCountries];
     } else {
       const term = this.searchTerm.toLowerCase();
-      this.filteredCountries = this.allCountries.filter(c =>
-        c.name.toLowerCase().includes(term) ||
-        c.nativeName.toLowerCase().includes(term) ||
-        c.code.toLowerCase().includes(term)
+      this.filteredCountries = this.allCountries.filter(
+        c =>
+          c.name.toLowerCase().includes(term) ||
+          c.nativeName.toLowerCase().includes(term) ||
+          c.code.toLowerCase().includes(term)
       );
     }
-    this.updateModalHeight();
   }
 
   selectCountry(country: Country) {
     this.selectedCountry = country;
   }
 
-  confirmSelection() {
-    if (this.selectedCountry) {
-      this.countrySelected.emit(this.selectedCountry);
-      this.isOpenChange.emit(false);
-      this.modalController.dismiss();
-    }
+  onClose() {
+    this.close.emit();
   }
 
-  dismiss() {
-    this.isOpenChange.emit(false);
-    this.modalController.dismiss();
+  onCancel() {
+    this.cancel.emit();
   }
 
-  async updateModalHeight() {
-    const modal = await this.modalController.getTop();
-    if (!modal) return;
-
-    if (!this.initialized) {
-      modal.addEventListener('ionBreakpointDidChange', (event: any) => {
-        const breakpoint = event.detail.breakpoint;
-        const modalHeight = `${breakpoint * 100}vh`;
-        document.documentElement.style.setProperty('--modal-height', modalHeight);
-      });
-      this.initialized = true;
-    }
-
-    const currentBreakpoint = await modal.getCurrentBreakpoint();
-    const modalHeight = `${(currentBreakpoint || 0.5) * 100}vh`;
-    document.documentElement.style.setProperty('--modal-height', modalHeight);
+  onCountrySelect(country: any) {
+    this.select.emit(country);
   }
 }

@@ -1,3 +1,13 @@
+
+<app-country-select-modal
+  [isOpen]="isCountryModalOpen"
+  [selectedCountry]="regionLanguageSettings.country"
+  (close)="onCloseCountryModal()"
+  (cancel)="onCancelCountryModal()"
+  (select)="onSelectCountry($event)"
+  [appSheet]="countrySelectSheetConfig">
+</app-country-select-modal>
+
 <ion-content class="youtube-api-settings-content">
   <div class="settings-container scrollable">
     <div class="user-header">
@@ -223,7 +233,7 @@
             <div class="action-buttons">
               <ion-button
                 fill="clear"
-                (click)="isCountryModalOpen = true"
+                (click)="openCountryModal()"
                 class="search-button"
                 [disabled]="regionLanguageSettings.useAutoLocation">
                 <ion-icon name="search-outline"></ion-icon>
@@ -374,24 +384,3 @@
     </div>
   </div>
 </ion-content>
-
-<ion-modal
-  [isOpen]="isCountryModalOpen"
-  (didDismiss)="isCountryModalOpen = false"
-  [canDismiss]="true"
-  [backdropBreakpoint]="0.5"
-  [breakpoints]="[0.5, 0.75, 1]"
-  [initialBreakpoint]="0.5"
-  handle="true"
-  expandToScroll="true">
-
-  <ng-template>
-    <div class="scrollable">
-      <app-country-select-modal
-        [selectedCountry]="regionLanguageSettings.country"
-        (countrySelected)="handleCountrySelection($event)"
-        (isOpenChange)="isCountryModalOpen = $event">
-      </app-country-select-modal>
-    </div>
-  </ng-template>
-</ion-modal>

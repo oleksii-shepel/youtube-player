@@ -241,8 +241,3 @@
   height: 100%;
   width: 100%;
 }
-
-::ng-deep ion-modal {
-  transition: height 0.2s ease;
-  pointer-events: auto;
-}

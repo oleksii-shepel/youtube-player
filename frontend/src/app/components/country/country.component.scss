@@ -1,0 +1,165 @@
+/* country.component.scss */
+
+// Backdrop
+.modal-backdrop {
+  background: var(--ion-overlay-backdrop-background);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+
+  &.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+// Container
+.modal-container {
+  background: var(--ion-overlay-background);
+  padding: 16px;
+  color: var(--ion-overlay-text-color);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 16px var(--ion-box-shadow-color);
+  height: 0;
+  overflow: hidden;
+  transition: transform 300ms ease, height 300ms ease;
+  width: min(50%, 500px);
+  &.with-border {
+    border: 1px solid var(--ion-border-color);
+  }
+
+  pointer-events: auto;
+}
+
+// Drag handle
+.data-modal-resize-handle {
+  width: 40px;
+  height: 4px;
+  background-color: #c4c4c4;
+  border-radius: 2px;
+  margin: 8px auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+// Header
+.modal-header {
+  background: var(--ion-toolbar-background);
+  color: var(--ion-toolbar-text-color);
+  border-bottom: 1px solid var(--ion-toolbar-border-color);
+  padding-bottom: 0;
+
+  ion-toolbar {
+    --background: var(--ion-toolbar-background);
+    --color: var(--ion-toolbar-text-color);
+    padding: 0 0.5rem;
+  }
+
+  ion-title {
+    color: var(--ion-text-color-heading);
+    font-weight: 600;
+  }
+
+  ion-button {
+    --color: var(--ion-toolbar-text-color);
+  }
+
+  ion-searchbar {
+    --background: var(--ion-searchbar-background);
+    --color: var(--ion-input-text-color);
+    --placeholder-color: var(--ion-input-placeholder-color);
+    --icon-color: var(--ion-text-color-muted);
+    padding: 0;
+  }
+}
+
+// Content
+.modal-content {
+  overflow-y: auto;
+  padding: 0.5rem 0;
+  background: var(--ion-background-color);
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  ion-item {
+    --background: var(--ion-item-background);
+    --background-hover: var(--ion-item-background-hover);
+    --background-activated: var(--ion-item-background-activated);
+    --border-color: var(--ion-item-border-color);
+    --color: var(--ion-item-text-color);
+    border-bottom: 1px solid var(--ion-border-color);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.selected {
+      --background: var(--ion-item-background-activated);
+
+      ion-label h3 {
+        color: var(--ion-color-primary-tint);
+      }
+    }
+
+    ion-label {
+      h3 {
+        color: var(--ion-text-color-heading);
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+
+      p {
+        color: var(--ion-text-color-secondary);
+        font-size: 0.85em;
+        margin-top: 0;
+      }
+
+      .country-code {
+        color: var(--ion-text-color-muted);
+        font-size: 0.75em;
+        margin-top: 2px;
+      }
+    }
+
+    ion-icon[name="checkmark-circle"] {
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+// Loading / Empty state
+.status-message,
+.overlay {
+  text-align: center;
+  color: var(--ion-text-color-muted);
+  font-size: 0.9em;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  ion-spinner {
+    color: var(--ion-spinner-color);
+    margin-bottom: 10px;
+  }
+
+  ion-icon {
+    color: var(--ion-text-color-secondary);
+    font-size: 4em;
+    margin-bottom: 15px;
+  }
+
+  p {
+    margin: 5px 0;
+  }
+}
+
+.controls {
+  display: inline-flex;
+  padding: 10px 0;
+  gap: 10px;
+}

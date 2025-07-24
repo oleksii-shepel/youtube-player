@@ -36,9 +36,9 @@ import { DirectiveModule } from 'src/app/directives';
           (click)="$event.stopPropagation()"
         ></div>
       }
-    
+
       <div #playerContainer id="playerContainer" (click)="selectVisualPreset()"></div>
-    
+
       @if (showButtons) {
         <div class="custom-buttons">
           <ion-button expand="block" fill="clear" (click)="toggleMode()">
