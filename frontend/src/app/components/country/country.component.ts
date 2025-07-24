@@ -13,7 +13,7 @@ import * as countries from 'i18n-iso-countries';
 import englishCountries from 'i18n-iso-countries/langs/en.json';
 import { DirectiveModule } from 'src/app/directives';
 
-interface Country {
+export interface Country {
   code: string;
   name: string;
   nativeName: string;

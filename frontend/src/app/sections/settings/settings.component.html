@@ -240,7 +240,13 @@
           <!-- Country/Region Select -->
           <ion-item [disabled]="regionLanguageSettings.useAutoLocation" class="region-item">
             <ion-icon name="flag-outline" slot="start"></ion-icon>
-            <ion-label class="main-label">Country/Region</ion-label>
+            <ion-label class="main-label">
+              Country/Region
+              <br><small class="subtext"
+                *ngIf="regionLanguageSettings.country">
+                Selected: {{ regionLanguageSettings.country.nativeName || '...' }}
+              </small>
+            </ion-label>
             <div class="action-buttons">
               <ion-button
                 fill="clear"
@@ -255,7 +261,13 @@
           <!-- Language Select -->
           <ion-item [disabled]="regionLanguageSettings.useAutoLocation" class="region-item">
             <ion-icon name="flag-outline" slot="start"></ion-icon>
-            <ion-label class="main-label">Language</ion-label>
+            <ion-label class="main-label">
+              Language
+            <br><small class="subtext"
+                *ngIf="regionLanguageSettings.language">
+                Selected: {{ regionLanguageSettings.language.nativeName || '...' }}
+              </small>
+            </ion-label>
             <div class="action-buttons">
               <ion-button
                 fill="clear"

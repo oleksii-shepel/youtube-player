@@ -10,8 +10,8 @@ import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
 import { TableComponent, TableData } from '../../components/table/table.component';
 import { IonicModule } from '@ionic/angular';
-import { LanguageSelectModalComponent } from '../../components/language/language.component';
-import { CountrySelectModalComponent } from '../../components/country/country.component';
+import { Language, LanguageSelectModalComponent } from '../../components/language/language.component';
+import { Country, CountrySelectModalComponent } from '../../components/country/country.component';
 import { DirectiveModule } from 'src/app/directives';
 
 
@@ -40,6 +40,17 @@ export interface AppearanceSettings {
   visibleBackdrop: boolean;
   displayResults: AppDisplayResults;
   maxItemsPerRequest: number;
+}
+
+export interface RegionAndLanguageSettings {
+  useAutoLocation: boolean;
+  country: Country | null;            // ISO 3166-1 alpha-2 code, e.g., 'US'
+  language: Language | null;           // BCP 47 tag, e.g., 'en', 'uk'
+  dateFormat: 'MM/dd/yyyy' | 'dd/MM/yyyy' | string;
+  timeFormat: '12h' | '24h' | string;
+  numberFormat: string;              // e.g., 'en-US', 'fr-FR'
+  detectedCountry: string;           // From IP/location detection
+  detectedLanguage: string;          // From browser or location
 }
 
 export interface Playlist {
@@ -114,7 +125,7 @@ export class SettingsComponent implements OnInit {
     maxItemsPerRequest: 5,
   };
 
-  regionLanguageSettings = {
+  regionLanguageSettings: RegionAndLanguageSettings = {
     useAutoLocation: false,
     country: null,
     language: null,
