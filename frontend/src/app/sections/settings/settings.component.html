@@ -87,7 +87,7 @@
       </div>
 
       <!-- Channel Information Section -->
-      <div *ngIf="selectedMainSection === 'channel-info'" class="content-section">
+      <div *ngIf="selectedMainSection === 'channel-info'" class="content-section channel-info">
         <div class="section-card" *ngIf="isApiConnected">
           <div class="user-details">
             <div class="detail-row">
@@ -372,14 +372,14 @@
       </div>
 
       <!-- About Section -->
-      <div *ngIf="selectedMainSection === 'about'" class="content-section">
+      <div *ngIf="selectedMainSection === 'about'" class="content-section about-info">
         <div class="section-card">
           <div class="card-header">
             <h3>About This App</h3>
           </div>
           <div class="about-content">
             <div class="app-info">
-              <img src="assets/icons/icon-512x512.png" alt="App Logo" class="app-logo" />
+              <img src="assets/logo-no-bg.png" alt="App Logo" class="app-logo" />
               <h4>YouTube API Manager</h4>
               <p>Version {{ appVersion }}</p>
             </div>
