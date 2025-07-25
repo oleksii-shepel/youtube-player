@@ -11,6 +11,7 @@ export interface TableColumn {
   sortable?: boolean;
   type?: string;
   options?: string[];
+  size?: string;
 }
 
 export interface TableData {
@@ -83,39 +84,12 @@ export class GridComponent implements OnInit, OnDestroy {
   filteredData: TableData[] = [];
   paginatedData: TableData[] = [];
 
-  // Sample data for demonstration
-  private sampleData: TableData[] = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User', status: 'Active' },
-    { id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'Manager', status: 'Inactive' },
-    { id: 4, name: 'Alice Brown', email: 'alice@example.com', role: 'User', status: 'Active' },
-    { id: 5, name: 'Charlie Wilson', email: 'charlie@example.com', role: 'Admin', status: 'Active' },
-    { id: 6, name: 'David Lee', email: 'david@example.com', role: 'User', status: 'Active' },
-    { id: 7, name: 'Emma Davis', email: 'emma@example.com', role: 'Manager', status: 'Inactive' },
-    { id: 8, name: 'Frank Miller', email: 'frank@example.com', role: 'User', status: 'Active' }
-  ];
-
-  private sampleColumns: TableColumn[] = [
-    { key: 'name', label: 'Name', sortable: true, type: 'text' },
-    { key: 'email', label: 'Email', sortable: true, type: 'email' },
-    { key: 'role', label: 'Role', sortable: true, type: 'select', options: ['Admin', 'Manager', 'User'] },
-    { key: 'status', label: 'Status', sortable: true, type: 'select', options: ['Active', 'Inactive'] }
-  ];
-
   constructor(
     private alertController: AlertController,
     private modalController: ModalController
   ) {}
 
   ngOnInit() {
-    // Initialize data
-    if (this.data.length === 0) {
-      this.data = this.sampleData;
-    }
-    if (this.columns.length === 0) {
-      this.columns = this.sampleColumns;
-    }
-
     this.itemsPerPage = this.pageSize;
 
     // Initialize subjects

@@ -39,6 +39,7 @@
       <ion-row class="table-header">
         <ion-col
           *ngFor="let column of columns"
+          [size]="column.size || 'auto'"
           [class.sortable]="column.sortable"
           (click)="onSort(column.key)">
           <div class="header-content">
@@ -55,7 +56,7 @@
 
       <!-- Data Rows -->
       <ion-row *ngFor="let item of paginatedData" class="table-row">
-        <ion-col *ngFor="let column of columns">
+        <ion-col *ngFor="let column of columns" [size]="column.size || 'auto'">
           {{ item[column.key] }}
         </ion-col>
         <ion-col size="auto" *ngIf="showActions">

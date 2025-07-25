@@ -288,8 +288,8 @@
             [title]="'My Playlists'"
             [data]="playlistState.pages![playlistState.pageIndex]"
             [columns]="[
-              { key: 'name', label: 'Title', sortable: true, type: 'text' },
-              { key: 'videoCount', label: 'Videos', sortable: true, type: 'text' }
+              { key: 'name', label: 'Title', sortable: true, type: 'text', size: '5' },
+              { key: 'videoCount', label: 'Videos', sortable: true, type: 'text', size: '5' }
             ]"
             [pageSize]="10"
             [showActions]="true"
@@ -313,8 +313,8 @@
             [title]="'Your Subscriptions'"
             [data]="subscriptionState.pages![subscriptionState.pageIndex] || []"
             [columns]="[
-              { key: 'name', label: 'Channel', sortable: true, type: 'text' },
-              { key: 'subscriberCount', label: 'Subscribers', sortable: true, type: 'text' }
+              { key: 'name', label: 'Channel', sortable: true, type: 'text', size: '5' },
+              { key: 'subscriberCount', label: 'Subscribers', sortable: true, type: 'text', size: '5' }
             ]"
             [pageSize]="10"
             [showActions]="true">

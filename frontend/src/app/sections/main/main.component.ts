@@ -81,10 +81,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   constructor(
-    public playlistService: PlaylistService,
-    public playerService: PlayerService,
-    public recorderService: RecorderService,
-    public theme: ThemeService,
+    private playlistService: PlaylistService,
+    private playerService: PlayerService,
+    private recorderService: RecorderService,
+    private theme: ThemeService,
     private storage: Storage
   ) {}
 
