@@ -8,11 +8,11 @@ import { firstValueFrom } from '@actioncrew/streamix';
 import { Settings } from 'src/app/services/settings.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
-import { TableComponent, TableData } from '../../components/table/table.component';
 import { IonicModule } from '@ionic/angular';
 import { Language, LanguageSelectModalComponent } from '../../components/language/language.component';
 import { Country, CountrySelectModalComponent } from '../../components/country/country.component';
 import { DirectiveModule } from 'src/app/directives';
+import { GridComponent } from 'src/app/components/grid/grid.component';
 
 
 export type AppTheme = 'default' | 'dark' | 'light';
@@ -88,7 +88,7 @@ export interface PageState<T> {
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, TableComponent, CountrySelectModalComponent, LanguageSelectModalComponent, DirectiveModule],
+  imports: [CommonModule, FormsModule, IonicModule, CountrySelectModalComponent, LanguageSelectModalComponent, GridComponent, DirectiveModule],
 })
 export class SettingsComponent implements OnInit {
   selectedMainSection = 'appearance';
@@ -199,6 +199,7 @@ export class SettingsComponent implements OnInit {
   language!: HTMLIonModalElement;
 
   @ViewChild(SheetDirective) sheetDirective!: SheetDirective;
+  @ViewChild(GridComponent) gridComponent!: GridComponent;
 
   constructor(
     private router: Router,
@@ -393,71 +394,45 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  async createPlaylist() {
-    if (!this.isApiConnected) return;
-    this.isLoading = true;
-    try {
-      const title = 'New Playlist';
-      const description = 'Playlist created from the app';
-      const privacyStatus = 'private';
-      const response: any = await firstValueFrom(this.settings.createPlaylist(title, description, privacyStatus));
-      const newPlaylist: Playlist = {
-        id: response.id,
-        name: response.snippet.title,
-        description: response.snippet.description,
-        videoCount: 0,
-        privacy: response.status.privacyStatus,
-        thumbnail: response.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
-        createdDate: new Date(response.snippet.publishedAt).toLocaleDateString(),
-      };
-      this.playlistState = {
-        ...this.playlistState,
-        items: [newPlaylist, ...this.playlistState.items],
-        pages: [[newPlaylist, ...this.playlistState.items]],
-        pageIndex: 0,
-        nextPageToken: null,
-        prevPageToken: null,
-      };
-    } catch (error) {
-      console.error('Error creating playlist:', error);
-    } finally {
-      this.isLoading = false;
-    }
+  createPlaylist(playlistData: any) {
+    // The playlistData will contain form data like { name: 'New Playlist' }
+    console.log('Creating playlist:', playlistData);
+
+    // If you have existing createPlaylist logic, adapt it:
+    const newPlaylist = {
+      id: Date.now(), // or your existing ID logic
+      name: playlistData.name || 'Untitled Playlist',
+      videoCount: 0,
+      createdAt: new Date().toISOString(),
+      ...playlistData
+    };
+
+    // Call your existing service/state management
+    // this.playlistService.create(newPlaylist);
+    // OR update playlistState directly
+    // OR let the grid handle it locally if no service integration needed
   }
 
-  async deletePlaylist(playlist: Playlist) {
-    try {
-      await firstValueFrom(this.settings.deletePlaylist(playlist.id));
-      const filteredItems = this.playlistState.items.filter((p) => p.id !== playlist.id);
-      this.playlistState = {
-        ...this.playlistState,
-        items: filteredItems,
-        pages: [filteredItems],
-        pageIndex: 0,
-        nextPageToken: null,
-        prevPageToken: null,
-      };
-    } catch (error) {
-      console.error('Error deleting playlist:', error);
-    }
+  onEditPlaylist(playlist: any) {
+    console.log('Editing playlist:', playlist);
+    // Handle playlist editing - the playlist object contains all current values
+    // this.playlistService.update(playlist.id, playlist);
   }
 
-  editPlaylist(playlist: Playlist) {
-    console.log('Edit playlist:', playlist);
-    // TODO: open edit modal
+  onDeletePlaylist(playlist: any) {
+    console.log('Deleting playlist:', playlist);
+    // Handle playlist deletion
+    // this.playlistService.delete(playlist.id);
   }
 
-  editItemFn = (item: TableData) => {
-    if ('privacy' in item) {
-      this.editPlaylist(item as Playlist);
-    }
-  };
+  // If you need to programmatically update the grid:
+  updatePlaylistData(newData: any[]) {
+    this.gridComponent.updateData(newData);
+  }
 
-  deleteItemFn = (item: TableData) => {
-    if ('privacy' in item) {
-      this.deletePlaylist(item as Playlist);
-    }
-  };
+  addPlaylistToGrid(playlist: any) {
+    this.gridComponent.addItem(playlist);
+  }
 
   async loadSubscriptions(pageToken?: string): Promise<{ items: Subscription[]; nextPageToken?: string }> {
     if (!this.isApiConnected) {

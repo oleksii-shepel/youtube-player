@@ -284,15 +284,19 @@
       <!-- Playlists Section -->
       <div *ngIf="selectedMainSection === 'playlists'" class="content-section">
         <div class="section-card" *ngIf="isApiConnected">
-          <app-unified-table
-            [label]="'My Playlists'"
+          <app-grid
+            [title]="'My Playlists'"
             [data]="playlistState.pages![playlistState.pageIndex]"
             [columns]="[
-              { name: 'Title', prop: 'name' },
-              { name: 'Videos', prop: 'videoCount' }
+              { key: 'name', label: 'Title', sortable: true, type: 'text' },
+              { key: 'videoCount', label: 'Videos', sortable: true, type: 'text' }
             ]"
-            [addItemFn]="createPlaylist.bind(this)">
-          </app-unified-table>
+            [pageSize]="10"
+            [showActions]="true"
+            (add)="createPlaylist($event)"
+            (edit)="onEditPlaylist($event)"
+            (delete)="onDeletePlaylist($event)">
+          </app-grid>
         </div>
         <div class="section-card" *ngIf="!isApiConnected">
           <div class="empty-state">
@@ -305,14 +309,16 @@
       <!-- Subscriptions Section -->
       <div *ngIf="selectedMainSection === 'subscriptions'" class="content-section">
         <div class="section-card" *ngIf="isApiConnected">
-          <app-unified-table
-            [label]="'Your Subscriptions'"
+          <app-grid
+            [title]="'Your Subscriptions'"
             [data]="subscriptionState.pages![subscriptionState.pageIndex] || []"
             [columns]="[
-              { name: 'Channel', prop: 'name' },
-              { name: 'Subscribers', prop: 'subscriberCount' }
-            ]">
-          </app-unified-table>
+              { key: 'name', label: 'Channel', sortable: true, type: 'text' },
+              { key: 'subscriberCount', label: 'Subscribers', sortable: true, type: 'text' }
+            ]"
+            [pageSize]="10"
+            [showActions]="true">
+          </app-grid>
         </div>
         <div class="section-card" *ngIf="!isApiConnected">
           <div class="empty-state">
