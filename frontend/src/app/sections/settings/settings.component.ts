@@ -9,8 +9,8 @@ import { Settings } from 'src/app/services/settings.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
 import { IonicModule } from '@ionic/angular';
-import { Language, LanguageSelectModalComponent } from '../../components/language/language.component';
-import { Country, CountrySelectModalComponent } from '../../components/country/country.component';
+import { LanguageSelectModalComponent } from '../../components/language/language.component';
+import { CountrySelectModalComponent } from '../../components/country/country.component';
 import { DirectiveModule } from 'src/app/directives';
 import { GridComponent } from 'src/app/components/grid/grid.component';
 
@@ -42,6 +42,18 @@ export interface AppearanceSettings {
   maxItemsPerRequest: number;
 }
 
+export interface Language {
+  code: string;
+  name: string;
+  nativeName: string;
+}
+
+export interface Country {
+  code: string;
+  name: string;
+  nativeName: string;
+}
+
 export interface RegionAndLanguageSettings {
   useAutoLocation: boolean;
   country: Country | null;            // ISO 3166-1 alpha-2 code, e.g., 'US'
@@ -49,8 +61,8 @@ export interface RegionAndLanguageSettings {
   dateFormat: 'MM/dd/yyyy' | 'dd/MM/yyyy' | string;
   timeFormat: '12h' | '24h' | string;
   numberFormat: string;              // e.g., 'en-US', 'fr-FR'
-  detectedCountry: string;           // From IP/location detection
-  detectedLanguage: string;          // From browser or location
+  detectedCountry: Country | null;           // From IP/location detection
+  detectedLanguage: Language | null;          // From browser or location
 }
 
 export interface Playlist {
@@ -132,8 +144,8 @@ export class SettingsComponent implements OnInit {
     dateFormat: 'MM/dd/yyyy',
     timeFormat: '12h',
     numberFormat: 'en-US',
-    detectedCountry: '',
-    detectedLanguage: ''
+    detectedCountry: null,
+    detectedLanguage: null
   };
 
   isCountryModalOpen = false;
@@ -629,9 +641,9 @@ export class SettingsComponent implements OnInit {
 
   async onAutoLocationToggle() {
     if (this.regionLanguageSettings.useAutoLocation) {
-     const { countryName, languageName } = await this.settings.detectRegionAndLanguage();
-     this.regionLanguageSettings.detectedCountry = countryName;
-     this.regionLanguageSettings.detectedLanguage = languageName;
+     const { country, language } = await this.settings.detectRegionAndLanguage();
+     this.regionLanguageSettings.detectedCountry = country;
+     this.regionLanguageSettings.detectedLanguage = language;
     }
     this.saveRegionLanguageSettings();
   }

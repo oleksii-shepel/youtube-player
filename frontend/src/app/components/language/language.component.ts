@@ -12,12 +12,9 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import ISO6391 from 'iso-639-1';
 import { DirectiveModule } from 'src/app/directives';
+import { Language } from 'src/app/sections/settings/settings.component';
 
-export interface Language {
-  code: string;
-  name: string;
-  nativeName: string;
-}
+
 
 @Component({
   selector: 'app-language-select-modal',

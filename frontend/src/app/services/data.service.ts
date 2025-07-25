@@ -1,4 +1,5 @@
-import { catchError, createSubject, Stream } from '@actioncrew/streamix';
+import { Storage } from '@ionic/storage-angular';
+import { catchError, createSubject, fromPromise, Stream } from '@actioncrew/streamix';
 import { HttpClient, readJson } from '@actioncrew/streamix/http';
 
 import { IYoutubeQueryParams } from '../interfaces/search-parameters';
@@ -6,6 +7,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, switchMap } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
 import { HTTP_CLIENT } from 'src/main';
+import { AppearanceSettings, RegionAndLanguageSettings } from '../sections/settings/settings.component';
 
 @Injectable({
   providedIn: 'root',
@@ -13,11 +15,11 @@ import { HTTP_CLIENT } from 'src/main';
 export class YoutubeDataService {
   private readonly baseUrl = 'https://www.googleapis.com/youtube/v3';
   private readonly apiKey = environment.youtube.apiKey;
-  private readonly maxResults = environment.youtube.maxResults;
+
   private http: HttpClient;
   searchError$ = createSubject<string>();
 
-  constructor() {
+  constructor(private storage: Storage) {
     this.http = inject<HttpClient>(HTTP_CLIENT);
   }
 
@@ -25,18 +27,21 @@ export class YoutubeDataService {
    * Perform a generic search for the specified endpoint.
    */
   search(endpoint: string, queryParams: IYoutubeQueryParams): Stream<any> {
-    const params = this.buildHttpParams(queryParams);
     const url = `${this.baseUrl}/${endpoint}`;
 
-    return this.http.get(url, readJson, { params }).pipe(
-      map((response: any) => ({
-        ...response,
-        nextPageToken: response.nextPageToken,
-        prevPageToken: response.prevPageToken,
-      })),
-      catchError((err) => {
-        this.searchError$.next(this.parseErrorMessage(err));
-      })
+    return fromPromise(this.buildHttpParams(queryParams)).pipe(
+      switchMap((params: Record<string, string>) =>
+        this.http.get(url, readJson, { params }).pipe(
+          map((response: any) => ({
+            ...response,
+            nextPageToken: response.nextPageToken,
+            prevPageToken: response.prevPageToken,
+          })),
+          catchError((err) => {
+            this.searchError$.next(this.parseErrorMessage(err));
+          })
+        )
+      )
     );
   }
 
@@ -417,37 +422,6 @@ export class YoutubeDataService {
   }
 
   /**
-   * Search videos with advanced filtering options
-   */
-  searchVideosAdvanced(options: {
-    query: string;
-    channelId?: string;
-    categoryId?: string;
-    duration?: 'short' | 'medium' | 'long';
-    order?: 'relevance' | 'date' | 'rating' | 'viewCount' | 'title';
-    publishedAfter?: string;
-    publishedBefore?: string;
-    maxResults?: number;
-    pageToken?: string;
-  }): Stream<any> {
-    const params: IYoutubeQueryParams = {
-      part: 'snippet',
-      q: options.query,
-      type: 'video',
-      maxResults: options.maxResults || +this.maxResults,
-      order: options.order || 'relevance',
-      ...(options.channelId && { channelId: options.channelId }),
-      ...(options.categoryId && { videoCategoryId: options.categoryId }),
-      ...(options.duration && { videoDuration: options.duration }),
-      ...(options.publishedAfter && { publishedAfter: options.publishedAfter }),
-      ...(options.publishedBefore && { publishedBefore: options.publishedBefore }),
-      ...(options.pageToken && { pageToken: options.pageToken }),
-    };
-
-    return this.search('search', params);
-  }
-
-  /**
    * Get video statistics and engagement metrics
    */
   fetchVideoStatistics(videoId: string): Stream<any> {
@@ -467,10 +441,10 @@ export class YoutubeDataService {
     } as IYoutubeQueryParams & { id: string });
   }
 
-  private buildHttpParams(queryParams: IYoutubeQueryParams): Record<string, string> {
+  private async buildHttpParams(queryParams: IYoutubeQueryParams): Promise<Record<string, string>> {
     const params: Record<string, string> = {
       key: this.apiKey,
-      part: 'snippet,id'
+      part: queryParams.part || 'snippet',
     };
 
     Object.entries(queryParams).forEach(([key, value]) => {
@@ -478,6 +452,34 @@ export class YoutubeDataService {
         params[key] = value.toString();
       }
     });
+
+    // Get settings dynamically
+    const appearanceSettings = await this.storage.get('appearanceSettings');
+    const regionSettings = await this.storage.get('regionAndLanguageSettings');
+
+    // Inject maxResults if not provided
+    if (!params['maxResults'] && appearanceSettings?.maxItemsPerRequest) {
+      params['maxResults'] = appearanceSettings.maxItemsPerRequest.toString();
+    }
+
+    const useAutoLocation = regionSettings?.useAutoLocation;
+
+    const countryCode = useAutoLocation
+      ? regionSettings?.detectedCountry?.code
+      : regionSettings?.country?.code;
+
+    const languageCode = useAutoLocation
+      ? regionSettings?.detectedLanguage?.code
+      : regionSettings?.language?.code;
+
+    // Inject regionCode and relevanceLanguage if not already set
+    if (!params['regionCode'] && countryCode) {
+      params['regionCode'] = countryCode;
+    }
+
+    if (!params['relevanceLanguage'] && languageCode) {
+      params['relevanceLanguage'] = languageCode;
+    }
 
     return params;
   }

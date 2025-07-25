@@ -6,6 +6,7 @@ import { Stream, firstValueFrom } from '@actioncrew/streamix';
 import ISO6391 from 'iso-639-1';
 import * as countries from 'i18n-iso-countries';
 import englishCountries from 'i18n-iso-countries/langs/en.json';
+import { Country, Language } from '../sections/settings/settings.component';
 
 
 @Injectable({ providedIn: 'root' })
@@ -209,28 +210,40 @@ export class Settings {
     });
   }
 
-  /** 🌍 Detect user's region and language via geolocation and IP */
   /** 🌍 Detect user's region and language via geolocation and IP using http.get */
-  detectRegionAndLanguage(): Promise<{ countryCode: string; countryName: string; languageCode: string; languageName: string }> {
+  detectRegionAndLanguage(): Promise<{ country: Country; language: Language }> {
     return new Promise(resolve => {
       const fallback = () => {
         firstValueFrom(this.http.get('https://ipapi.co/json', readJson))
           .then((data: any) => {
             const countryCode = data.country || 'US';
             const languageCode = (data.languages?.split(',')[0]) || 'en';
+
             resolve({
-              countryCode,
-              countryName: countries.getName(countryCode, 'en') || countryCode,
-              languageCode,
-              languageName: ISO6391.getName(languageCode) || 'English'
+              country: {
+                code: countryCode,
+                name: countries.getAlpha2Code(countryCode, 'en') || countryCode,
+                nativeName: countries.getName(countryCode, 'en') || countryCode
+              },
+              language: {
+                code: languageCode,
+                name: ISO6391.getName(languageCode) || 'English',
+                nativeName: ISO6391.getNativeName(languageCode) || 'English'
+              }
             });
           })
           .catch(() => {
             resolve({
-              countryCode: 'US',
-              countryName: countries.getName('US', 'en') || 'United States',
-              languageCode: 'en',
-              languageName: 'English'
+              country: {
+                code: 'US',
+                name: countries.getAlpha2Code('US', 'en') || 'US',
+                nativeName: countries.getName('US', 'en') || 'United States'
+              },
+              language: {
+                code: 'en',
+                name: 'English',
+                nativeName: 'English'
+              }
             });
           });
       };
@@ -239,15 +252,24 @@ export class Settings {
         navigator.geolocation.getCurrentPosition(
           pos => {
             const { latitude, longitude } = pos.coords;
-            firstValueFrom(this.http.get(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`, readJson))
+            const geoUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+
+            firstValueFrom(this.http.get(geoUrl, readJson))
               .then((data: any) => {
                 const countryCode = data.countryCode || 'US';
                 const languageCode = navigator.language.split('-')[0] || 'en';
+
                 resolve({
-                  countryCode,
-                  countryName: countries.getName(countryCode, 'en') || countryCode,
-                  languageCode,
-                  languageName: ISO6391.getName(languageCode) || 'English'
+                  country: {
+                    code: countryCode,
+                    name: countries.getName(countryCode, 'en') || countryCode,
+                    nativeName: countries.getName(countryCode, 'en') || countryCode
+                  },
+                  language: {
+                    code: languageCode,
+                    name: ISO6391.getName(languageCode) || 'English',
+                    nativeName: ISO6391.getNativeName(languageCode) || 'English'
+                  }
                 });
               })
               .catch(() => fallback());
