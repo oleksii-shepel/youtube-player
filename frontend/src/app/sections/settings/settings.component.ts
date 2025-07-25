@@ -1,5 +1,5 @@
 import { SheetConfig, SheetDirective } from 'src/app/directives/sheet/sheet.directive';
-import { Component, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Storage } from '@ionic/storage-angular';

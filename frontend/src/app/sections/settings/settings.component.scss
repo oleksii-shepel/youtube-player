@@ -204,13 +204,18 @@
     .settings-container {
       grid-template-areas:
         "header"
+        "nav"
         "main"
         "footer";
       grid-template-columns: 1fr;
       grid-template-rows: auto 1fr auto;
 
-      .settings-nav {
-        display: none; // Hide nav on mobile or implement a toggle
+      & .settings-nav {
+        height: 380px;
+      }
+
+      & .settings-main {
+        height: 520px;
       }
     }
   }
