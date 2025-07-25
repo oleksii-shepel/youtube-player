@@ -102,7 +102,7 @@ export interface PageState<T> {
   standalone: true,
   imports: [CommonModule, FormsModule, IonicModule, CountrySelectModalComponent, LanguageSelectModalComponent, GridComponent, DirectiveModule],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsChapter implements OnInit {
   selectedMainSection = 'appearance';
   isApiConnected = false;
   isLoading = false;

@@ -64,7 +64,7 @@ declare const YT: any;
     RouterModule
 ]
 })
-export class AppComponent implements AfterViewInit, OnDestroy {
+export class MainChapter implements AfterViewInit, OnDestroy {
   selectedVideoId = '';
   isCompact = true;
   isPlayerHidden = true;

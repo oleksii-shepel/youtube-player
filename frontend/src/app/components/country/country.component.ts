@@ -12,7 +12,7 @@ import { IonicModule } from '@ionic/angular';
 import * as countries from 'i18n-iso-countries';
 import englishCountries from 'i18n-iso-countries/langs/en.json';
 import { DirectiveModule } from 'src/app/directives';
-import { Country } from 'src/app/sections/settings/settings.component';
+import { Country } from 'src/app/chapters/settings/settings.component';
 
 @Component({
   selector: 'app-country-select-modal',

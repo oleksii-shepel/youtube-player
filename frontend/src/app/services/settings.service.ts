@@ -6,7 +6,7 @@ import { Stream, firstValueFrom } from '@actioncrew/streamix';
 import ISO6391 from 'iso-639-1';
 import * as countries from 'i18n-iso-countries';
 import englishCountries from 'i18n-iso-countries/langs/en.json';
-import { Country, Language } from '../sections/settings/settings.component';
+import { Country, Language } from '../chapters/settings/settings.component';
 
 
 @Injectable({ providedIn: 'root' })

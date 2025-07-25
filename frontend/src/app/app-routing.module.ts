@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./sections/main/main.component').then(m => m.AppComponent),
+    loadComponent: () => import('./chapters/main/main.component').then(m => m.MainChapter),
     children: [
       {
         path: '',
@@ -30,7 +30,7 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
-    loadComponent: () => import('./sections/settings/settings.component').then(m => m.SettingsComponent)
+    loadComponent: () => import('./chapters/settings/settings.component').then(m => m.SettingsChapter)
   }
 ];
 
