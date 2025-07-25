@@ -6,7 +6,6 @@ import {
   AfterViewInit,
   OnDestroy,
   ElementRef,
-  ViewEncapsulation,
 } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../../components/youtube-player/youtube-player.component';
@@ -17,6 +16,8 @@ import { PlaylistComponent } from '../../components/playlist/playlist.component'
 import { RecorderComponent } from '../../components/recorder/recorder.component';
 import { RouterModule } from '@angular/router';
 import { ThemeService } from 'src/app/services/theme.service';
+import { CommonModule } from '@angular/common';
+import { Storage } from '@ionic/storage-angular';
 
 declare const YT: any;
 
@@ -55,6 +56,7 @@ declare const YT: any;
   styleUrls: ['./main.component.scss'],
   standalone: true,
   imports: [
+    CommonModule,
     IonicModule,
     PlaylistComponent,
     YoutubePlayerComponent,
@@ -82,7 +84,8 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     public playlistService: PlaylistService,
     public playerService: PlayerService,
     public recorderService: RecorderService,
-    public theme: ThemeService
+    public theme: ThemeService,
+    private storage: Storage
   ) {}
 
   ngAfterViewInit(): void {
