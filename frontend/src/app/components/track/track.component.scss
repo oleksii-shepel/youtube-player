@@ -94,10 +94,14 @@ ion-item-options {
   }
 }
 
-.playing-overlay svg path {
-  stroke-dasharray: 15 45;
-  stroke-dashoffset: 0;
-  animation: wave 2s linear infinite;
+.playing-overlay {
+  color: var(--ion-color-primary);
+
+  & svg path {
+    stroke-dasharray: 15 45;
+    stroke-dashoffset: 0;
+    animation: wave 2s linear infinite;
+  }
 }
 
 @keyframes wave {
