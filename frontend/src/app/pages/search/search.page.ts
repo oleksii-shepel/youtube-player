@@ -1,7 +1,7 @@
 import { PlayerService } from './../../services/player.service';
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { fork, of, Stream, Subscription, switchMap } from '@actioncrew/streamix';
-import { debounce, distinctUntilChanged, map, filter } from '@actioncrew/streamix';
+import { createSubject, fork, of, Stream, Subscription, switchMap } from '@actioncrew/streamix';
+import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { YoutubeDataService } from 'src/app/services/data.service';
@@ -357,6 +357,7 @@ export class SearchPage {
   playbackState$ = this.playlistService.playbackState$;
   playerHidden$ = this.playerService.isHidden$;
   recorderHidden$ = this.recorderService.isHidden$;
+  queryChanged$ = createSubject<string>();
 
   private subscriptions: Subscription[] = [];
 
@@ -367,6 +368,17 @@ export class SearchPage {
 
     this.subscriptions.push(
       this.settings.appearance.subscribe((value) => this.appearanceSettings = value),
+
+      this.queryChanged$.pipe(
+        debounce(300),
+        switchMap((query: string) => {
+          if (!query || query.length <= 2) return of([]);
+          return this.fetchSuggestions(query);
+        })
+      )
+      .subscribe((suggestions: string[]) => {
+        this.suggestions = suggestions;
+      }),
 
       this.dataService.searchError$.subscribe(async msg => {
        const toast = await this.toastCtrl.create({
@@ -431,7 +443,9 @@ export class SearchPage {
 
   setSort(value: string) {
     this.sortOrder = value;
-    this.onSortOrderChanged();
+    if (this.appearanceSettings.displayResults === 'change') {
+      this.performSearch();
+    }
   }
 
   getSortLabel(value: string): string {
@@ -448,8 +462,6 @@ export class SearchPage {
         return 'Relevance (default)';
     }
   }
-
-  onSortOrderChanged() {}
 
   toggleMenu() {
     this.playlistService.toggleMenu();
@@ -489,16 +501,19 @@ export class SearchPage {
     const query = event.target.value;
     this.queryInvalid = false;
     if (query && query.length > 2) {
-      this.fetchSuggestions(query).subscribe((suggestions: string[]) => {
-        this.suggestions = suggestions;
-      });
-    } else {
-      this.suggestions = [];
+      this.queryChanged$.next(query);
+    }
+
+    if (this.appearanceSettings.displayResults === 'change') {
+      this.performSearch();
     }
   }
 
   onFiltersChanged(filters: any) {
     this.filters = filters;
+    if (this.appearanceSettings.displayResults === 'change') {
+      this.performSearch();
+    }
   }
 
   fetchSuggestions(query: string): Stream<string[]> {
