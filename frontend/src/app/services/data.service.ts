@@ -7,7 +7,6 @@ import { inject, Injectable } from '@angular/core';
 import { map, switchMap } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
 import { HTTP_CLIENT } from 'src/main';
-import { AppearanceSettings, RegionAndLanguageSettings } from '../chapters/settings/settings.component';
 
 @Injectable({
   providedIn: 'root',
