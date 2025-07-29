@@ -14,7 +14,7 @@ export const defaultAppearanceSettings: AppearanceSettings = {
   fontSize: 'medium',
   thumbnailSize: 'medium',
   autoComplete: 'chips',
-  enableDescription: true,
+  displayDescription: true,
   visibleBackdrop: true,
   displayResults: 'search',
   maxItemsPerRequest: '5',

@@ -5,6 +5,7 @@ import { ChangeDetectionStrategy, Component, Input, OnInit, OnDestroy, ElementRe
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
 import { YouTubeVideo } from 'src/app/interfaces/video';
 import { Router } from '@angular/router';
+import { AppFontSize, AppThumbnailSize } from 'src/app/interfaces/settings';
 
 @Component({
   selector: 'app-youtube-video',
@@ -27,7 +28,9 @@ import { Router } from '@angular/router';
       @if (!isCompact) {
         <div class="video-info">
           <h5 class="video-title" [attr.title]="video.snippet.description">{{ video.snippet.title }}</h5>
-          <p class="video-description">{{video.snippet.description}}</p>
+          @if (displayDescription) {
+            <p class="video-description">{{video.snippet.description}}</p>
+          }
           <div class="action-buttons">
             <ion-button (click)="addToPlaylist(video)" size="small">
               <ion-icon name="add-circle-outline" slot="start"></ion-icon>
@@ -55,6 +58,7 @@ import { Router } from '@angular/router';
 export class YoutubeVideoComponent implements OnInit, OnDestroy {
   @Input('videoData') video!: YouTubeVideo;
   @Input() isCompact: boolean = false;
+  @Input() displayDescription: boolean = true;
 
   @Output() addTrackToPlaylist = new EventEmitter<any>();
 

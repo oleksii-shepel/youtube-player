@@ -1,3 +1,4 @@
+import { AppearanceSettings } from 'src/app/interfaces/settings';
 import { IonicModule } from '@ionic/angular';
 
 import {
@@ -95,31 +96,22 @@ export class MainChapter implements AfterViewInit, OnDestroy {
     this.subscriptions.push(
       this.playerService.isHidden$.subscribe((value) => {
         this.isPlayerHidden = value;
-      })
-    );
+      }),
 
-    this.subscriptions.push(
       this.recorderService.isHidden$.subscribe((value) => {
         this.isRecorderHidden = value;
-      })
-    );
+      }),
 
-    this.subscriptions.push(
       this.playlistService.menuButtonPressed.subscribe(async () => {
         const menu = document.querySelector('ion-menu')!;
-        const splitPane = document.querySelector(
-          'ion-split-pane.split-pane-visible'
-        )!;
-
+        const splitPane = document.querySelector('ion-split-pane.split-pane-visible')!;
         if (splitPane) {
           menu.classList.toggle('hide-menu');
         } else {
-          menu.toggle();
+          await menu.toggle();
         }
-      })
-    );
+      }),
 
-    this.subscriptions.push(
       this.playlistService.currentTrackIndex.subscribe((index) => {
         const track = this.playlistService.getPlaylist()[index];
         if (track && track.id !== this.selectedVideoId) {

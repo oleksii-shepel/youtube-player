@@ -1,22 +1,10 @@
 .adaptive-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--thumbnail-max-width, 350px), 1fr));
   gap: 16px; /* Space between grid items */
   padding: 16px;
   align-items: stretch;
   justify-items: stretch;
-}
-
-.adaptive-grid app-youtube-video {
-  max-width: 500px;
-}
-
-.adaptive-grid app-youtube-playlist {
-  max-width: 500px;
-}
-
-.adaptive-grid app-youtube-channel {
-  max-width: 500px;
 }
 
 ion-content::part(scroll) {

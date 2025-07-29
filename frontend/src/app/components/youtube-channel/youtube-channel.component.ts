@@ -6,6 +6,7 @@ import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component'
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { YouTubeChannel } from 'src/app/interfaces/channel';
+import { AppFontSize } from 'src/app/interfaces/settings';
 
 @Component({
   selector: 'app-youtube-channel',
@@ -58,6 +59,8 @@ import { YouTubeChannel } from 'src/app/interfaces/channel';
 })
 export class YoutubeChannelComponent {
   @Input('channelData') channel!: YouTubeChannel;
+  @Input() displayDescription: boolean = true;
+
   @Output() toggle = new EventEmitter<boolean>();
 
   showUploadsList: boolean = false;

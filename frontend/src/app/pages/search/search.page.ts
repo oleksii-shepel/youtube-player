@@ -17,6 +17,8 @@ import { DirectiveModule } from 'src/app/directives';
 import { ToastController } from '@ionic/angular';
 import { RecorderService } from 'src/app/services/recorder.service';
 import { Router } from '@angular/router';
+import { AppearanceSettings } from 'src/app/interfaces/settings';
+import { Settings } from 'src/app/services/settings.service';
 
 @Component({
   selector: 'app-search-page',
@@ -251,12 +253,13 @@ import { Router } from '@angular/router';
               }
 
               <!-- Adaptive Grid -->
-              <div class="adaptive-grid">
+              <div class="adaptive-grid" [style.--thumbnail-max-width.px]="gridSize">
                 @if (searchType === 'videos') {
                   @for (video of searchResults['videos']; track video) {
                     <app-youtube-video
                       [videoData]="video"
                       [isCompact]="false"
+                      [displayDescription]="appearanceSettings.displayDescription"
                       (addTrackToPlaylist)="addTrackToPlaylist($event)"
                       >
                     </app-youtube-video>
@@ -266,6 +269,7 @@ import { Router } from '@angular/router';
                   @for (playlist of searchResults['playlists']; track playlist) {
                     <app-youtube-playlist
                       [playlistData]="playlist"
+                      [displayDescription]="appearanceSettings.displayDescription"
                       >
                     </app-youtube-playlist>
                   }
@@ -274,6 +278,7 @@ import { Router } from '@angular/router';
                   @for (channel of searchResults['channels']; track channel) {
                     <app-youtube-channel
                       [channelData]="channel"
+                      [displayDescription]="appearanceSettings.displayDescription"
                       >
                     </app-youtube-channel>
                   }
@@ -332,6 +337,8 @@ export class SearchPage {
   showPopover = false;
   popoverEvent: any;
 
+  appearanceSettings!: AppearanceSettings;
+
   @ViewChild('googleLogInButton', { static: false }) googleLogInButton!: ElementRef<HTMLElement>;
 
   constructor(
@@ -342,7 +349,8 @@ export class SearchPage {
     private recorderService: RecorderService,
     private authorization: Authorization,
     private toastCtrl: ToastController,
-    private router: Router
+    private router: Router,
+    private settings: Settings
   ) {}
 
   auth$ = this.authorization.authSubject;
@@ -357,7 +365,10 @@ export class SearchPage {
       this.authorization.initializeGsiButton();
     }
 
-    this.subscriptions.push(this.dataService.searchError$.subscribe(async msg => {
+    this.subscriptions.push(
+      this.settings.appearance.subscribe((value) => this.appearanceSettings = value),
+
+      this.dataService.searchError$.subscribe(async msg => {
        const toast = await this.toastCtrl.create({
         message: msg,
         duration: 3000, // 3 seconds
@@ -370,6 +381,18 @@ export class SearchPage {
 
   onAnimationEnd() {
     this.queryInvalid = false;
+  }
+
+  get gridSize(): number {
+    const size = this.appearanceSettings?.thumbnailSize;
+    switch (size) {
+      case 'small':
+        return 200;
+      case 'medium':
+        return 350;
+      case 'large':
+        return 500;
+    }
   }
 
   ngOnDestroy() {

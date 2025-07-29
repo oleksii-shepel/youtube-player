@@ -12,7 +12,7 @@ export interface AppearanceSettings {
   fontSize: AppFontSize;
   thumbnailSize: AppThumbnailSize;
   autoComplete: AppAutoCompleteMode;
-  enableDescription: boolean;
+  displayDescription: boolean;
   visibleBackdrop: boolean;
   displayResults: AppDisplayResults;
   maxItemsPerRequest: string;
