@@ -15,7 +15,7 @@ export interface AppearanceSettings {
   enableDescription: boolean;
   visibleBackdrop: boolean;
   displayResults: AppDisplayResults;
-  maxItemsPerRequest: number;
+  maxItemsPerRequest: string;
 };
 
 export interface ChannelInfoSettings {

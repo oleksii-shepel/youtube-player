@@ -17,7 +17,7 @@ export const defaultAppearanceSettings: AppearanceSettings = {
   enableDescription: true,
   visibleBackdrop: true,
   displayResults: 'search',
-  maxItemsPerRequest: 5,
+  maxItemsPerRequest: '5',
 };
 
 export const defaultRegionLanguageSettings: RegionLanguageSettings = {
