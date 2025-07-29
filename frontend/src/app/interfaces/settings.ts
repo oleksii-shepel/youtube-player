@@ -15,6 +15,9 @@ export interface AppearanceSettings {
   maxItemsPerRequest: number;
 }
 
+export interface UserInfoSettings {
+}
+
 export interface Language {
   code: string;
   name: string;
@@ -48,10 +51,27 @@ export interface Playlist {
   createdDate: string;
 }
 
+export interface PlaylistsSettings {
+
+}
+
 export interface Subscription {
   id: string;
   name: string;
   subscriberCount: number;
   category: string;
   thumbnail: string;
+}
+
+export interface SubscriptionsSettings {
+
+}
+
+export interface ApiConfigSettings {
+
+}
+
+
+export interface AboutSettings {
+
 }

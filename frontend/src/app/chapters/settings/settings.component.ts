@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Storage } from '@ionic/storage-angular';
 import { Router } from '@angular/router';
 import { firstValueFrom } from '@actioncrew/streamix';
-import { Settings } from 'src/app/services/settings.service';
+import { Helper } from 'src/app/services/helper.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
 import { IonicModule } from '@ionic/angular';
@@ -158,7 +158,7 @@ export class SettingsChapter implements OnInit {
   constructor(
     private router: Router,
     private storage: Storage,
-    private settings: Settings,
+    private settings: Helper,
     private authorization: Authorization,
     private theme: ThemeService
   ) {}
