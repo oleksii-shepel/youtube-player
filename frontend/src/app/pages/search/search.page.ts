@@ -253,7 +253,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
         </div>
       </ion-header>
 
-      <ion-content class="main">
+      <ion-content class="main scrollable">
         <ion-item>
           <ion-segment
             [(ngModel)]="searchType"
