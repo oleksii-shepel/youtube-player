@@ -8,7 +8,7 @@ export type AppTheme = 'default' | 'dark' | 'light';
 export type AppFontSize = 'small' | 'medium' | 'large';
 export type AppThumbnailSize = 'small' | 'medium' | 'large';
 export type AppDisplayResults = 'change' | 'search';
-export type AppAutoCompleteMode = 'chips' | 'list';
+export type AppAutoCompleteMode = 'chips' | 'dropdown';
 
 export interface AppearanceSettings {
   theme: AppTheme;

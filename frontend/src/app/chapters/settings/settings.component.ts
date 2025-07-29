@@ -139,8 +139,8 @@ export class SettingsChapter implements OnInit {
     queueMicrotask(async () => {
       this.theme.initTheme();
       this.loadUserProfile();
-      await this.loadPlaylists();
-      await this.loadSubscriptions();
+      // await this.loadPlaylists();
+      // await this.loadSubscriptions();
     });
   }
 

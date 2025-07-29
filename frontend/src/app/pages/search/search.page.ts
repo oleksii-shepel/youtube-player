@@ -1,30 +1,37 @@
-import { PlayerService } from './../../services/player.service';
-import { Component, ElementRef, ViewChild } from '@angular/core';
-import { createSubject, fork, of, Stream, Subscription, switchMap } from '@actioncrew/streamix';
-import { debounce, distinctUntilChanged, map } from '@actioncrew/streamix';
-import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
-import { PlaylistService } from 'src/app/services/playlist.service';
-import { YoutubeDataService } from 'src/app/services/data.service';
-import { Authorization } from 'src/app/services/authorization.service';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
+import { IonicModule, ToastController } from '@ionic/angular'; // Group Ionic imports
+
+// RxJS and custom streamix imports
+import { createSubject, fork, of, Stream, Subscription } from '@actioncrew/streamix'; // Assuming Subscription is also from streamix
+import { debounce, distinctUntilChanged, map, switchMap, takeUntil } from '@actioncrew/streamix'; // Added takeUntil
+
+// Component and Directive imports
 import { YoutubeVideoComponent } from 'src/app/components/youtube-video/youtube-video.component';
 import { YoutubePlaylistComponent } from 'src/app/components/youtube-playlist/youtube-playlist.component';
 import { YoutubeChannelComponent } from 'src/app/components/youtube-channel/youtube-channel.component';
 import { FilterComponent } from 'src/app/components/filter/filter.component';
 import { DirectiveModule } from 'src/app/directives';
-import { ToastController } from '@ionic/angular';
+
+// Service imports
+import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
+import { PlaylistService } from 'src/app/services/playlist.service';
+import { YoutubeDataService } from 'src/app/services/data.service';
+import { Authorization } from 'src/app/services/authorization.service';
+import { PlayerService } from './../../services/player.service'; // Relative path
 import { RecorderService } from 'src/app/services/recorder.service';
-import { Router } from '@angular/router';
-import { AppearanceSettings } from 'src/app/interfaces/settings';
 import { Settings } from 'src/app/services/settings.service';
+
+// Interface imports
+import { AppearanceSettings } from 'src/app/interfaces/settings';
 
 @Component({
   selector: 'app-search-page',
   template: `
     <ion-header>
-      <div class="scrollable">
+      <div>
         <div class="toolbar-inner">
           <div class="toolbar">
             <div class="toolbar-left">
@@ -41,6 +48,7 @@ import { Settings } from 'src/app/services/settings.service';
                 <ion-input
                   color="primary"
                   #searchbar
+                  id="search-input"
                   [(ngModel)]="searchQuery"
                   placeholder="Enter search query"
                   (ionInput)="onSearchQueryChange($event)"
@@ -48,6 +56,7 @@ import { Settings } from 'src/app/services/settings.service';
                   [class.disabled]="filters.trending && searchType === 'videos'"
                   [class.invalid]="queryInvalid"
                 ></ion-input>
+
                 <div class="icon-buttons">
                   @if (searchbar.value) {
                     <ion-button
@@ -94,7 +103,32 @@ import { Settings } from 'src/app/services/settings.service';
                   >
                   Search
                 </ion-button>
+
+                @if (
+                appearanceSettings &&
+                appearanceSettings.autoComplete === 'dropdown' &&
+                isDropdownOpen &&
+                suggestions.length > 0
+              ) {
+                <div class="suggestions-dropdown scrollable">
+                  <div class="suggestions-list">
+                    @for (suggestion of suggestions; track suggestion; let i = $index) {
+                      <div
+                        class="suggestion-item"
+                        [class.selected]="i === selectedSuggestionIndex"
+                        (mousedown)="selectSuggestion(suggestion)"
+                        (click)="selectSuggestion(suggestion)"
+                      >
+                        <ion-icon name="search-outline" size="small"></ion-icon>
+                        <span>{{ suggestion }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
               </div>
+
 
               <ion-popover
                 trigger="sort-button"
@@ -215,84 +249,86 @@ import { Settings } from 'src/app/services/settings.service';
                         </ng-template>
                       </ion-popover>
 
-                    </div>
-                  </div>
-                </div>
               </div>
-            </ion-header>
+            </div>
+          </div>
+        </div>
+      </ion-header>
 
-            <ion-content class="main">
-              <ion-item>
-                <ion-segment
-                  [(ngModel)]="searchType"
-                  (ionChange)="onSearchTypeChange()"
-                  >
-                  <ion-segment-button value="videos">Videos</ion-segment-button>
-                  <ion-segment-button value="playlists">Playlists</ion-segment-button>
-                  <ion-segment-button value="channels">Channels</ion-segment-button>
-                </ion-segment>
-              </ion-item>
+      <ion-content class="main">
+        <ion-item>
+          <ion-segment
+            [(ngModel)]="searchType"
+            (ionChange)="onSearchTypeChange()"
+            >
+            <ion-segment-button value="videos">Videos</ion-segment-button>
+            <ion-segment-button value="playlists">Playlists</ion-segment-button>
+            <ion-segment-button value="channels">Channels</ion-segment-button>
+          </ion-segment>
+        </ion-item>
 
-              <!-- Filters Section -->
-              <div class="scrollable">
-                <div class="filter-inner">
-                  <app-filter
-                    [searchType]="searchType"
-                    (filtersChanged)="onFiltersChanged($event)"
-                    >
-                  </app-filter>
-                </div>
-              </div>
+        <!-- Filters Section -->
+        <div class="scrollable">
+          <div class="filter-inner">
+            <app-filter
+              [searchType]="searchType"
+              (filtersChanged)="onFiltersChanged($event)"
+              >
+            </app-filter>
+          </div>
+        </div>
 
-              @for (suggestion of suggestions; track suggestion) {
-                <ion-chip
-                  (click)="selectSuggestion(suggestion)"
-                  >
-                  {{ suggestion }}
-                </ion-chip>
-              }
+        @if (appearanceSettings && appearanceSettings.autoComplete === 'chips') {
+          @for (suggestion of suggestions; track suggestion) {
+            <ion-chip
+              (click)="selectSuggestion(suggestion)"
+              >
+              {{ suggestion }}
+            </ion-chip>
+          }
+        }
 
-              <!-- Adaptive Grid -->
-              <div class="adaptive-grid" [style.--thumbnail-max-width.px]="gridSize">
-                @if (searchType === 'videos') {
-                  @for (video of searchResults['videos']; track video) {
-                    <app-youtube-video
-                      [videoData]="video"
-                      [isCompact]="false"
-                      [displayDescription]="appearanceSettings.displayDescription"
-                      (addTrackToPlaylist)="addTrackToPlaylist($event)"
-                      >
-                    </app-youtube-video>
-                  }
-                }
-                @if (searchType === 'playlists') {
-                  @for (playlist of searchResults['playlists']; track playlist) {
-                    <app-youtube-playlist
-                      [playlistData]="playlist"
-                      [displayDescription]="appearanceSettings.displayDescription"
-                      >
-                    </app-youtube-playlist>
-                  }
-                }
-                @if (searchType === 'channels') {
-                  @for (channel of searchResults['channels']; track channel) {
-                    <app-youtube-channel
-                      [channelData]="channel"
-                      [displayDescription]="appearanceSettings.displayDescription"
-                      >
-                    </app-youtube-channel>
-                  }
-                }
-              </div>
+        <!-- Adaptive Grid -->
+        <div class="adaptive-grid" [style.--thumbnail-max-width.px]="gridSize">
+          @if (searchType === 'videos') {
+            @for (video of searchResults['videos']; track video) {
+              <app-youtube-video
+                [videoData]="video"
+                [isCompact]="false"
+                [displayDescription]="appearanceSettings.displayDescription"
+                (addTrackToPlaylist)="addTrackToPlaylist($event)"
+                >
+              </app-youtube-video>
+            }
+          }
+          @if (searchType === 'playlists') {
+            @for (playlist of searchResults['playlists']; track playlist) {
+              <app-youtube-playlist
+                [playlistData]="playlist"
+                [displayDescription]="appearanceSettings.displayDescription"
+                >
+              </app-youtube-playlist>
+            }
+          }
+          @if (searchType === 'channels') {
+            @for (channel of searchResults['channels']; track channel) {
+              <app-youtube-channel
+                [channelData]="channel"
+                [displayDescription]="appearanceSettings.displayDescription"
+                >
+              </app-youtube-channel>
+            }
+          }
+        </div>
 
-              <ion-infinite-scroll (ionInfinite)="loadMore($event)">
-                <ion-infinite-scroll-content
-                  loadingSpinner="bubbles"
-                  loadingText="Loading more..."
-                  >
-                </ion-infinite-scroll-content>
-              </ion-infinite-scroll>
-            </ion-content>
+        <ion-infinite-scroll (ionInfinite)="loadMore($event)">
+          <ion-infinite-scroll-content
+            loadingSpinner="bubbles"
+            loadingText="Loading more..."
+            >
+          </ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+      </ion-content>
     `,
   styleUrls: ['./search.page.scss'],
   standalone: true,
@@ -307,38 +343,51 @@ import { Settings } from 'src/app/services/settings.service';
     FilterComponent,
   ]
 })
-export class SearchPage {
-  queryInvalid = false;
-  searchQuery: string = '';
-  searchType: string = 'videos'; // Default to video
-  suggestions: string[] = [];
-  pageTokens: { [key: string]: string } = {
-    // Using an object for pageTokens
-    videos: '',
-    playlists: '',
-    channels: '',
-  };
-  searchResults: { [key: string]: any[] } = {
-    // Separate results for each search type
+export class SearchPage implements AfterViewInit, OnDestroy {
+  // --- Component State ---
+  // Search Input & Suggestions
+  public searchQuery: string = '';
+  public queryInvalid: boolean = false;
+  public suggestions: string[] = [];
+  public isDropdownOpen: boolean = false;
+  public selectedSuggestionIndex: number = -1;
+  @ViewChild('searchbar') private searchbar!: ElementRef<HTMLIonInputElement>; // Use HTMLIonInputElement for Ionic input
+
+  // Search Results & Type
+  public searchType: 'videos' | 'playlists' | 'channels' = 'videos'; // Stronger typing
+  public searchResults: { [key in 'videos' | 'playlists' | 'channels']: any[] } = {
     videos: [],
     playlists: [],
     channels: [],
   };
-  filters: any = {}; // New filter object to hold the filter criteria
+  public pageTokens: { [key in 'videos' | 'playlists' | 'channels']: string } = {
+    videos: '',
+    playlists: '',
+    channels: '',
+  };
+  public sortOrder: string = '';
+  public filters: any = {}; // Consider defining a more specific interface for filters
 
-  showSearchInput = false;
-  searchRequested = false;
-  lastSearchQuery = '';
-  lastSearchType = '';
-  sortOrder: string = '';
+  // UI State
+  public showSearchInput: boolean = false; // Controls visibility of the search input container
+  public searchRequested: boolean = false; // Flag to indicate a search was explicitly requested
+  public appearanceSettings!: AppearanceSettings; // Settins from settings service
 
-  isHidden = true;
+  // Private internal state for search tracking
+  private lastSearchQuery: string = '';
+  private lastSearchType: string = '';
 
-  showPopover = false;
-  popoverEvent: any;
+  // RxJS Subjects for reactive logic
+  public readonly queryChanged$ = createSubject<string>();
+  private readonly destroy$ = createSubject<void>(); // For RxJS cleanup
 
-  appearanceSettings!: AppearanceSettings;
+  // Observables from services (exposed for async pipe in template)
+  public readonly auth$ = this.authorization.authSubject;
+  public readonly playbackState$ = this.playlistService.playbackState$;
+  public readonly playerHidden$ = this.playerService.isHidden$;
+  public readonly recorderHidden$ = this.recorderService.isHidden$;
 
+  // --- ViewChild for Google Sign-In Button ---
   @ViewChild('googleLogInButton', { static: false }) googleLogInButton!: ElementRef<HTMLElement>;
 
   constructor(
@@ -353,215 +402,182 @@ export class SearchPage {
     private settings: Settings
   ) {}
 
-  auth$ = this.authorization.authSubject;
-  playbackState$ = this.playlistService.playbackState$;
-  playerHidden$ = this.playerService.isHidden$;
-  recorderHidden$ = this.recorderService.isHidden$;
-  queryChanged$ = createSubject<string>();
-
-  private subscriptions: Subscription[] = [];
-
-  ngAfterViewInit() {
+  // --- Lifecycle Hooks ---
+  ngAfterViewInit(): void {
+    // Initialize Google Sign-In button if available in the DOM
     if (this.googleLogInButton?.nativeElement) {
       this.authorization.initializeGsiButton();
     }
 
-    this.subscriptions.push(
-      this.settings.appearance.subscribe((value) => this.appearanceSettings = value),
+    // Subscribe to settings changes for appearance
+    this.settings.appearance.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+      this.appearanceSettings = value;
+    });
 
-      this.queryChanged$.pipe(
-        debounce(300),
-        switchMap((query: string) => {
-          if (!query || query.length <= 2) return of([]);
-          return this.fetchSuggestions(query);
-        })
-      )
-      .subscribe((suggestions: string[]) => {
-        this.suggestions = suggestions;
+    // Handle search query changes for suggestions (debounced and distinct)
+    this.queryChanged$.pipe(
+      debounce(300),
+      distinctUntilChanged(),
+      switchMap((query: string) => {
+        // Only fetch suggestions if query has 2 or more characters
+        if (!query || query.length < 2) {
+          this.isDropdownOpen = false;
+          return of([]); // Return empty array to stop further processing
+        }
+        return this.fetchSuggestions(query);
       }),
+      takeUntil(this.destroy$) // Unsubscribe when component is destroyed
+    ).subscribe((suggestions: string[]) => {
+      this.suggestions = suggestions;
+      // Open dropdown only if there are suggestions
+      this.isDropdownOpen = suggestions.length > 0;
+      this.selectedSuggestionIndex = -1; // Reset selection
+    });
 
-      this.dataService.searchError$.subscribe(async msg => {
-       const toast = await this.toastCtrl.create({
+    // Subscribe to search errors from data service and display a toast
+    this.dataService.searchError$.pipe(takeUntil(this.destroy$)).subscribe(async (msg) => {
+      const toast = await this.toastCtrl.create({
         message: msg,
-        duration: 3000, // 3 seconds
+        duration: 3000,
         position: 'bottom',
         color: 'danger',
       });
-      toast.present();
-    }));
+      await toast.present();
+    });
   }
 
-  onAnimationEnd() {
+  ngOnDestroy(): void {
+    // Signal completion to destroy$ to unsubscribe all active RxJS subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // --- Event Handlers ---
+  @HostListener('document:click', ['$event'])
+  handleDocumentClick(event: MouseEvent): void {
+    // Close dropdown if click is outside the search container
+    const searchContainer = this.searchbar.nativeElement.closest('.search-container');
+    if (searchContainer && !searchContainer.contains(event.target as Node) && this.isDropdownOpen) {
+      this.isDropdownOpen = false;
+    }
+  }
+
+  onSearchQueryChange(event: CustomEvent): void { // Use CustomEvent for Ionic input events
+    const query = (event.detail.value || '').trim(); // Get value from event.detail.value and trim
     this.queryInvalid = false;
-  }
 
-  get gridSize(): number {
-    const size = this.appearanceSettings?.thumbnailSize;
-    switch (size) {
-      case 'small':
-        return 270;
-      case 'medium':
-        return 350;
-      case 'large':
-        return 500;
-    }
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-  }
-
-  addActivated(event: Event) {
-    (event.currentTarget as HTMLElement).classList.add('ion-activated');
-  }
-
-  removeActivated(event: Event) {
-    (event.currentTarget as HTMLElement).classList.remove('ion-activated');
-  }
-
-  clearSearch(event: Event) {
-    event.preventDefault();
-    this.searchQuery = '';
-    this.onSearchQueryChange(event);
-  }
-
-  goToPreferences() {
-    this.router.navigate(['/settings']);
-  }
-
-  goToAbout() {}
-  reportBug() {}
-  sendFeedback() {}
-
-  signIn() {
-    this.authorization.signInWithOAuth2();
-  }
-
-  signOut() {
-    this.authorization.signOut();
-  }
-
-  setSort(value: string) {
-    this.sortOrder = value;
-    if (this.appearanceSettings.displayResults === 'change') {
-      this.performSearch();
-    }
-  }
-
-  getSortLabel(value: string): string {
-    switch (value) {
-      case 'date':
-        return 'Upload Date';
-      case 'viewCount':
-        return 'View Count';
-      case 'rating':
-        return 'Rating';
-      case 'title':
-        return 'Title';
-      default:
-        return 'Relevance (default)';
-    }
-  }
-
-  toggleMenu() {
-    this.playlistService.toggleMenu();
-  }
-
-  toggleSearchInput(show: boolean) {
-    this.showSearchInput = show;
-    if (!show) {
+    // Trigger suggestion fetching if query has 2 or more characters
+    if (query.length >= 2) {
+      this.queryChanged$.next(query);
+    } else {
+      // Hide dropdown and clear suggestions if query is too short
+      this.isDropdownOpen = false;
       this.suggestions = [];
     }
+
+    // Perform search if displayResults is 'change'
+    if (this.appearanceSettings?.displayResults === 'change') {
+      this.performSearch();
+    }
   }
 
-  onKeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
+  onKeydown(event: KeyboardEvent): void {
+    // Handle keyboard navigation for suggestions
+    if (this.isDropdownOpen) {
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          this.selectedSuggestionIndex = Math.min(
+            this.selectedSuggestionIndex + 1,
+            this.suggestions.length - 1
+          );
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          this.selectedSuggestionIndex = Math.max(this.selectedSuggestionIndex - 1, -1);
+          break;
+        case 'Enter':
+          event.preventDefault(); // Prevent form submission
+          if (this.selectedSuggestionIndex >= 0) {
+            this.selectSuggestion(this.suggestions[this.selectedSuggestionIndex]);
+          } else {
+            this.searchRequested = true;
+            this.performSearch();
+          }
+          break;
+        case 'Escape':
+          this.isDropdownOpen = false;
+          this.selectedSuggestionIndex = -1;
+          break;
+      }
+    } else if (event.key === 'Enter') {
+      // If dropdown is not open, trigger search on Enter
       this.searchRequested = true;
       this.performSearch();
-    } else {
-      this.searchRequested = false; // Reset flag on other key presses
     }
   }
 
-  onSearchTypeChange() {
-    // Check if the search type has changed but the query remains the same
-    if (
-      this.searchQuery.trim() === this.lastSearchQuery &&
-      this.searchResults[this.searchType].length > 0
-    ) {
-      return; // Skip the search
-    }
-
-    if (this.searchRequested && this.searchQuery.trim()) {
-      this.performSearch();
-    }
-  }
-
-  onSearchQueryChange(event: any) {
-    const query = event.target.value;
+  onAnimationEnd(): void {
     this.queryInvalid = false;
-    if (query && query.length > 2) {
-      this.queryChanged$.next(query);
-    }
-
-    if (this.appearanceSettings.displayResults === 'change') {
-      this.performSearch();
-    }
   }
 
-  onFiltersChanged(filters: any) {
-    this.filters = filters;
-    if (this.appearanceSettings.displayResults === 'change') {
-      this.performSearch();
-    }
+  clearSearch(event: Event): void {
+    event.preventDefault(); // Prevent default button behavior
+    this.searchQuery = '';
+    // Manually trigger change to update dropdown visibility and suggestions
+    this.onSearchQueryChange({ detail: { value: '' } } as CustomEvent); // Simulate ionInput event
   }
 
-  fetchSuggestions(query: string): Stream<string[]> {
-    return this.googleSuggestionsService
-      .getSuggestions(query)
-      .pipe(debounce(300), distinctUntilChanged());
-  }
-
-  selectSuggestion(suggestion: string) {
+  // --- Search & Data Fetching Logic ---
+  selectSuggestion(suggestion: string): void {
     this.searchQuery = suggestion;
-    this.suggestions = [];
-    this.performSearch();
+    this.suggestions = []; // Clear suggestions after selection
+    this.isDropdownOpen = false; // Close dropdown
+    this.selectedSuggestionIndex = -1; // Reset selection
+    if (this.appearanceSettings?.displayResults === 'change') {
+      this.performSearch();
+    }
   }
 
-  performSearch() {
+  performSearch(): void {
     const params = this.buildSearchParams();
 
     // Reset previous error state
     this.queryInvalid = false;
 
-    // Store new search state
+    // Store new search state for comparison
     this.lastSearchQuery = this.searchQuery.trim();
     this.lastSearchType = this.searchType;
 
+    // Validate query if not trending
     if (!this.filters.trending && this.lastSearchQuery === '') {
       this.queryInvalid = true;
     }
 
-    return of(true).pipe(
+    // Execute search based on conditions using `fork` (assuming custom fork for conditional streams)
+    of(true).pipe( // Start with a dummy observable to trigger the fork
       fork([
+        // Condition 1: Invalid query
         { on: () => this.queryInvalid, handler: () => of([]) },
+        // Condition 2: Trending videos search
         { on: () => this.filters.trending && this.searchType === 'videos',
           handler: () =>
             this.dataService.fetchTrendingVideos().pipe(
               map((response: any) => {
                 this.updatePageToken(response);
-                return response.items;
+                return response.items; // Trending videos are already detailed
               })
             ),
         },
-        {
-          on: () => true,
+        // Condition 3: General search (videos, playlists, channels)
+        { on: () => true, // Default case if previous conditions are false
           handler: () =>
             this.dataService.search('search', params).pipe(
               switchMap((response: any) => {
-                const basic = this.mapResults(response);
+                const basic = this.mapResults(response); // Extract basic IDs
                 let detailed$: Stream<any>;
 
+                // Fetch detailed information based on search type
                 if (this.searchType === 'videos') {
                   detailed$ = this.dataService.fetchVideos(basic.map((i) => i.id));
                 } else if (this.searchType === 'playlists') {
@@ -569,42 +585,31 @@ export class SearchPage {
                 } else if (this.searchType === 'channels') {
                   detailed$ = this.dataService.fetchChannels(basic.map((i) => i.id));
                 } else {
+                  // This case should ideally not be reached with strong typing
                   throw new Error('Unknown search type.');
                 }
 
                 return detailed$.pipe(
                   map((detailedItems: any) => {
-                    this.updatePageToken(response);
-                    return detailedItems.items;
+                    this.updatePageToken(response); // Update page token from initial search response
+                    return detailedItems.items; // Return detailed items
                   })
                 );
               })
             ),
         },
       ]),
-      map(items => this.filterAndMerge(items))
-    )
-    .subscribe((finalResults: any[]) => {
-      this.searchResults[this.searchType] = finalResults;
+      map(items => this.filterAndMerge(items)), // Apply final filtering and merging
+      takeUntil(this.destroy$) // Unsubscribe when component is destroyed
+    ).subscribe((finalResults: any[]) => {
+      this.searchResults[this.searchType] = finalResults; // Update results for current type
     });
   }
 
-  private filterAndMerge(detailed: any[]): any[] {
-    const requiredFields = {
-      videos: ['snippet', 'contentDetails', 'statistics'],
-      playlists: ['snippet', 'contentDetails'],
-      channels: ['snippet', 'contentDetails', 'statistics'],
-    }[this.searchType]!;
-
-    return detailed.filter((item: any) =>
-      requiredFields.every((field) => field in item)
-    );
-  }
-
-  loadMore(event: any) {
+  loadMore(event: any): void { // `event` is typically an InfiniteScrollCustomEvent
     const params = this.buildSearchParams();
 
-    return of(true).pipe(
+    of(true).pipe(
       fork([
         { on: () => this.queryInvalid, handler: () => of([]) },
         { on: () => this.filters.trending && this.searchType === 'videos',
@@ -612,7 +617,7 @@ export class SearchPage {
             this.dataService.fetchTrendingVideos(params).pipe(
               map((response: any) => {
                 this.updatePageToken(response);
-                return response.items; // already detailed
+                return response.items;
               })
             ),
         },
@@ -643,55 +648,48 @@ export class SearchPage {
               })
             ),
         },
-      ]))
-      .subscribe({
-        next: (newItems: any[]) => {
-          this.searchResults[this.searchType] = [
-            ...(this.searchResults[this.searchType] || []),
-            ...newItems,
-          ];
-          event.target.complete();
-          if (!this.pageTokenAvailable()) {
-            event.target.disabled = true;
-          }
-        },
-        error: (err) => {
-          console.error('Error loading more results:', err);
-          event.target.complete();
-        },
-      });
+      ]),
+      takeUntil(this.destroy$) // Unsubscribe when component is destroyed
+    ).subscribe({
+      next: (newItems: any[]) => {
+        this.searchResults[this.searchType] = [
+          ...(this.searchResults[this.searchType] || []),
+          ...newItems,
+        ];
+        (event.target as HTMLIonInfiniteScrollElement).complete(); // Cast event.target
+        if (!this.pageTokenAvailable()) {
+          (event.target as HTMLIonInfiniteScrollElement).disabled = true;
+        }
+      },
+      error: (err) => {
+        console.error('Error loading more results:', err);
+        (event.target as HTMLIonInfiniteScrollElement).complete();
+      },
+    });
   }
 
-  updatePageToken(response: any = null) {
-    if (this.searchType === 'videos') {
-      this.pageTokens['videos'] = response?.nextPageToken || '';
-    } else if (this.searchType === 'playlists') {
-      this.pageTokens['playlists'] = response?.nextPageToken || '';
-    } else if (this.searchType === 'channels') {
-      this.pageTokens['channels'] = response?.nextPageToken || '';
-    }
-  }
-
-  pageTokenAvailable(): boolean {
-    return this.pageTokens[this.searchType] !== '';
-  }
-
-  buildSearchParams() {
+  // --- Helper Methods ---
+  private buildSearchParams(): any { // Return type could be more specific if you have a SearchParams interface
     const params: any = {
       q: this.searchQuery,
-      maxResults: 10,
+      maxResults: 10, // Default max results
     };
 
     if (this.pageTokens[this.searchType]) {
       params.pageToken = this.pageTokens[this.searchType];
     }
 
-    if (this.searchType === 'videos') {
-      params.type = 'video';
-    } else if (this.searchType === 'channels') {
-      params.type = 'channel';
-    } else {
-      params.type = 'playlist';
+    // Set search type parameter
+    switch (this.searchType) {
+      case 'videos':
+        params.type = 'video';
+        break;
+      case 'channels':
+        params.type = 'channel';
+        break;
+      case 'playlists':
+        params.type = 'playlist';
+        break;
     }
 
     if (this.sortOrder) {
@@ -701,22 +699,156 @@ export class SearchPage {
     return params;
   }
 
-  mapResults(response: any): any[] {
+  private mapResults(response: any): { id: string }[] { // Stronger return type
     return response.items.map((item: any) => ({
       id: item.id.videoId || item.id.playlistId || item.id.channelId,
     }));
   }
 
-  addTrackToPlaylist(video: any) {
+  private filterAndMerge(detailed: any[]): any[] {
+    const requiredFields = {
+      videos: ['snippet', 'contentDetails', 'statistics'],
+      playlists: ['snippet', 'contentDetails'],
+      channels: ['snippet', 'contentDetails', 'statistics'],
+    }[this.searchType]!; // Use non-null assertion as searchType is strictly typed
+
+    return detailed.filter((item: any) =>
+      requiredFields.every((field) => field in item)
+    );
+  }
+
+  updatePageToken(response: any = null): void {
+    if (this.searchType in this.pageTokens) { // More robust check
+      this.pageTokens[this.searchType] = response?.nextPageToken || '';
+    }
+  }
+
+  pageTokenAvailable(): boolean {
+    return !!this.pageTokens[this.searchType]; // Check for truthiness
+  }
+
+  fetchSuggestions(query: string): Stream<string[]> {
+    return this.googleSuggestionsService
+      .getSuggestions(query)
+      .pipe(debounce(300), distinctUntilChanged());
+  }
+
+  get gridSize(): number {
+    // Provide a default return value outside the switch
+    switch (this.appearanceSettings?.thumbnailSize) {
+      case 'small':
+        return 270;
+      case 'medium':
+        return 350;
+      case 'large':
+        return 500;
+      default:
+        return 350; // Default size if appearanceSettings or thumbnailSize is undefined
+    }
+  }
+
+  // --- UI Interaction Methods ---
+  addActivated(event: Event): void {
+    (event.currentTarget as HTMLElement).classList.add('ion-activated');
+  }
+
+  removeActivated(event: Event): void {
+    (event.currentTarget as HTMLElement).classList.remove('ion-activated');
+  }
+
+  goToPreferences(): void {
+    this.router.navigate(['/settings']);
+  }
+
+  goToAbout(): void {
+    // Implement navigation or modal for About page
+    console.log('Navigate to About page');
+  }
+
+  reportBug(): void {
+    // Implement bug reporting logic
+    console.log('Report a bug');
+  }
+
+  sendFeedback(): void {
+    // Implement feedback sending logic
+    console.log('Send feedback');
+  }
+
+  signIn(): void {
+    this.authorization.signInWithOAuth2();
+  }
+
+  signOut(): void {
+    this.authorization.signOut();
+  }
+
+  setSort(value: string): void {
+    this.sortOrder = value;
+    if (this.appearanceSettings?.displayResults === 'change') {
+      this.performSearch();
+    }
+  }
+
+  getSortLabel(value: string): string {
+    switch (value) {
+      case 'date':
+        return 'Upload Date';
+      case 'viewCount':
+        return 'View Count';
+      case 'rating':
+        return 'Rating';
+      case 'title':
+        return 'Title';
+      default:
+        return 'Relevance (default)';
+    }
+  }
+
+  toggleMenu(): void {
+    this.playlistService.toggleMenu();
+  }
+
+  toggleSearchInput(show: boolean): void {
+    this.showSearchInput = show;
+    if (!show) {
+      this.suggestions = [];
+      this.isDropdownOpen = false; // Ensure dropdown hides when search input is toggled off
+    }
+  }
+
+  onSearchTypeChange(): void {
+    // If the search type changed AND the query is the same AND we have results for the new type, skip search.
+    // This optimization prevents redundant API calls if switching between types with same query and existing results.
+    if (
+      this.searchQuery.trim() === this.lastSearchQuery &&
+      this.searchResults[this.searchType as keyof typeof this.searchResults].length > 0 // Cast for type safety
+    ) {
+      return;
+    }
+
+    // Only perform search if a search was previously requested and query is not empty
+    if (this.searchRequested && this.searchQuery.trim()) {
+      this.performSearch();
+    }
+  }
+
+  onFiltersChanged(filters: any): void {
+    this.filters = filters;
+    if (this.appearanceSettings?.displayResults === 'change') {
+      this.performSearch();
+    }
+  }
+
+  addTrackToPlaylist(video: any): void {
     this.playlistService.addToPlaylist(video);
   }
 
-
-  togglePlayer() {
+  togglePlayer(): void {
     this.playerHidden$.snappy ? this.playerService.show() : this.playerService.hide();
   }
 
-  toggleRecorder() {
+  toggleRecorder(): void {
     this.recorderHidden$.snappy ? this.recorderService.show() : this.recorderService.hide();
   }
 }
