@@ -1,26 +1,24 @@
 import { Injectable } from '@angular/core';
-import { Storage } from '@ionic/storage-angular';
+import { defaultAppearanceSettings, Settings } from './settings.service';
+import { Subscription } from '@actioncrew/streamix';
+import { AppearanceSettings } from '../interfaces/settings';
 
 export type Theme = 'light' | 'dark' | 'default';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  private readonly THEME_KEY = 'appearanceSettings';
-  private storageReady = this.storage.create(); // ensure storage is initialized
+  appearance!: AppearanceSettings;
+  subscriptions: Subscription[] = [];
 
-  constructor(private storage: Storage) {
-    this.initTheme(); // apply theme on startup
+  constructor(private settings: Settings) {
+    queueMicrotask(() => {
+      this.subscriptions.push(settings.appearance.subscribe((value) => { this.appearance = value; }));
+    });
   }
 
   /** Sets the theme and merges into existing appearance settings */
   async setTheme(theme: Theme): Promise<void> {
-    await this.storageReady;
-
-    const existing = (await this.storage.get(this.THEME_KEY)) || {};
-    const updated = { ...existing, theme };
-
-    await this.storage.set(this.THEME_KEY, updated);
-
+    this.settings.appearance.next({ ...this.appearance, theme });
     document.body.classList.remove('ion-theme-light', 'ion-theme-dark', 'ion-theme-default');
 
     if (theme === 'dark') {
@@ -34,10 +32,7 @@ export class ThemeService {
 
   /** Gets the current theme from appearance settings */
   async getCurrentTheme(): Promise<Theme> {
-    await this.storageReady;
-
-    const settings = await this.storage.get(this.THEME_KEY);
-    return settings?.theme || 'default';
+    return this.appearance?.theme ?? this.settings.appearance.snappy?.theme;
   }
 
   /** Initializes theme on app startup */

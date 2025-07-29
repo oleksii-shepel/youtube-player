@@ -15,9 +15,10 @@ import { RecorderService } from 'src/app/services/recorder.service';
 import { PlaylistComponent } from '../../components/playlist/playlist.component';
 import { RecorderComponent } from '../../components/recorder/recorder.component';
 import { RouterModule } from '@angular/router';
-import { ThemeService } from 'src/app/services/theme.service';
+import { Theme, ThemeService } from 'src/app/services/theme.service';
 import { CommonModule } from '@angular/common';
 import { Storage } from '@ionic/storage-angular';
+import { Settings } from 'src/app/services/settings.service';
 
 declare const YT: any;
 
@@ -84,11 +85,11 @@ export class MainChapter implements AfterViewInit, OnDestroy {
     private playlistService: PlaylistService,
     private playerService: PlayerService,
     private recorderService: RecorderService,
-    private theme: ThemeService,
-    private storage: Storage
+    private settings: Settings,
+    private theme: ThemeService
   ) {}
 
-  ngAfterViewInit(): void {
+  async ngAfterViewInit() {
     this.playlistService.setPlayerComponent(this.youtubePlayer!);
 
     this.subscriptions.push(
@@ -142,6 +143,8 @@ export class MainChapter implements AfterViewInit, OnDestroy {
         this.isOverlayMenuVisible = false;
       });
     }
+
+    await this.theme.initTheme()
   }
 
   disableDragOverlay() {

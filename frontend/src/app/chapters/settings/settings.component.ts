@@ -2,9 +2,8 @@ import { SheetConfig, SheetDirective } from 'src/app/directives/sheet/sheet.dire
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Storage } from '@ionic/storage-angular';
 import { Router } from '@angular/router';
-import { firstValueFrom } from '@actioncrew/streamix';
+import { firstValueFrom, Subscription } from '@actioncrew/streamix';
 import { Helper } from 'src/app/services/helper.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
@@ -13,7 +12,8 @@ import { LanguageSelectModalComponent } from '../../components/language/language
 import { CountrySelectModalComponent } from '../../components/country/country.component';
 import { DirectiveModule } from 'src/app/directives';
 import { GridComponent } from 'src/app/components/grid/grid.component';
-import { AppearanceSettings, Playlist, RegionAndLanguageSettings, Subscription } from 'src/app/interfaces/settings';
+import { AboutSettings, ApiConfigSettings, AppearanceSettings, Playlist as PlaylistEntity, PlaylistsSettings, RegionLanguageSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
+import { Settings } from 'src/app/services/settings.service';
 
 export enum SettingsSection {
   Appearance = 'appearance',
@@ -46,6 +46,16 @@ export interface PageState<T> {
 })
 export class SettingsChapter implements OnInit {
   selectedMainSection = 'appearance';
+
+  appearanceSettings!: AppearanceSettings;
+  regionLanguageSettings!: RegionLanguageSettings;
+  userInfoSettings!: UserInfoSettings;
+  playlistsSettings!: PlaylistsSettings;
+  subscriptionsSettings!: SubscriptionsSettings;
+  apiConfigSettings!: ApiConfigSettings;
+  aboutSettings!: AboutSettings;
+
+
   isApiConnected = false;
   isLoading = false;
   showApiKey = false;
@@ -56,7 +66,7 @@ export class SettingsChapter implements OnInit {
   developerInfo = 'Tech Solutions Inc.';
   licenseInfo = 'MIT License';
 
-  userInfo = {
+  channelInfo = {
     name: '',
     channelId: '',
     avatar: this.getDefaultAvatarUrl('Y'),
@@ -66,28 +76,6 @@ export class SettingsChapter implements OnInit {
     totalViews: 0,
     joinedDate: '',
     description: '',
-  };
-
-  appearanceSettings: AppearanceSettings = {
-    theme: 'default',
-    fontSize: 'medium',
-    thumbnailSize: 'medium',
-    autoComplete: 'chips',
-    enableDescription: true,
-    visibleBackdrop: true,
-    displayResults: 'search',
-    maxItemsPerRequest: 5,
-  };
-
-  regionLanguageSettings: RegionAndLanguageSettings = {
-    useAutoLocation: false,
-    country: null,
-    language: null,
-    dateFormat: 'MM/dd/yyyy',
-    timeFormat: '12h',
-    numberFormat: 'en-US',
-    detectedCountry: null,
-    detectedLanguage: null
   };
 
   isCountryModalOpen = false;
@@ -116,7 +104,7 @@ export class SettingsChapter implements OnInit {
     canDismiss: true
   };
 
-  playlistState: PageState<Playlist> = {
+  playlistState: PageState<PlaylistEntity> = {
     items: [],
     pages: [],
     pageIndex: 0,
@@ -127,7 +115,7 @@ export class SettingsChapter implements OnInit {
     total: 0,
   };
 
-  subscriptionState: PageState<Subscription> = {
+  subscriptionState: PageState<SubscriptionEntity> = {
     items: [],
     pages: [],
     pageIndex: 0,
@@ -155,21 +143,53 @@ export class SettingsChapter implements OnInit {
   @ViewChild(SheetDirective) sheetDirective!: SheetDirective;
   @ViewChild(GridComponent) gridComponent!: GridComponent;
 
+  private subscriptions: Subscription[] = [];
+
   constructor(
     private router: Router,
-    private storage: Storage,
-    private settings: Helper,
+    private settings: Settings,
+    private helper: Helper,
     private authorization: Authorization,
     private theme: ThemeService
   ) {}
 
   async ngOnInit() {
-    await this.storage.create();
-    this.applyTheme();
+    this.subscriptions.push(
+      this.settings.appearance.subscribe(value => this.appearanceSettings = value),
+      this.settings.regionLanguage.subscribe(value => this.regionLanguageSettings = value),
+      this.settings.userInfo.subscribe(value => this.userInfoSettings = value),
+      this.settings.playlists.subscribe(value => this.playlistsSettings = value),
+      this.settings.subscriptions.subscribe(value => this.subscriptionsSettings = value),
+      this.settings.apiConfig.subscribe(value => this.apiConfigSettings = value),
+      this.settings.about.subscribe(value => this.aboutSettings = value),
+    );
+
     await this.checkApiConnection();
     this.loadUserProfile();
     await this.loadPlaylists();
     await this.loadSubscriptions();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  onThemeChange() {
+    this.theme.setTheme(this.appearanceSettings.theme as Theme);
+    this.saveAppearanceSettings();
+  }
+
+  getSectionTitle(): string {
+    const sectionTitles: { [key: string]: string } = {
+      'channel-info': 'Channel Info',
+      appearance: 'Theme Settings',
+      'region-language': 'Region & Language',
+      playlists: 'Playlists Management',
+      subscriptions: 'Subscriptions',
+      'api-key': 'API Configuration',
+      about: 'About',
+    };
+    return sectionTitles[this.selectedMainSection] || 'YouTube Data API Settings';
   }
 
   async openCountryModal() {
@@ -222,11 +242,6 @@ export class SettingsChapter implements OnInit {
     this.isLanguageModalOpen = false;
   }
 
-  // Ionic lifecycle, if used
-  async ionViewWillEnter() {
-    await this.loadSavedSettings();
-  }
-
   get playlistCount(): number {
     return this.playlistState.items.length;
   }
@@ -238,8 +253,8 @@ export class SettingsChapter implements OnInit {
   loadUserProfile() {
     const profile = this.authorization.getProfile();
     if (profile) {
-      this.userInfo = {
-        ...this.userInfo,
+      this.channelInfo = {
+        ...this.channelInfo,
         name: profile.name,
         email: profile.email,
         avatar: profile.picture || this.getDefaultAvatarUrl(profile.name),
@@ -273,18 +288,18 @@ export class SettingsChapter implements OnInit {
     try {
       const authProfile = this.authorization.getProfile();
       if (authProfile) {
-        this.userInfo = {
-          ...this.userInfo,
+        this.channelInfo = {
+          ...this.channelInfo,
           name: authProfile.name,
           email: authProfile.email,
           avatar: authProfile.picture || this.getDefaultAvatarUrl(authProfile.name),
         };
       }
       if (this.isApiConnected) {
-        const channelResponse: any = await firstValueFrom(this.settings.getMyChannel());
+        const channelResponse: any = await firstValueFrom(this.helper.getMyChannel());
         const channel = channelResponse.items[0];
-        this.userInfo = {
-          ...this.userInfo,
+        this.channelInfo = {
+          ...this.channelInfo,
           channelId: channel.id,
           subscriberCount: parseInt(channel.statistics.subscriberCount),
           videoCount: parseInt(channel.statistics.videoCount),
@@ -315,13 +330,13 @@ export class SettingsChapter implements OnInit {
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   }
 
-  async loadPlaylists(pageToken?: string): Promise<{ items: Playlist[]; nextPageToken?: string }> {
+  async loadPlaylists(pageToken?: string): Promise<{ items: PlaylistEntity[]; nextPageToken?: string }> {
     if (!this.isApiConnected) {
       return { items: this.playlistState.items, nextPageToken: '' };
     }
     this.isLoading = true;
     try {
-      const response: any = await firstValueFrom(this.settings.listPlaylistsPaginated(pageToken));
+      const response: any = await firstValueFrom(this.helper.listPlaylistsPaginated(pageToken));
       const items = response.items.map((item: any) => ({
         id: item.id,
         name: item.snippet.title,
@@ -388,13 +403,13 @@ export class SettingsChapter implements OnInit {
     this.gridComponent.addItem(playlist);
   }
 
-  async loadSubscriptions(pageToken?: string): Promise<{ items: Subscription[]; nextPageToken?: string }> {
+  async loadSubscriptions(pageToken?: string): Promise<{ items: SubscriptionEntity[]; nextPageToken?: string }> {
     if (!this.isApiConnected) {
-      return { items: this.subscriptionState.items, nextPageToken: '' };
+      return ({ items: this.subscriptionsSettings.items || [], nextPageToken: '' });
     }
     this.isLoading = true;
     try {
-      const response: any = await firstValueFrom(this.settings.listSubscriptionsPaginated(pageToken));
+      const response: any = await firstValueFrom(this.helper.listSubscriptionsPaginated(pageToken));
       const items = response.items.map((item: any) => ({
         id: item.snippet.resourceId.channelId,
         name: item.snippet.title,
@@ -402,119 +417,61 @@ export class SettingsChapter implements OnInit {
         category: '', // Not directly available
         thumbnail: item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg',
       }));
-      this.subscriptionState = {
-        ...this.subscriptionState,
+      this.subscriptionsSettings = {
+        ...this.subscriptionsSettings,
         items,
-        pages: pageToken ? [...(this.subscriptionState.pages || []), items] : [items],
-        pageIndex: pageToken ? this.subscriptionState.pageIndex + 1 : 0,
+        pages: pageToken ? [...(this.subscriptionsSettings.pages || []), items] : [items],
+        pageIndex: pageToken ? this.subscriptionsSettings.pageIndex + 1 : 0,
         nextPageToken: response.nextPageToken || null,
         prevPageToken: pageToken || null,
       };
+      this.settings.subscriptions.next(this.subscriptionsSettings);
       return { items, nextPageToken: response.nextPageToken };
     } catch (error) {
       console.error('Error loading subscriptions:', error);
-      return { items: this.subscriptionState.items, nextPageToken: '' };
+      return { items: this.subscriptionsSettings.items || [], nextPageToken: '' };
     } finally {
       this.isLoading = false;
     }
   }
 
-  async unsubscribe(subscription: Subscription) {
+  async unsubscribe(subscription: SubscriptionEntity) {
     try {
-      await firstValueFrom(this.settings.unsubscribe(subscription.id));
-      const filteredSubs = this.subscriptionState.items.filter((s) => s.id !== subscription.id);
-      this.subscriptionState = {
-        ...this.subscriptionState,
+      await firstValueFrom(this.helper.unsubscribe(subscription.id));
+      const filteredSubs = this.subscriptionsSettings.items.filter((s) => s.id !== subscription.id);
+      this.subscriptionsSettings = {
+        ...this.subscriptionsSettings,
         items: filteredSubs,
         pages: [filteredSubs],
         pageIndex: 0,
         nextPageToken: null,
         prevPageToken: null,
       };
+      this.settings.subscriptions.next(this.subscriptionsSettings);
     } catch (error) {
       console.error('Error unsubscribing:', error);
     }
   }
 
-  viewChannel(subscription: Subscription) {
-    console.log('View channel:', subscription);
-    // TODO: implement channel viewing logic
-  }
-
-  async loadSavedSettings() {
-    const savedApiConfig = await this.storage.get('youtubeApiConfig');
-    if (savedApiConfig) {
-      this.apiConfig = { ...this.apiConfig, ...savedApiConfig };
-    }
-    const savedAppearance = await this.storage.get('appearanceSettings');
-    if (savedAppearance) {
-      this.appearanceSettings = { ...this.appearanceSettings, ...savedAppearance };
-    }
-    const savedRegionLanguage = await this.storage.get('regionLanguageSettings');
-    if (savedRegionLanguage) {
-      this.regionLanguageSettings = { ...this.regionLanguageSettings, ...savedRegionLanguage };
-    }
-  }
-
   selectMainSection(section: string) {
     this.selectedMainSection = section;
-    this.storage.set('lastViewedSection', section).catch((err) => {
-      console.error('Error saving last viewed section:', err);
-    });
     const content = document.querySelector('ion-content');
     if (content) {
       content.scrollToTop(300);
     }
   }
 
-  getSectionTitle(): string {
-    const sectionTitles: { [key: string]: string } = {
-      'channel-info': 'Channel Info',
-      appearance: 'Theme Settings',
-      'region-language': 'Region & Language',
-      playlists: 'Playlists Management',
-      subscriptions: 'Subscriptions',
-      'api-key': 'API Configuration',
-      about: 'About',
-    };
-    return sectionTitles[this.selectedMainSection] || 'YouTube Data API Settings';
-  }
-
-  applyTheme() {
-    this.theme.initTheme();
-  }
-
-  onThemeChange() {
-    this.theme.setTheme(this.appearanceSettings.theme as Theme);
-    this.saveAppearanceSettings();
-  }
-
   async saveAppearanceSettings() {
-    await this.storage.set('appearanceSettings', this.appearanceSettings);
+    this.settings.appearance.next(this.appearanceSettings);
   }
 
   async saveRegionLanguageSettings() {
-    await this.storage.set('regionLanguageSettings', this.regionLanguageSettings);
+    this.settings.regionLanguage.next(this.regionLanguageSettings);
   }
 
   async saveApiConfig() {
-    await this.storage.set('youtubeApiConfig', this.apiConfig);
+    this.settings.apiConfig.next(this.apiConfigSettings);
     this.checkApiConnection();
-  }
-
-  async resetApiConfig() {
-    this.apiConfig = {
-      apiKey: '',
-      clientId: '',
-      clientSecret: '',
-      quotaUsage: 0,
-      quotaLimit: 10000,
-      rateLimitEnabled: true,
-      cacheEnabled: true,
-      cacheDuration: 3600,
-    };
-    await this.storage.remove('youtubeApiConfig');
-    this.isApiConnected = false;
   }
 
   async testApiConnection() {
@@ -583,7 +540,7 @@ export class SettingsChapter implements OnInit {
 
   async onAutoLocationToggle() {
     if (this.regionLanguageSettings.useAutoLocation) {
-     const { country, language } = await this.settings.detectRegionAndLanguage();
+     const { country, language } = await this.helper.detectRegionAndLanguage();
      this.regionLanguageSettings.detectedCountry = country;
      this.regionLanguageSettings.detectedLanguage = language;
     }

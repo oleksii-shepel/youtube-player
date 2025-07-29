@@ -6,27 +6,168 @@ import { Stream, Subject, createBehaviorSubject, createSubject, firstValueFrom }
 import ISO6391 from 'iso-639-1';
 import * as countries from 'i18n-iso-countries';
 import englishCountries from 'i18n-iso-countries/langs/en.json';
-import { AboutSettings, ApiConfigSettings, AppearanceSettings, Country, Language, PlaylistsSettings, RegionAndLanguageSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
+import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Country, Language, PlaylistsSettings, RegionLanguageSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
 import { Storage } from '@ionic/storage-angular';
+
+export const defaultAppearanceSettings: AppearanceSettings = {
+  theme: 'default',
+  fontSize: 'medium',
+  thumbnailSize: 'medium',
+  autoComplete: 'chips',
+  enableDescription: true,
+  visibleBackdrop: true,
+  displayResults: 'search',
+  maxItemsPerRequest: 5,
+};
+
+export const defaultRegionLanguageSettings: RegionLanguageSettings = {
+  useAutoLocation: true,
+  country: null,
+  language: null,
+  dateFormat: 'dd/MM/yyyy',
+  timeFormat: '24h',
+  numberFormat: 'en-US',
+  detectedCountry: null,
+  detectedLanguage: null,
+};
+
+// Optional defaults for non-detailed interfaces
+export const defaultUserInfoSettings: UserInfoSettings = {
+  // Add fields as needed
+};
+
+export const defaultChannelInfoSettings: ChannelInfoSettings = {
+  name: '',
+  channelId: '',
+  avatar: '',
+  email: '',
+  subscriberCount: 0,
+  videoCount: 0,
+  totalViews: 0,
+  joinedDate: '',
+  description: '',
+};
+
+export const defaultPlaylistsSettings: PlaylistsSettings = {
+  items: [],
+  pages: [],
+  pageIndex: 0,
+  nextPageToken: null,
+  prevPageToken: null,
+  filter: '',
+  total: 0,
+  sort: { prop: 'name', dir: 'asc' },
+};
+
+export const defaultSubscriptionsSettings: SubscriptionsSettings = {
+  items: [],
+  pages: [],
+  pageIndex: 0,
+  nextPageToken: null,
+  prevPageToken: null,
+  filter: '',
+  total: 0,
+  sort: { prop: 'name', dir: 'asc' },
+};
+
+export const defaultApiConfigSettings: ApiConfigSettings = {
+  apiKey: '',
+  clientId: '',
+  clientSecret: '',
+  quotaUsage: 0,
+  quotaLimit: 10000,
+  rateLimitEnabled: true,
+  cacheEnabled: true,
+  cacheDuration: 3600,
+};
+
+export const defaultAboutSettings: AboutSettings = {
+  appVersion: '1.0.0',
+  releaseDate: '2023-11-15',
+  developerInfo: 'Tech Solutions Inc.',
+  licenseInfo: 'MIT License'
+};
 
 
 @Injectable({ providedIn: 'root' })
 export class Settings {
-  appearance: Subject<AppearanceSettings>;
   userInfo: Subject<UserInfoSettings>;
-  regionLanguage: Subject<RegionAndLanguageSettings>;
+  appearance: Subject<AppearanceSettings>;
+  channelInfo: Subject<UserInfoSettings>;
+  regionLanguage: Subject<RegionLanguageSettings>;
   playlists: Subject<PlaylistsSettings>;
   subscriptions: Subject<SubscriptionsSettings>;
   apiConfig: Subject<ApiConfigSettings>;
   about: Subject<AboutSettings>;
 
   constructor(private storage: Storage) {
-    this.appearance = createSubject<AppearanceSettings>();
-    this.userInfo = createSubject<AppearanceSettings>();
-    this.regionLanguage = createSubject<RegionAndLanguageSettings>();
-    this.playlists = createSubject<PlaylistsSettings>();
-    this.subscriptions = createSubject<SubscriptionsSettings>();
-    this.apiConfig = createSubject<ApiConfigSettings>();
-    this.about = createSubject<AboutSettings>();
+    this.userInfo = createBehaviorSubject<UserInfoSettings>(defaultUserInfoSettings);
+    this.appearance = createBehaviorSubject<AppearanceSettings>(defaultAppearanceSettings);
+    this.channelInfo = createBehaviorSubject<ChannelInfoSettings>(defaultChannelInfoSettings);
+    this.regionLanguage = createBehaviorSubject<RegionLanguageSettings>(defaultRegionLanguageSettings);
+    this.playlists = createBehaviorSubject<PlaylistsSettings>(defaultPlaylistsSettings);
+    this.subscriptions = createBehaviorSubject<SubscriptionsSettings>(defaultSubscriptionsSettings);
+    this.apiConfig = createBehaviorSubject<ApiConfigSettings>(defaultApiConfigSettings);
+    this.about = createBehaviorSubject<AboutSettings>(defaultAboutSettings);
+
+    queueMicrotask(async () => {
+      await this.storage.create();
+
+      const userInfo = await this.storage.get('userInfo');
+      if (userInfo !== null && userInfo !== undefined) {
+        this.userInfo.next(userInfo);
+      } else {
+        this.userInfo.next(defaultUserInfoSettings);
+      }
+
+      const appearance = await this.storage.get('appearance');
+      if (appearance !== null && appearance !== undefined) {
+        this.appearance.next(appearance);
+      } else {
+        this.appearance.next(defaultAppearanceSettings);
+      }
+
+      const channelInfo = await this.storage.get('channelInfo');
+      if (channelInfo !== null && channelInfo !== undefined) {
+        this.channelInfo.next(channelInfo);
+      } else {
+        this.channelInfo.next(defaultChannelInfoSettings);
+      }
+
+      const regionLanguage = await this.storage.get('regionLanguage');
+      if (regionLanguage !== null && regionLanguage !== undefined) {
+        this.regionLanguage.next(regionLanguage);
+      } else {
+        this.regionLanguage.next(defaultRegionLanguageSettings);
+      }
+
+      const playlists = await this.storage.get('playlists');
+      if (playlists !== null && playlists !== undefined) {
+        this.playlists.next(playlists);
+      } else {
+        this.playlists.next(defaultPlaylistsSettings);
+      }
+
+      const subscriptions = await this.storage.get('subscriptions');
+      if (subscriptions !== null && subscriptions !== undefined) {
+        this.subscriptions.next(subscriptions);
+      } else {
+        this.subscriptions.next(defaultSubscriptionsSettings);
+      }
+
+      const apiConfig = await this.storage.get('apiConfig');
+      if (apiConfig !== null && apiConfig !== undefined) {
+        this.apiConfig.next(apiConfig);
+      } else {
+        this.apiConfig.next(defaultApiConfigSettings);
+      }
+
+      const about = await this.storage.get('about');
+      if (about !== null && about !== undefined) {
+        this.about.next(about);
+      } else {
+        this.about.next(defaultAboutSettings);
+      }
+    });
   }
 }

@@ -23,12 +23,12 @@
   <div class="settings-container scrollable">
     <div class="user-header">
       <div class="user-avatar">
-        <img [src]="userInfo.avatar" alt="User Avatar" />
+        <img [src]="channelInfo.avatar" alt="User Avatar" />
         <div class="online-indicator" [class.connected]="isApiConnected"></div>
       </div>
       <div class="user-info">
-        <h2>{{ userInfo.name || 'Not Connected' }}</h2>
-        <p>{{ userInfo.channelId || 'YouTube Data API Settings' }}</p>
+        <h2>{{ channelInfo.name || 'Not Connected' }}</h2>
+        <p>{{ channelInfo.channelId || 'YouTube Data API Settings' }}</p>
         <ion-chip [color]="isApiConnected ? 'success' : 'danger'" size="small">
           <ion-icon [name]="isApiConnected ? 'checkmark-circle' : 'close-circle'" slot="start"></ion-icon>
           {{ isApiConnected ? 'Connected' : 'Disconnected' }}
@@ -94,49 +94,49 @@
               <ion-icon name="person-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Channel Name</span>
-                <span class="value">{{ userInfo.name || 'Loading...' }}</span>
+                <span class="value">{{ channelInfo.name || 'Loading...' }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="mail-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Email</span>
-                <span class="value">{{ userInfo.email || 'Not available' }}</span>
+                <span class="value">{{ channelInfo.email || 'Not available' }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="tv-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Channel ID</span>
-                <span class="value">{{ userInfo.channelId || 'Loading...' }}</span>
+                <span class="value">{{ channelInfo.channelId || 'Loading...' }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="people-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Subscribers</span>
-                <span class="value">{{ formatNumber(userInfo.subscriberCount) }}</span>
+                <span class="value">{{ formatNumber(channelInfo.subscriberCount) }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="videocam-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Total Videos</span>
-                <span class="value">{{ formatNumber(userInfo.videoCount) }}</span>
+                <span class="value">{{ formatNumber(channelInfo.videoCount) }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="eye-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Total Views</span>
-                <span class="value">{{ formatNumber(userInfo.totalViews) }}</span>
+                <span class="value">{{ formatNumber(channelInfo.totalViews) }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="calendar-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Joined</span>
-                <span class="value">{{ userInfo.joinedDate || 'Not available' }}</span>
+                <span class="value">{{ channelInfo.joinedDate || 'Not available' }}</span>
               </div>
             </div>
           </div>
@@ -150,7 +150,7 @@
       </div>
 
       <!-- Appearance Section -->
-      <div *ngIf="selectedMainSection === 'appearance'" class="content-section">
+      <div *ngIf="selectedMainSection === 'appearance' && appearanceSettings" class="content-section">
         <ion-list>
           <ion-item>
             <ion-icon name="color-palette-outline" slot="start"></ion-icon>
@@ -219,7 +219,7 @@
 
       <!-- Region & Language Section -->
 
-      <div *ngIf="selectedMainSection === 'region-language'" class="content-section">
+      <div *ngIf="selectedMainSection === 'region-language' && regionLanguageSettings" class="content-section">
         <ion-list>
           <!-- Toggle: Use current location -->
           <ion-item class="location-item">
@@ -282,7 +282,7 @@
       </div>
 
       <!-- Playlists Section -->
-      <div *ngIf="selectedMainSection === 'playlists'" class="content-section">
+      <div *ngIf="selectedMainSection === 'playlists' && playlistsSettings" class="content-section">
         <div class="section-card" *ngIf="isApiConnected">
           <app-grid
             [title]="'My Playlists'"
@@ -307,7 +307,7 @@
       </div>
 
       <!-- Subscriptions Section -->
-      <div *ngIf="selectedMainSection === 'subscriptions'" class="content-section">
+      <div *ngIf="selectedMainSection === 'subscriptions' && subscriptionsSettings" class="content-section">
         <div class="section-card" *ngIf="isApiConnected">
           <app-grid
             [title]="'Your Subscriptions'"
@@ -329,7 +329,7 @@
       </div>
 
       <!-- API Configuration Section -->
-      <div *ngIf="selectedMainSection === 'api-key'" class="content-section">
+      <div *ngIf="selectedMainSection === 'api-key' && apiConfigSettings" class="content-section">
         <div class="section-card">
           <ion-list>
             <ion-item>
@@ -372,7 +372,7 @@
       </div>
 
       <!-- About Section -->
-      <div *ngIf="selectedMainSection === 'about'" class="content-section about-info">
+      <div *ngIf="selectedMainSection === 'about' && aboutSettings" class="content-section about-info">
         <div class="section-card">
           <div class="card-header">
             <h3>About This App</h3>
