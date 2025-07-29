@@ -399,7 +399,7 @@ export class SearchPage {
     const size = this.appearanceSettings?.thumbnailSize;
     switch (size) {
       case 'small':
-        return 200;
+        return 270;
       case 'medium':
         return 350;
       case 'large':

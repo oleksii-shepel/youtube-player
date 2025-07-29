@@ -1,12 +1,6 @@
-import { inject, Injectable } from '@angular/core';
-import { Authorization } from './authorization.service';
-import { HttpClient, readJson } from '@actioncrew/streamix/http';
-import { HTTP_CLIENT } from 'src/main';
-import { Stream, Subject, createBehaviorSubject, createSubject, firstValueFrom } from '@actioncrew/streamix';
-import ISO6391 from 'iso-639-1';
-import * as countries from 'i18n-iso-countries';
-import englishCountries from 'i18n-iso-countries/langs/en.json';
-import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Country, Language, PlaylistsSettings, RegionLanguageSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
+import { Injectable } from '@angular/core';
+import { Subject, createBehaviorSubject, Subscription } from '@actioncrew/streamix';
+import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, PlaylistsSettings, RegionLanguageSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
 import { Storage } from '@ionic/storage-angular';
 
 export const defaultAppearanceSettings: AppearanceSettings = {
@@ -100,6 +94,8 @@ export class Settings {
   apiConfig: Subject<ApiConfigSettings>;
   about: Subject<AboutSettings>;
 
+  subs: Subscription[] = [];
+
   constructor(private storage: Storage) {
     this.userInfo = createBehaviorSubject<UserInfoSettings>(defaultUserInfoSettings);
     this.appearance = createBehaviorSubject<AppearanceSettings>(defaultAppearanceSettings);
@@ -112,6 +108,17 @@ export class Settings {
 
     queueMicrotask(async () => {
       await this.storage.create();
+
+      this.subs.push(
+        this.userInfo.subscribe(value => this.storage.set('userInfo', value)),
+        this.appearance.subscribe(value => this.storage.set('appearance', value)),
+        this.channelInfo.subscribe(value => this.storage.set('channelInfo', value)),
+        this.regionLanguage.subscribe(value => this.storage.set('regionLanguage', value)),
+        this.playlists.subscribe(value => this.storage.set('playlists', value)),
+        this.subscriptions.subscribe(value => this.storage.set('subscriptions', value)),
+        this.apiConfig.subscribe(value => this.storage.set('apiConfig', value)),
+        this.about.subscribe(value => this.storage.set('about', value))
+      );
 
       const userInfo = await this.storage.get('userInfo');
       if (userInfo !== null && userInfo !== undefined) {
