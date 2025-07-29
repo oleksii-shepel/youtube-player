@@ -7,18 +7,12 @@ export type Theme = 'light' | 'dark' | 'default';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  appearance!: AppearanceSettings;
-  subscriptions: Subscription[] = [];
-
   constructor(private settings: Settings) {
-    queueMicrotask(() => {
-      this.subscriptions.push(settings.appearance.subscribe((value) => { this.appearance = value; }));
-    });
   }
 
   /** Sets the theme and merges into existing appearance settings */
   async setTheme(theme: Theme): Promise<void> {
-    this.settings.appearance.next({ ...this.appearance, theme });
+    this.settings.appearance.next({ ...this.settings.appearance.snappy!, theme });
     document.body.classList.remove('ion-theme-light', 'ion-theme-dark', 'ion-theme-default');
 
     if (theme === 'dark') {
@@ -32,7 +26,7 @@ export class ThemeService {
 
   /** Gets the current theme from appearance settings */
   async getCurrentTheme(): Promise<Theme> {
-    return this.appearance?.theme ?? this.settings.appearance.snappy?.theme;
+    return this.settings.appearance?.snappy?.theme ?? defaultAppearanceSettings.theme;
   }
 
   /** Initializes theme on app startup */

@@ -21,26 +21,28 @@
 
 <ion-content class="youtube-api-settings-content">
   <div class="settings-container scrollable">
-    <div class="user-header">
-      <div class="user-avatar">
-        <img [src]="channelInfo.avatar" alt="User Avatar" />
-        <div class="online-indicator" [class.connected]="isApiConnected"></div>
+    @if(userInfoSettings) {
+      <div class="user-header">
+        <div class="user-avatar">
+          <img [src]="userInfoSettings.avatar" alt="User Avatar" />
+          <div class="online-indicator" [class.connected]="isApiConnected"></div>
+        </div>
+        <div class="user-info">
+          <h2>{{ userInfoSettings.name || 'Not Connected' }}</h2>
+          <p>YouTube Data API Settings</p>
+          <ion-chip [color]="isApiConnected ? 'success' : 'danger'" size="small">
+            <ion-icon [name]="isApiConnected ? 'checkmark-circle' : 'close-circle'" slot="start"></ion-icon>
+            {{ isApiConnected ? 'Connected' : 'Disconnected' }}
+          </ion-chip>
+        </div>
+        <div class="back-button-container">
+          <ion-button fill="outline" color="primary" (click)="goBackToApp()" class="back-button">
+            <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+            Back to App
+          </ion-button>
+        </div>
       </div>
-      <div class="user-info">
-        <h2>{{ channelInfo.name || 'Not Connected' }}</h2>
-        <p>{{ channelInfo.channelId || 'YouTube Data API Settings' }}</p>
-        <ion-chip [color]="isApiConnected ? 'success' : 'danger'" size="small">
-          <ion-icon [name]="isApiConnected ? 'checkmark-circle' : 'close-circle'" slot="start"></ion-icon>
-          {{ isApiConnected ? 'Connected' : 'Disconnected' }}
-        </ion-chip>
-      </div>
-      <div class="back-button-container">
-        <ion-button fill="outline" color="primary" (click)="goBackToApp()" class="back-button">
-          <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-          Back to App
-        </ion-button>
-      </div>
-    </div>
+    }
 
     <div class="settings-nav scrollable">
       <div class="nav-item" [class.active]="selectedMainSection === 'appearance'" (click)="selectMainSection('appearance')">
@@ -87,56 +89,56 @@
       </div>
 
       <!-- Channel Information Section -->
-      <div *ngIf="selectedMainSection === 'channel-info'" class="content-section channel-info">
+      <div *ngIf="selectedMainSection === 'channel-info' && channelInfoSettings" class="content-section channel-info">
         <div class="section-card" *ngIf="isApiConnected">
           <div class="user-details">
             <div class="detail-row">
               <ion-icon name="person-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Channel Name</span>
-                <span class="value">{{ channelInfo.name || 'Loading...' }}</span>
+                <span class="value">{{ channelInfoSettings.name || 'Loading...' }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="mail-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Email</span>
-                <span class="value">{{ channelInfo.email || 'Not available' }}</span>
+                <span class="value">{{ channelInfoSettings.email || 'Not available' }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="tv-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Channel ID</span>
-                <span class="value">{{ channelInfo.channelId || 'Loading...' }}</span>
+                <span class="value">{{ channelInfoSettings.channelId || 'Loading...' }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="people-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Subscribers</span>
-                <span class="value">{{ formatNumber(channelInfo.subscriberCount) }}</span>
+                <span class="value">{{ formatNumber(channelInfoSettings.subscriberCount) }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="videocam-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Total Videos</span>
-                <span class="value">{{ formatNumber(channelInfo.videoCount) }}</span>
+                <span class="value">{{ formatNumber(channelInfoSettings.videoCount) }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="eye-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Total Views</span>
-                <span class="value">{{ formatNumber(channelInfo.totalViews) }}</span>
+                <span class="value">{{ formatNumber(channelInfoSettings.totalViews) }}</span>
               </div>
             </div>
             <div class="detail-row">
               <ion-icon name="calendar-outline"></ion-icon>
               <div class="detail-content">
                 <span class="label">Joined</span>
-                <span class="value">{{ channelInfo.joinedDate || 'Not available' }}</span>
+                <span class="value">{{ channelInfoSettings.joinedDate || 'Not available' }}</span>
               </div>
             </div>
           </div>
@@ -334,7 +336,7 @@
           <ion-list>
             <ion-item>
               <ion-icon name="key-outline" slot="start"></ion-icon>
-              <ion-input label="YouTube API Key" labelPlacement="stacked" [(ngModel)]="apiConfig.apiKey"
+              <ion-input label="YouTube API Key" labelPlacement="stacked" [(ngModel)]="apiConfigSettings.apiKey"
                 [type]="showApiKey ? 'text' : 'password'" placeholder="Enter your YouTube Data API key"></ion-input>
               <ion-button fill="clear" slot="end" (click)="toggleApiKeyVisibility()">
                 <ion-icon [name]="showApiKey ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
@@ -342,12 +344,12 @@
             </ion-item>
             <ion-item>
               <ion-icon name="person-circle-outline" slot="start"></ion-icon>
-              <ion-input label="Client ID (Optional)" labelPlacement="stacked" [(ngModel)]="apiConfig.clientId"
+              <ion-input label="Client ID (Optional)" labelPlacement="stacked" [(ngModel)]="apiConfigSettings.clientId"
                 placeholder="OAuth 2.0 Client ID"></ion-input>
             </ion-item>
             <ion-item>
               <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
-              <ion-input label="Client Secret (Optional)" labelPlacement="stacked" [(ngModel)]="apiConfig.clientSecret"
+              <ion-input label="Client Secret (Optional)" labelPlacement="stacked" [(ngModel)]="apiConfigSettings.clientSecret"
                 [type]="showClientSecret ? 'text' : 'password'" placeholder="OAuth 2.0 Client Secret"></ion-input>
               <ion-button fill="clear" slot="end" (click)="toggleClientSecretVisibility()">
                 <ion-icon [name]="showClientSecret ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
@@ -364,7 +366,7 @@
               <div class="quota-progress" [style.width.%]="getQuotaPercentage()"></div>
             </div>
             <div class="quota-text">
-              <span>{{ formatNumber(apiConfig.quotaUsage) }} / {{ formatNumber(apiConfig.quotaLimit) }}</span>
+              <span>{{ formatNumber(apiConfigSettings.quotaUsage) }} / {{ formatNumber(apiConfigSettings.quotaLimit) }}</span>
               <span>({{ getQuotaPercentage() }}% used)</span>
             </div>
           </div>
@@ -381,7 +383,7 @@
             <div class="app-info">
               <img src="assets/logo-no-bg.png" alt="App Logo" class="app-logo" />
               <h4>YouTube API Manager</h4>
-              <p>Version {{ appVersion }}</p>
+              <p>Version {{ aboutSettings.appVersion }}</p>
             </div>
             <div class="about-details">
               <p>A powerful tool for managing your YouTube channel through the YouTube Data API.</p>
@@ -389,21 +391,21 @@
                 <ion-icon name="code-outline"></ion-icon>
                 <div class="detail-content">
                   <span class="label">Developed By</span>
-                  <span class="value">{{ developerInfo }}</span>
+                  <span class="value">{{ aboutSettings.developerInfo }}</span>
                 </div>
               </div>
               <div class="detail-row">
                 <ion-icon name="calendar-outline"></ion-icon>
                 <div class="detail-content">
                   <span class="label">Release Date</span>
-                  <span class="value">{{ releaseDate }}</span>
+                  <span class="value">{{ aboutSettings.releaseDate }}</span>
                 </div>
               </div>
               <div class="detail-row">
                 <ion-icon name="document-text-outline"></ion-icon>
                 <div class="detail-content">
                   <span class="label">License</span>
-                  <span class="value">{{ licenseInfo }}</span>
+                  <span class="value">{{ aboutSettings.licenseInfo }}</span>
                 </div>
               </div>
               <div class="action-buttons">

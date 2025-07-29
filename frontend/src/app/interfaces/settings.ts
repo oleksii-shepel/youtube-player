@@ -1,4 +1,7 @@
 export interface UserInfoSettings {
+  name: string;
+  avatar: string;
+  email: string;
 };
 
 export type AppTheme = 'default' | 'dark' | 'light';

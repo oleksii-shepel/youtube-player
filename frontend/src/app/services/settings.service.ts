@@ -27,7 +27,9 @@ export const defaultRegionLanguageSettings: RegionLanguageSettings = {
 
 // Optional defaults for non-detailed interfaces
 export const defaultUserInfoSettings: UserInfoSettings = {
-  // Add fields as needed
+  name: '',
+  email: '',
+  avatar: ''
 };
 
 export const defaultChannelInfoSettings: ChannelInfoSettings = {

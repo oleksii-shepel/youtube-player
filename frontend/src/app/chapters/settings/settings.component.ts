@@ -12,7 +12,7 @@ import { LanguageSelectModalComponent } from '../../components/language/language
 import { CountrySelectModalComponent } from '../../components/country/country.component';
 import { DirectiveModule } from 'src/app/directives';
 import { GridComponent } from 'src/app/components/grid/grid.component';
-import { AboutSettings, ApiConfigSettings, AppearanceSettings, Playlist as PlaylistEntity, PlaylistsSettings, RegionLanguageSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
+import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Playlist as PlaylistEntity, PlaylistsSettings, RegionLanguageSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
 import { Settings } from 'src/app/services/settings.service';
 
 export enum SettingsSection {
@@ -47,36 +47,19 @@ export interface PageState<T> {
 export class SettingsChapter implements OnInit {
   selectedMainSection = 'appearance';
 
+  userInfoSettings!: UserInfoSettings;
   appearanceSettings!: AppearanceSettings;
   regionLanguageSettings!: RegionLanguageSettings;
-  userInfoSettings!: UserInfoSettings;
+  channelInfoSettings!: ChannelInfoSettings;
   playlistsSettings!: PlaylistsSettings;
   subscriptionsSettings!: SubscriptionsSettings;
   apiConfigSettings!: ApiConfigSettings;
   aboutSettings!: AboutSettings;
 
-
   isApiConnected = false;
   isLoading = false;
   showApiKey = false;
   showClientSecret = false;
-
-  appVersion = '1.0.0';
-  releaseDate = '2023-11-15';
-  developerInfo = 'Tech Solutions Inc.';
-  licenseInfo = 'MIT License';
-
-  channelInfo = {
-    name: '',
-    channelId: '',
-    avatar: this.getDefaultAvatarUrl('Y'),
-    email: '',
-    subscriberCount: 0,
-    videoCount: 0,
-    totalViews: 0,
-    joinedDate: '',
-    description: '',
-  };
 
   isCountryModalOpen = false;
   countrySelectSheetConfig: SheetConfig = {
@@ -126,17 +109,6 @@ export class SettingsChapter implements OnInit {
     total: 0,
   };
 
-  apiConfig = {
-    apiKey: '',
-    clientId: '',
-    clientSecret: '',
-    quotaUsage: 2500,
-    quotaLimit: 10000,
-    rateLimitEnabled: true,
-    cacheEnabled: true,
-    cacheDuration: 3600,
-  };
-
   country!: HTMLIonModalElement;
   language!: HTMLIonModalElement;
 
@@ -164,10 +136,12 @@ export class SettingsChapter implements OnInit {
       this.settings.about.subscribe(value => this.aboutSettings = value),
     );
 
-    await this.checkApiConnection();
-    this.loadUserProfile();
-    await this.loadPlaylists();
-    await this.loadSubscriptions();
+    queueMicrotask(async () => {
+      this.theme.initTheme();
+      this.loadUserProfile();
+      await this.loadPlaylists();
+      await this.loadSubscriptions();
+    });
   }
 
   ngOnDestroy(): void {
@@ -253,8 +227,8 @@ export class SettingsChapter implements OnInit {
   loadUserProfile() {
     const profile = this.authorization.getProfile();
     if (profile) {
-      this.channelInfo = {
-        ...this.channelInfo,
+      this.userInfoSettings = {
+        ...this.userInfoSettings,
         name: profile.name,
         email: profile.email,
         avatar: profile.picture || this.getDefaultAvatarUrl(profile.name),
@@ -267,7 +241,7 @@ export class SettingsChapter implements OnInit {
       this.isApiConnected = true;
       return;
     }
-    if (!this.apiConfig.apiKey) {
+    if (!this.apiConfigSettings.apiKey) {
       this.isApiConnected = false;
       return;
     }
@@ -288,8 +262,8 @@ export class SettingsChapter implements OnInit {
     try {
       const authProfile = this.authorization.getProfile();
       if (authProfile) {
-        this.channelInfo = {
-          ...this.channelInfo,
+        this.userInfoSettings = {
+          ...this.userInfoSettings,
           name: authProfile.name,
           email: authProfile.email,
           avatar: authProfile.picture || this.getDefaultAvatarUrl(authProfile.name),
@@ -298,8 +272,8 @@ export class SettingsChapter implements OnInit {
       if (this.isApiConnected) {
         const channelResponse: any = await firstValueFrom(this.helper.getMyChannel());
         const channel = channelResponse.items[0];
-        this.channelInfo = {
-          ...this.channelInfo,
+        this.channelInfoSettings = {
+          ...this.channelInfoSettings,
           channelId: channel.id,
           subscriberCount: parseInt(channel.statistics.subscriberCount),
           videoCount: parseInt(channel.statistics.videoCount),
@@ -475,7 +449,7 @@ export class SettingsChapter implements OnInit {
   }
 
   async testApiConnection() {
-    if (!this.apiConfig.apiKey) {
+    if (!this.apiConfigSettings.apiKey) {
       this.isApiConnected = false;
       return;
     }
@@ -548,7 +522,7 @@ export class SettingsChapter implements OnInit {
   }
 
   getQuotaPercentage(): number {
-    return Math.round((this.apiConfig.quotaUsage / this.apiConfig.quotaLimit) * 100);
+    return Math.round((this.apiConfigSettings.quotaUsage / this.apiConfigSettings.quotaLimit) * 100);
   }
 
   goBackToApp() {
