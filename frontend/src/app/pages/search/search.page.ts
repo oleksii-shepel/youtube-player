@@ -31,7 +31,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
   selector: 'app-search-page',
   template: `
     <ion-header>
-      <div>
+      <div [class.scrollable]="!(appearanceSettings && appearanceSettings.autoComplete === 'dropdown')">
         <div class="toolbar-inner">
           <div class="toolbar">
             <div class="toolbar-left">
@@ -105,30 +105,28 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                 </ion-button>
 
                 @if (
-                appearanceSettings &&
-                appearanceSettings.autoComplete === 'dropdown' &&
-                isDropdownOpen &&
-                suggestions.length > 0
-              ) {
-                <div class="suggestions-dropdown scrollable">
-                  <div class="suggestions-list">
-                    @for (suggestion of suggestions; track suggestion; let i = $index) {
-                      <div
-                        class="suggestion-item"
-                        [class.selected]="i === selectedSuggestionIndex"
-                        (mousedown)="selectSuggestion(suggestion)"
-                        (click)="selectSuggestion(suggestion)"
-                      >
-                        <ion-icon name="search-outline" size="small"></ion-icon>
-                        <span>{{ suggestion }}</span>
-                      </div>
-                    }
+                  appearanceSettings &&
+                  appearanceSettings.autoComplete === 'dropdown' &&
+                  isDropdownOpen &&
+                  suggestions.length > 0
+                ) {
+                  <div class="suggestions-dropdown scrollable">
+                    <div class="suggestions-list">
+                      @for (suggestion of suggestions; track suggestion; let i = $index) {
+                        <div
+                          class="suggestion-item"
+                          [class.selected]="i === selectedSuggestionIndex"
+                          (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)"
+                          (click)="selectSuggestion(suggestion)"
+                        >
+                          <ion-icon name="search-outline" size="small"></ion-icon>
+                          <span>{{ suggestion }}</span>
+                        </div>
+                      }
+                    </div>
                   </div>
-                </div>
-              }
-
+                }
               </div>
-
 
               <ion-popover
                 trigger="sort-button"
@@ -351,6 +349,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   public suggestions: string[] = [];
   public isDropdownOpen: boolean = false;
   public selectedSuggestionIndex: number = -1;
+
   @ViewChild('searchbar') private searchbar!: ElementRef<HTMLIonInputElement>; // Use HTMLIonInputElement for Ionic input
 
   // Search Results & Type

@@ -1,3 +1,18 @@
+.scrollable {
+  overflow-x: auto;        /* enable horizontal scroll */
+  overflow-y: visible;     /* allow content to overflow vertically */
+  white-space: nowrap;     /* make children stay in one line for horizontal scroll */
+  -webkit-overflow-scrolling: touch;
+
+  /* hide scrollbars */
+  scrollbar-width: none;   /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollable::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
 .adaptive-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(var(--thumbnail-max-width, 350px), 1fr));
