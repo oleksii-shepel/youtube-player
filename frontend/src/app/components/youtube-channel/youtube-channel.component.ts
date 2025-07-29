@@ -5,7 +5,7 @@ import { ShrinkNumberPipe } from '../../pipes/shrink-number.pipe';
 import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { YouTubeChannel } from 'src/app/interfaces/youtube-channel-data';
+import { YouTubeChannel } from 'src/app/interfaces/channel';
 
 @Component({
   selector: 'app-youtube-channel',

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnInit, OnDestroy, ElementRef, Renderer2, EventEmitter, Output } from '@angular/core';
 
 import { ShrinkNumberPipe, ToFriendlyDurationPipe } from '../../pipes';
-import { YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
+import { YouTubeVideo } from 'src/app/interfaces/video';
 import { Router } from '@angular/router';
 
 @Component({
@@ -23,7 +23,7 @@ import { Router } from '@angular/router';
           </div>
         }
       </div>
-    
+
       @if (!isCompact) {
         <div class="video-info">
           <h5 class="video-title" [attr.title]="video.snippet.description">{{ video.snippet.title }}</h5>
@@ -40,7 +40,7 @@ import { Router } from '@angular/router';
           </div>
         </div>
       }
-    
+
       @if (isCompact) {
         <div class="video-info compact-info">
           <h5 class="video-title" [attr.title]="video.snippet.title">{{ video.snippet.title }}</h5>

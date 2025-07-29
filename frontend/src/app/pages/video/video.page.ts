@@ -3,7 +3,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { createSubject, takeUntil } from '@actioncrew/streamix';
-import { VideoComment, YouTubeVideo } from 'src/app/interfaces/youtube-video-data';
+import { VideoComment, YouTubeVideo } from 'src/app/interfaces/video';
 import { YoutubeDataService } from 'src/app/services/data.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 

@@ -2,7 +2,7 @@ import { Storage } from '@ionic/storage-angular';
 import { catchError, createSubject, fromPromise, Stream } from '@actioncrew/streamix';
 import { HttpClient, readJson } from '@actioncrew/streamix/http';
 
-import { IYoutubeQueryParams } from '../interfaces/search-parameters';
+import { IYoutubeQueryParams } from '../interfaces/search';
 import { inject, Injectable } from '@angular/core';
 import { map, switchMap } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
