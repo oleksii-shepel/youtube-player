@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, IonInput, ToastController } from '@ionic/angular'; // Group Ionic imports
 
 // RxJS and custom streamix imports
-import { createSubject, fork, of, Stream } from '@actioncrew/streamix'; // Assuming Subscription is also from streamix
+import { createSubject, fork, of, sample, Stream } from '@actioncrew/streamix'; // Assuming Subscription is also from streamix
 import { debounce, distinctUntilChanged, map, switchMap, takeUntil } from '@actioncrew/streamix'; // Added takeUntil
 
 // Component and Directive imports
@@ -414,7 +414,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
 
     // Handle search query changes for suggestions (debounced and distinct)
     this.queryChanged$.pipe(
-      debounce(300),
+      sample(1000),
       distinctUntilChanged(),
       switchMap((query: string) => {
         // Only fetch suggestions if query has 2 or more characters
@@ -487,11 +487,6 @@ export class SearchPage implements AfterViewInit, OnDestroy {
       // Hide dropdown and clear suggestions if query is too short
       this.isDropdownOpen = false;
       this.suggestions = [];
-    }
-
-    // Perform search if displayResults is 'change'
-    if (this.appearanceSettings?.displayResults === 'change') {
-      this.performSearch();
     }
   }
 
