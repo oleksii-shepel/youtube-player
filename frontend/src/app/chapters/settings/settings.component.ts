@@ -298,7 +298,7 @@ export class SettingsChapter implements OnInit {
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
         <rect width="100" height="100" fill="#555"/>
-        <text x="50%" y="55%" font-size="40" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
+        <text x="50%" y="55%" font-size="4rem" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
       </svg>`;
     // Properly encode base64 of SVG
     return `data:image/svg+xml;base64,${btoa(svg)}`;
