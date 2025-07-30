@@ -522,22 +522,22 @@ export class SearchPage implements AfterViewInit, OnDestroy {
           });
           await toast.present();
         }),
-    );
 
-    if(this.appearanceSettings.autoComplete === 'dropdown') {
-      this.subscriptions.push(
-        merge(
-          onResize(this.searchContainer.nativeElement).pipe(map(() => true)),
-          this.dropdownOpen$
-        ).pipe(
-            filter((value: boolean) => value),
-            takeUntil(this.destroy$)
+      this.settings.appearance.pipe(
+        map((appearanceSettings: AppearanceSettings) => appearanceSettings.autoComplete === 'dropdown'),
+        filter((value: boolean) => value),
+        switchMap(() =>
+          merge(
+            onResize(this.searchContainer.nativeElement).pipe(map(() => true)),
+            this.dropdownOpen$
+          ).pipe(
+              filter((value: boolean) => value),
+              takeUntil(this.destroy$)
           )
-          .subscribe(() => {
-            this.positionDropdown();
-          })
+        )).subscribe(() => {
+          this.positionDropdown();
+        })
       );
-    }
   }
 
   ngOnDestroy(): void {
