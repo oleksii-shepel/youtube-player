@@ -296,7 +296,7 @@ export class SettingsChapter implements OnInit {
       .join('')
       .toUpperCase();
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+      <svg xmlns="http://www.w3.org/2000/svg" width="6.25em" height="6.25em">
         <rect width="100" height="100" fill="#555"/>
         <text x="50%" y="55%" font-size="4rem" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
       </svg>`;

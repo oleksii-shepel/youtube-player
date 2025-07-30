@@ -64,3 +64,10 @@ ion-split-pane.split-pane-visible ion-menu.hide-menu {
 ::ng-deep .button-clear {
   color: var(--ion-color-secondary-tint) !important;
 }
+
+
+::ng-deep ion-button ion-icon {
+  font-size: 1em;
+  width: 1em;
+  height: 1em;
+}

@@ -33,8 +33,8 @@ import { DirectiveModule } from 'src/app/directives';
             @if (isShuffled) {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="18.898"
-                height="18.898"
+                width="1em"
+                height="1em"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -80,8 +80,8 @@ import { DirectiveModule } from 'src/app/directives';
             @if (repeatMode === 'all') {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="1em"
+                height="1em"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -100,8 +100,8 @@ import { DirectiveModule } from 'src/app/directives';
             @if (repeatMode === 'one') {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="1em"
+                height="1em"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -121,8 +121,8 @@ import { DirectiveModule } from 'src/app/directives';
             @if (repeatMode === 'none') {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="1em"
+                height="1em"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"

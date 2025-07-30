@@ -49,7 +49,7 @@ import { DirectiveModule } from 'src/app/directives';
             [style.visibility]="isPlaying ? 'visible' : 'hidden'"
             aria-hidden="true"
           >
-            <svg viewBox="0 0 50 50" width="50" height="50" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 50 50" width="3.125em" height="3.125em" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <!-- Gradient for the main button -->
                 <linearGradient id="playGradient" x1="0%" y1="0%" x2="100%" y2="100%">
