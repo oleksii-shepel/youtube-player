@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, IonInput, ToastController } from '@ionic/angular'; // Group Ionic imports
 
 // RxJS and custom streamix imports
-import { createSubject, fork, of, Stream, Subscription } from '@actioncrew/streamix'; // Assuming Subscription is also from streamix
+import { createSubject, fork, of, Stream } from '@actioncrew/streamix'; // Assuming Subscription is also from streamix
 import { debounce, distinctUntilChanged, map, switchMap, takeUntil } from '@actioncrew/streamix'; // Added takeUntil
 
 // Component and Directive imports
@@ -98,13 +98,11 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                   </ion-button>
                 </div>
                 <!-- Search button remains active - no disabled class -->
-                <ion-button
-                  size="small"
-                  class="search-button"
-                  (click)="performSearch()"
-                  >
-                  Search
-                </ion-button>
+                @if (appearanceSettings && appearanceSettings.displayResults === 'search') {
+                  <ion-button size="small" class="search-button" (click)="performSearch()">
+                    Search
+                  </ion-button>
+                }
 
                 @if (
                   appearanceSettings &&
