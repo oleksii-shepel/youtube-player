@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChil
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ToastController } from '@ionic/angular'; // Group Ionic imports
+import { IonicModule, IonInput, ToastController } from '@ionic/angular'; // Group Ionic imports
 
 // RxJS and custom streamix imports
 import { createSubject, fork, of, Stream, Subscription } from '@actioncrew/streamix'; // Assuming Subscription is also from streamix
@@ -52,6 +52,8 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                   [(ngModel)]="searchQuery"
                   placeholder="Enter search query"
                   (ionInput)="onSearchQueryChange($event)"
+                  (ionFocus)="onSearchInputFocus($event)"
+                  (ionBlur)="onSearchInputBlur($event)"
                   (keydown)="onKeydown($event)"
                   [class.disabled]="filters.trending && searchType === 'videos'"
                   [class.invalid]="queryInvalid"
@@ -99,7 +101,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                 <ion-button
                   size="small"
                   class="search-button"
-                  (click)="searchRequested = true; performSearch()"
+                  (click)="performSearch()"
                   >
                   Search
                 </ion-button>
@@ -350,7 +352,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   public isDropdownOpen: boolean = false;
   public selectedSuggestionIndex: number = -1;
 
-  @ViewChild('searchbar') private searchbar!: ElementRef<HTMLIonInputElement>; // Use HTMLIonInputElement for Ionic input
+  @ViewChild('searchbar') private searchbar!: IonInput; // Use HTMLIonInputElement for Ionic input
 
   // Search Results & Type
   public searchType: 'videos' | 'playlists' | 'channels' = 'videos'; // Stronger typing
@@ -369,7 +371,6 @@ export class SearchPage implements AfterViewInit, OnDestroy {
 
   // UI State
   public showSearchInput: boolean = false; // Controls visibility of the search input container
-  public searchRequested: boolean = false; // Flag to indicate a search was explicitly requested
   public appearanceSettings!: AppearanceSettings; // Settins from settings service
 
   // Private internal state for search tracking
@@ -451,11 +452,27 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onSearchInputFocus(event: CustomEvent): void {
+    // Show dropdown if we have suggestions and query length > 2
+    if (this.suggestions.length > 0 && this.searchQuery.trim().length > 2) {
+      this.isDropdownOpen = true;
+    }
+  }
+
+  onSearchInputBlur(event: CustomEvent): void {
+    // Small delay to allow suggestion clicks to register before closing
+    setTimeout(() => {
+      this.isDropdownOpen = false;
+      this.selectedSuggestionIndex = -1;
+    }, 150);
+  }
+
+
   // --- Event Handlers ---
   @HostListener('document:click', ['$event'])
   handleDocumentClick(event: MouseEvent): void {
     // Close dropdown if click is outside the search container
-    const searchContainer = this.searchbar.nativeElement.closest('.search-container');
+    const searchContainer = (this.searchbar as any)?.el?.closest('.search-container');
     if (searchContainer && !searchContainer.contains(event.target as Node) && this.isDropdownOpen) {
       this.isDropdownOpen = false;
     }
@@ -497,10 +514,10 @@ export class SearchPage implements AfterViewInit, OnDestroy {
           break;
         case 'Enter':
           event.preventDefault(); // Prevent form submission
+          this.isDropdownOpen = false;
           if (this.selectedSuggestionIndex >= 0) {
             this.selectSuggestion(this.suggestions[this.selectedSuggestionIndex]);
-          } else {
-            this.searchRequested = true;
+          } else if (this.appearanceSettings?.displayResults === 'change') {
             this.performSearch();
           }
           break;
@@ -511,8 +528,9 @@ export class SearchPage implements AfterViewInit, OnDestroy {
       }
     } else if (event.key === 'Enter') {
       // If dropdown is not open, trigger search on Enter
-      this.searchRequested = true;
-      this.performSearch();
+      if (this.appearanceSettings?.displayResults === 'change') {
+        this.performSearch();
+      }
     }
   }
 
@@ -827,7 +845,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     }
 
     // Only perform search if a search was previously requested and query is not empty
-    if (this.searchRequested && this.searchQuery.trim()) {
+    if (this.appearanceSettings?.displayResults === 'change') {
       this.performSearch();
     }
   }
