@@ -1,9 +1,9 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
+
 {
   "compileOnSave": false,
   "compilerOptions": {
     "types": [
-      "gapi.client",
+      "gapi.client.youtube-v3",
       "youtube"
     ],
     "paths": {
