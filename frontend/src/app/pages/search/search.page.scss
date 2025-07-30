@@ -1,4 +1,4 @@
-.scrollable {
+:host {
   overflow-x: auto;        /* enable horizontal scroll */
   overflow-y: visible;     /* allow content to overflow vertically */
   white-space: nowrap;     /* make children stay in one line for horizontal scroll */
@@ -9,7 +9,7 @@
   -ms-overflow-style: none; /* IE and Edge */
 }
 
-.scrollable::-webkit-scrollbar {
+:host::-webkit-scrollbar {
   display: none; /* Chrome, Safari, and Opera */
 }
 
@@ -34,7 +34,7 @@ ion-content::part(scroll)::-webkit-scrollbar {
 }
 
 ion-content::part(scroll) {
-  overflow: visible !important;
+  overflow: auto !important;
 }
 
 ion-content.main {
@@ -133,7 +133,7 @@ ion-content.main ion-item {
   margin-right: 14px;
   /* Increased margin for better spacing */
   flex-shrink: 0;
-  font-size: 24px;
+  font-size: 1.5rem;
   /* Larger icon size */
 }
 
