@@ -527,6 +527,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
           break;
       }
     } else if (event.key === 'Enter') {
+      this.isDropdownOpen = true;
       // If dropdown is not open, trigger search on Enter
       if (this.appearanceSettings?.displayResults === 'change') {
         this.performSearch();

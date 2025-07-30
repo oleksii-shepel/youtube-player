@@ -25,7 +25,6 @@ export const defaultRegionLanguageSettings: RegionLanguageSettings = {
   detectedLanguage: null,
 };
 
-// Optional defaults for non-detailed interfaces
 export const defaultUserInfoSettings: UserInfoSettings = {
   name: '',
   email: '',
@@ -84,12 +83,11 @@ export const defaultAboutSettings: AboutSettings = {
   licenseInfo: 'MIT License'
 };
 
-
 @Injectable({ providedIn: 'root' })
 export class Settings {
   userInfo: Subject<UserInfoSettings>;
   appearance: Subject<AppearanceSettings>;
-  channelInfo: Subject<UserInfoSettings>;
+  channelInfo: Subject<ChannelInfoSettings>; // Fixed type
   regionLanguage: Subject<RegionLanguageSettings>;
   playlists: Subject<PlaylistsSettings>;
   subscriptions: Subject<SubscriptionsSettings>;
@@ -97,8 +95,10 @@ export class Settings {
   about: Subject<AboutSettings>;
 
   subs: Subscription[] = [];
+  private initialized = false;
 
   constructor(private storage: Storage) {
+    // Initialize subjects with defaults
     this.userInfo = createBehaviorSubject<UserInfoSettings>(defaultUserInfoSettings);
     this.appearance = createBehaviorSubject<AppearanceSettings>(defaultAppearanceSettings);
     this.channelInfo = createBehaviorSubject<ChannelInfoSettings>(defaultChannelInfoSettings);
@@ -108,75 +108,139 @@ export class Settings {
     this.apiConfig = createBehaviorSubject<ApiConfigSettings>(defaultApiConfigSettings);
     this.about = createBehaviorSubject<AboutSettings>(defaultAboutSettings);
 
-    queueMicrotask(async () => {
-      await this.storage.create();
+    queueMicrotask(() => this.initializeSettings());
+  }
 
-      this.subs.push(
-        this.userInfo.subscribe(value => this.storage.set('userInfo', value)),
-        this.appearance.subscribe(value => this.storage.set('appearance', value)),
-        this.channelInfo.subscribe(value => this.storage.set('channelInfo', value)),
-        this.regionLanguage.subscribe(value => this.storage.set('regionLanguage', value)),
-        this.playlists.subscribe(value => this.storage.set('playlists', value)),
-        this.subscriptions.subscribe(value => this.storage.set('subscriptions', value)),
-        this.apiConfig.subscribe(value => this.storage.set('apiConfig', value)),
-        this.about.subscribe(value => this.storage.set('about', value))
-      );
+  private async initializeSettings(): Promise<void> {
+    await this.storage.create();
 
-      const userInfo = await this.storage.get('userInfo');
-      if (userInfo !== null && userInfo !== undefined) {
-        this.userInfo.next(userInfo);
-      } else {
-        this.userInfo.next(defaultUserInfoSettings);
-      }
+    // Load all stored values first
+    const storedValues = await Promise.all([
+      this.storage.get('userInfo'),
+      this.storage.get('appearance'),
+      this.storage.get('channelInfo'),
+      this.storage.get('regionLanguage'),
+      this.storage.get('playlists'),
+      this.storage.get('subscriptions'),
+      this.storage.get('apiConfig'),
+      this.storage.get('about')
+    ]);
 
-      const appearance = await this.storage.get('appearance');
-      if (appearance !== null && appearance !== undefined) {
-        this.appearance.next(appearance);
-      } else {
-        this.appearance.next(defaultAppearanceSettings);
-      }
+    const [userInfo, appearance, channelInfo, regionLanguage, playlists, subscriptions, apiConfig, about] = storedValues;
 
-      const channelInfo = await this.storage.get('channelInfo');
-      if (channelInfo !== null && channelInfo !== undefined) {
-        this.channelInfo.next(channelInfo);
-      } else {
-        this.channelInfo.next(defaultChannelInfoSettings);
-      }
+    // Update subjects with stored values (or keep defaults if no stored value)
+    if (userInfo !== null && userInfo !== undefined) {
+      this.userInfo.next(userInfo);
+    }
+    if (appearance !== null && appearance !== undefined) {
+      this.appearance.next(appearance);
+    }
+    if (channelInfo !== null && channelInfo !== undefined) {
+      this.channelInfo.next(channelInfo);
+    }
+    if (regionLanguage !== null && regionLanguage !== undefined) {
+      this.regionLanguage.next(regionLanguage);
+    }
+    if (playlists !== null && playlists !== undefined) {
+      this.playlists.next(playlists);
+    }
+    if (subscriptions !== null && subscriptions !== undefined) {
+      this.subscriptions.next(subscriptions);
+    }
+    if (apiConfig !== null && apiConfig !== undefined) {
+      this.apiConfig.next(apiConfig);
+    }
+    if (about !== null && about !== undefined) {
+      this.about.next(about);
+    }
 
-      const regionLanguage = await this.storage.get('regionLanguage');
-      if (regionLanguage !== null && regionLanguage !== undefined) {
-        this.regionLanguage.next(regionLanguage);
-      } else {
-        this.regionLanguage.next(defaultRegionLanguageSettings);
-      }
+    // NOW subscribe to changes to save future updates
+    this.subs.push(
+      this.userInfo.subscribe(value => {
+        if (this.initialized) this.storage.set('userInfo', value);
+      }),
+      this.appearance.subscribe(value => {
+        if (this.initialized) this.storage.set('appearance', value);
+      }),
+      this.channelInfo.subscribe(value => {
+        if (this.initialized) this.storage.set('channelInfo', value);
+      }),
+      this.regionLanguage.subscribe(value => {
+        if (this.initialized) this.storage.set('regionLanguage', value);
+      }),
+      this.playlists.subscribe(value => {
+        if (this.initialized) this.storage.set('playlists', value);
+      }),
+      this.subscriptions.subscribe(value => {
+        if (this.initialized) this.storage.set('subscriptions', value);
+      }),
+      this.apiConfig.subscribe(value => {
+        if (this.initialized) this.storage.set('apiConfig', value);
+      }),
+      this.about.subscribe(value => {
+        if (this.initialized) this.storage.set('about', value);
+      })
+    );
 
-      const playlists = await this.storage.get('playlists');
-      if (playlists !== null && playlists !== undefined) {
-        this.playlists.next(playlists);
-      } else {
-        this.playlists.next(defaultPlaylistsSettings);
-      }
+    this.initialized = true;
+  }
 
-      const subscriptions = await this.storage.get('subscriptions');
-      if (subscriptions !== null && subscriptions !== undefined) {
-        this.subscriptions.next(subscriptions);
-      } else {
-        this.subscriptions.next(defaultSubscriptionsSettings);
-      }
+  // Helper method to update settings programmatically
+  updateUserInfo(updates: Partial<UserInfoSettings>): void {
+    const current = this.userInfo.snappy;
+    this.userInfo.next({ ...current!, ...updates });
+  }
 
-      const apiConfig = await this.storage.get('apiConfig');
-      if (apiConfig !== null && apiConfig !== undefined) {
-        this.apiConfig.next(apiConfig);
-      } else {
-        this.apiConfig.next(defaultApiConfigSettings);
-      }
+  updateAppearance(updates: Partial<AppearanceSettings>): void {
+    const current = this.appearance.snappy;
+    this.appearance.next({ ...current!, ...updates });
+  }
 
-      const about = await this.storage.get('about');
-      if (about !== null && about !== undefined) {
-        this.about.next(about);
-      } else {
-        this.about.next(defaultAboutSettings);
-      }
-    });
+  updateChannelInfo(updates: Partial<ChannelInfoSettings>): void {
+    const current = this.channelInfo.snappy;
+    this.channelInfo.next({ ...current!, ...updates });
+  }
+
+  updateRegionLanguage(updates: Partial<RegionLanguageSettings>): void {
+    const current = this.regionLanguage.snappy;
+    this.regionLanguage.next({ ...current!, ...updates });
+  }
+
+  updatePlaylists(updates: Partial<PlaylistsSettings>): void {
+    const current = this.playlists.snappy;
+    this.playlists.next({ ...current!, ...updates });
+  }
+
+  updateSubscriptions(updates: Partial<SubscriptionsSettings>): void {
+    const current = this.subscriptions.snappy;
+    this.subscriptions.next({ ...current!, ...updates });
+  }
+
+  updateApiConfig(updates: Partial<ApiConfigSettings>): void {
+    const current = this.apiConfig.snappy;
+    this.apiConfig.next({ ...current!, ...updates });
+  }
+
+  updateAbout(updates: Partial<AboutSettings>): void {
+    const current = this.about.snappy;
+    this.about.next({ ...current!, ...updates });
+  }
+
+  // Reset methods
+  resetToDefaults(): void {
+    this.userInfo.next(defaultUserInfoSettings);
+    this.appearance.next(defaultAppearanceSettings);
+    this.channelInfo.next(defaultChannelInfoSettings);
+    this.regionLanguage.next(defaultRegionLanguageSettings);
+    this.playlists.next(defaultPlaylistsSettings);
+    this.subscriptions.next(defaultSubscriptionsSettings);
+    this.apiConfig.next(defaultApiConfigSettings);
+    this.about.next(defaultAboutSettings);
+  }
+
+  // Cleanup method
+  destroy(): void {
+    this.subs.forEach(sub => sub.unsubscribe());
+    this.subs = [];
   }
 }
