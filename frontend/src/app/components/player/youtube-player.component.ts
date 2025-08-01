@@ -12,24 +12,31 @@ import {
   Renderer2,
   ViewChild
 } from '@angular/core';
-import { createReplaySubject, ReplaySubject, Subscription, take } from '@actioncrew/streamix';
+import { createReplaySubject, ReplaySubject, Subscription, take, filter } from '@actioncrew/streamix';
 
 import { IonicModule } from '@ionic/angular';
 import { DirectiveModule } from 'src/app/directives';
+import { Settings } from 'src/app/services/settings.service';
+import { AppearanceSettings } from 'src/app/interfaces/settings';
 
 @Component({
   standalone: true,
   selector: 'youtube-player',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IonicModule, DirectiveModule],
-  template: ` <div
+  template: `
+    @if (!isHidden && appearanceSettings && appearanceSettings.visibleBackdrop) {
+      <div class="modal-backdrop"></div>
+    }
+
+    <div
       class="modal-container"
       [appDraggable]="draggable"
       [appResizable]="resizable"
       [preserveAspectRatio]="false"
       [class.with-border]="showBorder"
       [class.hidden]="isHidden"
-      >
+    >
       @if (draggable) {
         <div
           class="drag-overlay"
@@ -108,17 +115,25 @@ import { DirectiveModule } from 'src/app/directives';
         </div>`,
 
   styles: [`
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 1010;
+    }
+
     .modal-container {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 600px;
-      height: 375px;
+      height: 420px;
       background: #1a1a1a;
       padding: 16px;
       border-radius: 12px;
-      z-index: 1001;
+      z-index: 1011;
       pointer-events: auto;
       display: flex;
       flex-direction: column;
@@ -199,17 +214,28 @@ export class YoutubePlayerComponent implements AfterContentInit, OnDestroy {
   private player: YT.Player | null = null;
   private playerId = '';
   private hasEnded = false;
+  public appearanceSettings!: AppearanceSettings;
 
   private api: ReplaySubject<any> = createReplaySubject(1);
   private subs: Subscription[] = [];
 
-  constructor(private renderer: Renderer2, private zone: NgZone, private playerService: PlayerService) {
+  constructor(
+    private renderer: Renderer2,
+    private zone: NgZone,
+    private playerService: PlayerService,
+    private settings: Settings
+
+  ) {
     this.setupYouTubeApi();
   }
 
   ngAfterContentInit() {
     this.loadPlayerApi();
     this.initializePlayer();
+
+    this.subs.push(
+      this.settings.appearance.pipe(filter((value: any) => value)).subscribe(value => this.appearanceSettings = value)
+    );
   }
 
   selectVisualPreset() {
