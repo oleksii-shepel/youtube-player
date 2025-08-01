@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -104,13 +104,16 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                   </ion-button>
                 }
               </div>
-              <app-suggestions-dropdown
-                #suggestionsDropdown
-                [searchQuery]="searchQuery"
-                [appearanceSettings]="appearanceSettings"
-                [searchContainer]="searchContainer"
-                (suggestionSelected)="selectSuggestion($event)"
-              ></app-suggestions-dropdown>
+              @if (appearanceSettings) {
+                <app-suggestions-dropdown
+                  #suggestionsDropdown
+                  [searchQuery]="searchQuery"
+                  [appearanceSettings]="appearanceSettings"
+                  [searchContainer]="searchContainer"
+                  (suggestionSelected)="selectSuggestion($event)"
+                  (suggestionsChanged)="onSuggestionsChanged($event)"
+                ></app-suggestions-dropdown>
+              }
               <ion-popover
                 trigger="sort-button"
                 triggerAction="click"
@@ -301,13 +304,16 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
           </app-filter>
         </div>
       </div>
-      @if (appearanceSettings && appearanceSettings.autoComplete === 'chips') {
+
+      @if (appearanceSettings && appearanceSettings.autoComplete === 'chips' && suggestions.length > 0) {
         @for (suggestion of suggestions; track suggestion) {
-          <ion-chip (click)="selectSuggestion(suggestion)">
-            {{ suggestion }}
+          <ion-chip (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-label>{{ suggestion }}</ion-label>
           </ion-chip>
         }
       }
+
       <div class="adaptive-grid" [style.--thumbnail-max-width.px]="gridSize">
         @if (searchType === 'videos') { @for (video of searchResults['videos'];
         track video) {
@@ -388,7 +394,8 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   @ViewChild('googleLogInButton', { static: false }) googleLogInButton!: ElementRef<HTMLElement>;
-  @ViewChild('suggestionsDropdown') private suggestionsDropdown!: SuggestionsComponent;
+  @ViewChild('suggestionsDropdown') suggestionsDropdown!: SuggestionsComponent;
+  @ViewChild('suggestionsContainer', {read: ViewContainerRef}) suggestionsContainer!: ViewContainerRef;
 
   constructor(
     private dataService: YoutubeDataService,
@@ -456,6 +463,10 @@ export class SearchPage implements AfterViewInit, OnDestroy {
 
   onInvalidQuery(): void {
     this.queryInvalid = false;
+  }
+
+  onSuggestionsChanged(suggestions: string[]) {
+    this.suggestions = suggestions;
   }
 
   clearSearch(event: Event): void {

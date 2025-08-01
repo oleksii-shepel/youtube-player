@@ -8,7 +8,8 @@ import {
   TemplateRef,
   ViewContainerRef,
   AfterViewInit,
-  OnDestroy
+  OnDestroy,
+  Renderer2
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
@@ -50,17 +51,6 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
         </div>
       }
     </ng-template>
-
-    @if (appearanceSettings && appearanceSettings.autoComplete === 'chips' && suggestions.length > 0) {
-      <ng-template class="suggestions-chips" #chipsTpl>
-        @for (suggestion of suggestions; track suggestion) {
-          <ion-chip (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)">
-            <ion-icon name="search-outline"></ion-icon>
-            <ion-label>{{ suggestion }}</ion-label>
-          </ion-chip>
-        }
-      </ng-template>
-    }
   `,
   styles: [`
     .suggestions-dropdown {
@@ -155,6 +145,7 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   @Input() searchContainer!: HTMLElement;
   @Input() suggestionsContainer!: ViewContainerRef;
   @Output() suggestionSelected = new EventEmitter<string>();
+  @Output() suggestionsChanged = new EventEmitter<string[]>();
 
   public suggestions: string[] = [];
   public selectedSuggestionIndex: number = -1;
@@ -170,15 +161,18 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
-    private viewContainerRef: ViewContainerRef
+    private viewContainerRef: ViewContainerRef,
+    private renderer: Renderer2
   ) {}
 
   ngAfterViewInit(): void {
-    this.portalViewRef = this.dropdownTpl.createEmbeddedView({});
-    this.viewContainerRef.insert(this.portalViewRef);
-    const rootNode = this.portalViewRef.rootNodes[0];
-    if (rootNode) {
-      document.body.appendChild(rootNode);
+    if (this.appearanceSettings?.autoComplete === 'dropdown') {
+      this.portalViewRef = this.dropdownTpl.createEmbeddedView({});
+      this.viewContainerRef.insert(this.portalViewRef);
+      const rootNode = this.portalViewRef.rootNodes[0];
+      if (rootNode) {
+        document.body.appendChild(rootNode);
+      }
     }
 
     this.setupStreams();
@@ -205,6 +199,7 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
           this.suggestions = suggestions;
           this.dropdownOpen$.next(suggestions.length > 0);
           this.selectedSuggestionIndex = -1;
+          this.suggestionsChanged.emit(suggestions);
         }),
 
       merge(
