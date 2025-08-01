@@ -153,7 +153,6 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   private readonly destroy$ = createSubject<void>();
   private readonly queryChanged$ = createBehaviorSubject<string>("");
   private subscriptions: Subscription[] = [];
-  private previousMode?: string;
 
   get shouldShowDropdown(): boolean {
     return this.appearanceSettings?.autoComplete === 'dropdown' &&
@@ -163,7 +162,6 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
-    private renderer: Renderer2,
     private cdr: ChangeDetectorRef
   ) {}
 
