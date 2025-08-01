@@ -50,8 +50,6 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                   [(ngModel)]="searchQuery"
                   placeholder="Enter search query"
                   (ionInput)="onQueryChanged($event)"
-                  (ionFocus)="suggestionsDropdown.onFocus()"
-                  (ionBlur)="suggestionsDropdown.onBlur()"
                   (keydown)="suggestionsDropdown.onKeydown($event); onKeydown($event);"
                   [class.disabled]="filters.trending && searchType === 'videos'"
                   [class.invalid]="queryInvalid"
@@ -436,13 +434,6 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (this.suggestionsDropdown && !this.suggestionsDropdown.onDocumentClick(event)) {
-      return;
-    }
   }
 
   onKeydown(event: KeyboardEvent): void {

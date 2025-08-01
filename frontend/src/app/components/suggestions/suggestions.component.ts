@@ -1,14 +1,9 @@
 import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  Output,
-  ViewChild,
-  AfterViewInit,
-  OnDestroy,
-  Renderer2,
-  ChangeDetectorRef
+  Component, EventEmitter, Input, Output,
+  ViewChild, AfterViewInit, OnDestroy, Renderer2,
+  ChangeDetectorRef, TemplateRef, ApplicationRef,
+  ViewContainerRef, Inject,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
@@ -23,35 +18,29 @@ import {
 import { filter, map, switchMap, takeUntil } from '@actioncrew/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { AppearanceSettings } from 'src/app/interfaces/settings';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-suggestions-dropdown',
   template: `
-    @if (shouldShowDropdown) {
-      <div
-        class="suggestions-dropdown scrollable"
-        #suggestionsDropdown
-        [ngStyle]="dropdownStyle"
-      >
+    <ng-template #dropdownTemplate>
+      <div class="suggestions-dropdown scrollable"
+           [ngStyle]="dropdownStyle">
         <div class="suggestions-list">
           @for (suggestion of suggestions; track suggestion; let i = $index) {
-            <div
-              class="suggestion-item"
-              [class.selected]="i === selectedSuggestionIndex"
-              (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)"
-              (click)="selectSuggestion(suggestion)"
-            >
+            <div class="suggestion-item"
+                 [class.selected]="i === selectedSuggestionIndex"
+                 (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)">
               <ion-icon name="search-outline" size="small"></ion-icon>
               <span>{{ suggestion }}</span>
             </div>
           }
         </div>
       </div>
-    }
+    </ng-template>
   `,
   styles: [`
     .suggestions-dropdown {
-      position: fixed;
       margin-top: 8px;
       background: var(--ion-overlay-background);
       border: 1px solid var(--ion-border-color);
@@ -68,14 +57,8 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
     }
 
     @keyframes fadeInSlideUp {
-      from {
-        opacity: 0;
-        transform: translateY(-10px) scaleY(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scaleY(1);
-      }
+      from { opacity: 0; transform: translateY(-10px) scaleY(0.95); }
+      to { opacity: 1; transform: translateY(0) scaleY(1); }
     }
 
     .suggestions-list {
@@ -95,42 +78,11 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
       font-size: 0.95em;
     }
 
-    .suggestion-item ion-icon {
-      color: var(--ion-text-color-muted);
-      font-size: 1.1em;
-    }
-
     .suggestion-item:hover {
       background-color: var(--ion-item-background-hover);
-      color: var(--ion-text-color-heading);
     }
-
     .suggestion-item.selected {
       background-color: var(--ion-item-background-activated);
-      color: var(--ion-text-color-heading);
-      font-weight: 500;
-    }
-
-    .suggestion-item span {
-      flex-grow: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .suggestions-chips {
-      position: relative;
-      margin-top: 8px;
-      background: var(--ion-overlay-background);
-      border: 1px solid var(--ion-border-color);
-      border-radius: 12px;
-      box-shadow: 0 8px 20px var(--ion-box-shadow-color);
-      padding: 8px;
-      z-index: 1000;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      animation: fadeInSlideUp 0.2s forwards ease-out;
     }
   `],
   standalone: true,
@@ -143,34 +95,67 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   @Output() suggestionSelected = new EventEmitter<string>();
   @Output() suggestionsChanged = new EventEmitter<string[]>();
 
+  @ViewChild('dropdownTemplate') dropdownTemplate!: TemplateRef<any>;
+
   public suggestions: string[] = [];
   public selectedSuggestionIndex: number = -1;
   public dropdownStyle: any = {};
   public readonly dropdownOpen$ = createBehaviorSubject<boolean>(false);
 
-  @ViewChild('suggestionsDropdown') suggestionsDropdown!: ElementRef<HTMLElement>;
-
+  private dropdownElement: HTMLElement | null = null;
   private readonly destroy$ = createSubject<void>();
   private readonly queryChanged$ = createBehaviorSubject<string>("");
   private subscriptions: Subscription[] = [];
-
-  get shouldShowDropdown(): boolean {
-    return this.appearanceSettings?.autoComplete === 'dropdown' &&
-           this.dropdownOpen$.snappy &&
-           this.suggestions.length > 0;
-  }
+  private viewAttached = false;
 
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
-    private cdr: ChangeDetectorRef
+    private renderer: Renderer2,
+    private cdr: ChangeDetectorRef,
+    private viewContainerRef: ViewContainerRef,
+    private appRef: ApplicationRef,
+    @Inject(DOCUMENT) private document: Document
   ) {}
 
   ngAfterViewInit(): void {
+    this.createDropdownContainer();
     this.setupStreams();
 
     if (this.searchQuery.length >= 2) {
       this.queryChanged$.next(this.searchQuery);
     }
+  }
+
+  private createDropdownContainer(): void {
+    if (this.viewAttached) return;  // Prevent double attachment
+
+    this.dropdownElement = this.document.createElement('div');
+    this.document.body.appendChild(this.dropdownElement);
+
+    const viewRef = this.viewContainerRef.createEmbeddedView(this.dropdownTemplate);
+    viewRef.rootNodes.forEach(node => {
+      this.renderer.appendChild(this.dropdownElement, node);
+    });
+
+    this.viewAttached = true;
+  }
+
+  private cleanupDropdown(): void {
+    if (!this.viewAttached) return;
+
+    if (this.dropdownElement) {
+      this.document.body.removeChild(this.dropdownElement);
+      this.dropdownElement = null;
+    }
+
+    this.viewAttached = false;  // Mark as detached
+  }
+
+  ngOnDestroy(): void {
+    this.cleanupDropdown();
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   private setupStreams(): void {
@@ -186,6 +171,7 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
           this.suggestionsChanged.emit(suggestions);
           this.dropdownOpen$.next(suggestions.length > 0);
           this.selectedSuggestionIndex = -1;
+          this.positionDropdown();
           this.cdr.detectChanges();
         }),
 
@@ -194,17 +180,30 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
         this.dropdownOpen$
       )
         .pipe(
-          filter((value: boolean) => value),
           takeUntil(this.destroy$)
         )
         .subscribe(() => this.positionDropdown())
     );
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+  private positionDropdown(): void {
+    if (this.searchContainer && this.dropdownElement) {
+      const rect = this.searchContainer.getBoundingClientRect();
+
+      this.renderer.setStyle(this.dropdownElement, 'position', 'fixed');
+      this.renderer.setStyle(this.dropdownElement, 'top', `${rect.bottom + window.scrollY + 8}px`);
+      this.renderer.setStyle(this.dropdownElement, 'left', `${rect.left + window.scrollX}px`);
+      this.renderer.setStyle(this.dropdownElement, 'width', `${rect.width}px`);
+      this.renderer.setStyle(this.dropdownElement, 'z-index', '1000');
+      this.renderer.setStyle(this.dropdownElement, 'display',
+        this.shouldShowDropdown ? 'block' : 'none');
+    }
+  }
+
+  get shouldShowDropdown(): boolean {
+    return this.appearanceSettings?.autoComplete === 'dropdown' &&
+           this.dropdownOpen$.snappy &&
+           this.suggestions.length > 0;
   }
 
   updateQuery(query: string): void {
@@ -249,10 +248,26 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
           break;
         case 'Escape':
           this.dropdownOpen$.next(false);
-          this.selectedSuggestionIndex = -1;
           break;
       }
     }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const searchContainer = this.searchContainer;
+    const dropdownElement = this.dropdownElement;
+
+    if (searchContainer && dropdownElement && this.dropdownOpen$.snappy) {
+      if (!searchContainer.contains(event.target as Node) &&
+          !dropdownElement.contains(event.target as Node)) {
+        this.dropdownOpen$.next(false);
+      }
+    }
+  }
+
+  private fetchSuggestions(query: string): Stream<string[]> {
+    return this.googleSuggestionsService.getSuggestions(query);
   }
 
   onFocus(): void {
@@ -266,37 +281,5 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
       this.dropdownOpen$.next(false);
       this.selectedSuggestionIndex = -1;
     }, 150);
-  }
-
-  onDocumentClick(event: MouseEvent): boolean {
-    const searchContainer = this.searchContainer;
-    if (searchContainer &&
-        !searchContainer.contains(event.target as Node) &&
-        this.dropdownOpen$.snappy) {
-      this.dropdownOpen$.next(false);
-      return false;
-    }
-    return true;
-  }
-
-  private positionDropdown(): void {
-    if (this.searchContainer && this.dropdownOpen$.snappy) {
-      requestAnimationFrame(() => {
-        const rect = this.searchContainer.getBoundingClientRect();
-        this.dropdownStyle = {
-          position: 'fixed',
-          top: `${rect.bottom + 8}px`,
-          left: `${rect.left}px`,
-          width: `${rect.width}px`,
-          zIndex: '1000',
-        };
-      });
-    } else {
-      this.dropdownStyle = {};
-    }
-  }
-
-  private fetchSuggestions(query: string): Stream<string[]> {
-    return this.googleSuggestionsService.getSuggestions(query);
   }
 }
