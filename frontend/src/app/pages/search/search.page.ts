@@ -110,7 +110,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                   [searchQuery]="searchQuery"
                   [appearanceSettings]="appearanceSettings"
                   [searchContainer]="searchContainer"
-                  (suggestionSelected)="selectSuggestion($event)"
+                  (suggestionSelected)="onSuggestionSelected($event)"
                   (suggestionsChanged)="onSuggestionsChanged($event)"
                 ></app-suggestions-dropdown>
               }
@@ -307,7 +307,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
 
       @if (appearanceSettings && appearanceSettings.autoComplete === 'chips' && suggestions.length > 0) {
         @for (suggestion of suggestions; track suggestion) {
-          <ion-chip (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)">
+          <ion-chip (mousedown)="$event.preventDefault(); onSuggestionSelected(suggestion)">
             <ion-icon name="search-outline"></ion-icon>
             <ion-label>{{ suggestion }}</ion-label>
           </ion-chip>
@@ -475,7 +475,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     this.onSearchQueryChange({ detail: { value: '' } } as CustomEvent);
   }
 
-  selectSuggestion(suggestion: string): void {
+  onSuggestionSelected(suggestion: string): void {
     this.searchQuery = suggestion;
     this.suggestions = [];
     if (this.appearanceSettings?.displayResults === 'change') {
