@@ -49,7 +49,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                   id="search-input"
                   [(ngModel)]="searchQuery"
                   placeholder="Enter search query"
-                  (ionInput)="onSearchQueryChange($event)"
+                  (ionInput)="onQueryChanged($event)"
                   (ionFocus)="suggestionsDropdown.onFocus()"
                   (ionBlur)="suggestionsDropdown.onBlur()"
                   (keydown)="suggestionsDropdown.onKeydown($event); onKeydown($event);"
@@ -455,7 +455,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     }
   }
 
-  onSearchQueryChange(event: CustomEvent): void {
+  onQueryChanged(event: CustomEvent): void {
     const query = (event.detail.value || '').trim();
     this.queryInvalid = false;
     this.suggestionsDropdown.updateQuery(query);
@@ -472,7 +472,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   clearSearch(event: Event): void {
     event.preventDefault();
     this.searchQuery = '';
-    this.onSearchQueryChange({ detail: { value: '' } } as CustomEvent);
+    this.onQueryChanged({ detail: { value: '' } } as CustomEvent);
   }
 
   onSuggestionSelected(suggestion: string): void {

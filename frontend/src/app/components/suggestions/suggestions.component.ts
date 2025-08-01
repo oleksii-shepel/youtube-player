@@ -5,11 +5,10 @@ import {
   Input,
   Output,
   ViewChild,
-  TemplateRef,
-  ViewContainerRef,
   AfterViewInit,
   OnDestroy,
-  Renderer2
+  Renderer2,
+  ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
@@ -28,29 +27,27 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
 @Component({
   selector: 'app-suggestions-dropdown',
   template: `
-    <ng-template #dropdownTpl>
-      @if (appearanceSettings && appearanceSettings.autoComplete === 'dropdown' && dropdownOpen$.snappy && suggestions.length > 0) {
-        <div
-          class="suggestions-dropdown scrollable"
-          #suggestionsDropdown
-          [ngStyle]="dropdownStyle"
-        >
-          <div class="suggestions-list">
-            @for (suggestion of suggestions; track suggestion; let i = $index) {
-              <div
-                class="suggestion-item"
-                [class.selected]="i === selectedSuggestionIndex"
-                (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)"
-                (click)="selectSuggestion(suggestion)"
-              >
-                <ion-icon name="search-outline" size="small"></ion-icon>
-                <span>{{ suggestion }}</span>
-              </div>
-            }
-          </div>
+    @if (shouldShowDropdown) {
+      <div
+        class="suggestions-dropdown scrollable"
+        #suggestionsDropdown
+        [ngStyle]="dropdownStyle"
+      >
+        <div class="suggestions-list">
+          @for (suggestion of suggestions; track suggestion; let i = $index) {
+            <div
+              class="suggestion-item"
+              [class.selected]="i === selectedSuggestionIndex"
+              (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)"
+              (click)="selectSuggestion(suggestion)"
+            >
+              <ion-icon name="search-outline" size="small"></ion-icon>
+              <span>{{ suggestion }}</span>
+            </div>
+          }
         </div>
-      }
-    </ng-template>
+      </div>
+    }
   `,
   styles: [`
     .suggestions-dropdown {
@@ -143,7 +140,6 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   @Input() searchQuery: string = '';
   @Input() appearanceSettings!: AppearanceSettings;
   @Input() searchContainer!: HTMLElement;
-  @Input() suggestionsContainer!: ViewContainerRef;
   @Output() suggestionSelected = new EventEmitter<string>();
   @Output() suggestionsChanged = new EventEmitter<string[]>();
 
@@ -152,38 +148,30 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   public dropdownStyle: any = {};
   public readonly dropdownOpen$ = createBehaviorSubject<boolean>(false);
 
-  @ViewChild('dropdownTpl') dropdownTpl!: TemplateRef<any>;
   @ViewChild('suggestionsDropdown') suggestionsDropdown!: ElementRef<HTMLElement>;
 
-  private portalViewRef: any;
   private readonly destroy$ = createSubject<void>();
   private readonly queryChanged$ = createBehaviorSubject<string>("");
   private subscriptions: Subscription[] = [];
+  private previousMode?: string;
+
+  get shouldShowDropdown(): boolean {
+    return this.appearanceSettings?.autoComplete === 'dropdown' &&
+           this.dropdownOpen$.snappy &&
+           this.suggestions.length > 0;
+  }
+
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
-    private viewContainerRef: ViewContainerRef,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngAfterViewInit(): void {
-    if (this.appearanceSettings?.autoComplete === 'dropdown') {
-      this.portalViewRef = this.dropdownTpl.createEmbeddedView({});
-      this.viewContainerRef.insert(this.portalViewRef);
-      const rootNode = this.portalViewRef.rootNodes[0];
-      if (rootNode) {
-        document.body.appendChild(rootNode);
-      }
-    }
-
     this.setupStreams();
-  }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-
-    if (this.portalViewRef) {
-      this.portalViewRef.destroy();
+    if (this.searchQuery.length >= 2) {
+      this.queryChanged$.next(this.searchQuery);
     }
   }
 
@@ -197,9 +185,10 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
         )
         .subscribe((suggestions) => {
           this.suggestions = suggestions;
+          this.suggestionsChanged.emit(suggestions);
           this.dropdownOpen$.next(suggestions.length > 0);
           this.selectedSuggestionIndex = -1;
-          this.suggestionsChanged.emit(suggestions);
+          this.cdr.detectChanges();
         }),
 
       merge(
@@ -212,10 +201,12 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
         )
         .subscribe(() => this.positionDropdown())
     );
+  }
 
-    if (this.searchQuery.length >= 2) {
-      this.queryChanged$.next(this.searchQuery);
-    }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   updateQuery(query: string): void {
@@ -281,11 +272,9 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
 
   onDocumentClick(event: MouseEvent): boolean {
     const searchContainer = this.searchContainer;
-    if (
-      searchContainer &&
-      !searchContainer.contains(event.target as Node) &&
-      this.dropdownOpen$.snappy
-    ) {
+    if (searchContainer &&
+        !searchContainer.contains(event.target as Node) &&
+        this.dropdownOpen$.snappy) {
       this.dropdownOpen$.next(false);
       return false;
     }
@@ -296,7 +285,6 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
     if (this.searchContainer && this.dropdownOpen$.snappy) {
       requestAnimationFrame(() => {
         const rect = this.searchContainer.getBoundingClientRect();
-
         this.dropdownStyle = {
           position: 'fixed',
           top: `${rect.bottom + 8}px`,
