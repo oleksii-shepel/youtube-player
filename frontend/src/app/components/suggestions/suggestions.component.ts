@@ -214,7 +214,7 @@ export class SuggestionsDropdownComponent implements AfterViewInit, OnDestroy {
     this.selectedSuggestionIndex = -1;
   }
 
-  handleKeydown(event: KeyboardEvent): void {
+  onKeydown(event: KeyboardEvent): void {
     if (this.dropdownOpen$.snappy) {
       switch (event.key) {
         case 'ArrowDown':
@@ -245,20 +245,20 @@ export class SuggestionsDropdownComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  handleFocus(): void {
+  onFocus(): void {
     if (this.suggestions.length > 0 && this.searchQuery.trim().length > 2) {
       this.dropdownOpen$.next(true);
     }
   }
 
-  handleBlur(): void {
+  onBlur(): void {
     setTimeout(() => {
       this.dropdownOpen$.next(false);
       this.selectedSuggestionIndex = -1;
     }, 150);
   }
 
-  handleDocumentClick(event: MouseEvent): boolean {
+  onDocumentClick(event: MouseEvent): boolean {
     const searchContainer = this.searchContainer;
     if (
       searchContainer &&

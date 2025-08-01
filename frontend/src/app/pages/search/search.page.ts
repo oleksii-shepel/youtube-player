@@ -38,7 +38,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                 class="search-container"
                 #searchContainer
                 [class.disabled]="filters.trending && searchType === 'videos'"
-                (animationend)="onAnimationEnd()"
+                (animationend)="onInvalidQuery()"
               >
                 <ion-icon
                   name="search-outline"
@@ -51,9 +51,9 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                   [(ngModel)]="searchQuery"
                   placeholder="Enter search query"
                   (ionInput)="onSearchQueryChange($event)"
-                  (ionFocus)="suggestionsDropdown.handleFocus()"
-                  (ionBlur)="suggestionsDropdown.handleBlur()"
-                  (keydown)="suggestionsDropdown.handleKeydown($event)"
+                  (ionFocus)="suggestionsDropdown.onFocus()"
+                  (ionBlur)="suggestionsDropdown.onBlur()"
+                  (keydown)="suggestionsDropdown.onKeydown($event); onKeydown($event);"
                   [class.disabled]="filters.trending && searchType === 'videos'"
                   [class.invalid]="queryInvalid"
                 ></ion-input>
@@ -436,9 +436,19 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   }
 
   @HostListener('document:click', ['$event'])
-  handleDocumentClick(event: MouseEvent): void {
-    if (!this.suggestionsDropdown.handleDocumentClick(event)) {
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.suggestionsDropdown.onDocumentClick(event)) {
       return;
+    }
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    // Handle keyboard navigation for suggestions
+    if (event.key === 'Enter') {
+      // If dropdown is not open, trigger search on Enter
+      if (this.appearanceSettings?.displayResults === 'change') {
+        this.performSearch();
+      }
     }
   }
 
@@ -448,7 +458,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     this.suggestionsDropdown.updateQuery(query);
   }
 
-  onAnimationEnd(): void {
+  onInvalidQuery(): void {
     this.queryInvalid = false;
   }
 
