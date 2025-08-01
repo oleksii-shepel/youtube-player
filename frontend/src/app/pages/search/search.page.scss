@@ -105,7 +105,16 @@ ion-content.main ion-item {
   font-size: 1.5rem;
 }
 
+ion-title {
+  font-size: 1.2em;
+}
+
+ion-input {
+  font-size: 1em;
+}
+
 .search-container ion-button {
+  font-size: 0.85em;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -228,6 +237,7 @@ ion-avatar {
 }
 
 ion-segment-button {
+  font-size: 0.85em;
   --color: var(--ion-color-secondary);
   --color-checked: var(--ion-color-secondary-tint);
 }
