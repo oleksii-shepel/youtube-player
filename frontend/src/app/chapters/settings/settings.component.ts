@@ -153,6 +153,35 @@ export class SettingsChapter implements OnInit {
     this.saveAppearanceSettings();
   }
 
+  onFontSizeChange() {
+    this.theme.setRootFontSize(this.appearanceSettings.fontSize);
+    this.saveAppearanceSettings();
+  }
+
+  onThumbnailSizeChange() {
+    this.saveAppearanceSettings();
+  }
+
+  onAutoCompleteChange() {
+    this.saveAppearanceSettings();
+  }
+
+  onDisplayDescriptionChange() {
+    this.saveAppearanceSettings();
+  }
+
+  onBackdropChange() {
+    this.saveAppearanceSettings();
+  }
+
+  onDisplayResultsChange() {
+    this.saveAppearanceSettings();
+  }
+
+  onMaxItemsPerRequestChange() {
+    this.saveAppearanceSettings();
+  }
+
   getSectionTitle(): string {
     const sectionTitles: { [key: string]: string } = {
       'channel-info': 'Channel Info',

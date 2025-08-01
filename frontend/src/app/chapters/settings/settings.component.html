@@ -166,7 +166,7 @@
           <ion-item>
             <ion-icon name="text-outline" slot="start"></ion-icon>
             <ion-label>Font Size</ion-label>
-            <ion-select [(ngModel)]="appearanceSettings.fontSize" (ionChange)="saveAppearanceSettings()" interface="popover">
+            <ion-select [(ngModel)]="appearanceSettings.fontSize" (ionChange)="onFontSizeChange()" interface="popover">
               <ion-select-option value="small">Small</ion-select-option>
               <ion-select-option value="medium">Medium</ion-select-option>
               <ion-select-option value="large">Large</ion-select-option>
@@ -175,7 +175,7 @@
           <ion-item>
             <ion-icon name="image-outline" slot="start"></ion-icon>
             <ion-label>Thumbnail Size</ion-label>
-            <ion-select [(ngModel)]="appearanceSettings.thumbnailSize" (ionChange)="saveAppearanceSettings()" interface="popover">
+            <ion-select [(ngModel)]="appearanceSettings.thumbnailSize" (ionChange)="onThumbnailSizeChange()" interface="popover">
               <ion-select-option value="small">Small</ion-select-option>
               <ion-select-option value="medium">Medium</ion-select-option>
               <ion-select-option value="large">Large</ion-select-option>
@@ -184,7 +184,7 @@
           <ion-item>
             <ion-icon name="search-outline" slot="start"></ion-icon>
             <ion-label>Search Suggestions</ion-label>
-            <ion-select [(ngModel)]="appearanceSettings.autoComplete" (ionChange)="saveAppearanceSettings()" interface="popover">
+            <ion-select [(ngModel)]="appearanceSettings.autoComplete" (ionChange)="onAutoCompleteChange()" interface="popover">
               <ion-select-option value="chips">Chips</ion-select-option>
               <ion-select-option value="dropdown">Dropdown</ion-select-option>
             </ion-select>
@@ -192,17 +192,17 @@
           <ion-item>
             <ion-icon name="document-text-outline" slot="start"></ion-icon>
             <ion-label>Show Descriptions</ion-label>
-            <ion-toggle [(ngModel)]="appearanceSettings.displayDescription" (ionChange)="saveAppearanceSettings()"></ion-toggle>
+            <ion-toggle [(ngModel)]="appearanceSettings.displayDescription" (ionChange)="onDisplayDescriptionChange()"></ion-toggle>
           </ion-item>
           <ion-item>
             <ion-icon name="layers-outline" slot="start"></ion-icon>
             <ion-label>Show Backdrop Effects</ion-label>
-            <ion-toggle [(ngModel)]="appearanceSettings.visibleBackdrop" (ionChange)="saveAppearanceSettings()"></ion-toggle>
+            <ion-toggle [(ngModel)]="appearanceSettings.visibleBackdrop" (ionChange)="onBackdropChange()"></ion-toggle>
           </ion-item>
           <ion-item>
             <ion-icon name="search-outline" slot="start"></ion-icon>
             <ion-label>Display Results</ion-label>
-            <ion-select [(ngModel)]="appearanceSettings.displayResults" (ionChange)="saveAppearanceSettings()" interface="popover">
+            <ion-select [(ngModel)]="appearanceSettings.displayResults" (ionChange)="onDisplayResultsChange()" interface="popover">
               <ion-select-option value="change">On Change</ion-select-option>
               <ion-select-option value="search">On Search</ion-select-option>
             </ion-select>
@@ -210,7 +210,7 @@
           <ion-item>
             <ion-icon name="server-outline" slot="start"></ion-icon>
             <ion-label>Max Items per Request</ion-label>
-            <ion-select [(ngModel)]="appearanceSettings.maxItemsPerRequest" (ionChange)="saveAppearanceSettings()" interface="popover">
+            <ion-select [(ngModel)]="appearanceSettings.maxItemsPerRequest" (ionChange)="onMaxItemsPerRequestChange()" interface="popover">
               <ion-select-option value="5">5</ion-select-option>
               <ion-select-option value="10">10</ion-select-option>
               <ion-select-option value="25">25</ion-select-option>
