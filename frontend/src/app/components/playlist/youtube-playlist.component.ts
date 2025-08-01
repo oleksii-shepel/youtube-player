@@ -2,7 +2,7 @@ import { IonicModule } from '@ionic/angular';
 import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
+import { YoutubeVideoComponent } from '../video/youtube-video.component';
 import { Router } from '@angular/router';
 import { YouTubePlaylist } from 'src/app/interfaces/playlist';
 import { AppFontSize } from 'src/app/interfaces/settings';

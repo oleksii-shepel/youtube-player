@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output } from '@angular/core';
 
 import { ShrinkNumberPipe } from '../../pipes/shrink-number.pipe';
-import { YoutubeVideoComponent } from '../youtube-video/youtube-video.component';
+import { YoutubeVideoComponent } from '../video/youtube-video.component';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { YouTubeChannel } from 'src/app/interfaces/channel';

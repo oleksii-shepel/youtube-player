@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { YoutubeVideoComponent } from '../../components/youtube-video/youtube-video.component';
+import { YoutubeVideoComponent } from '../../components/video/youtube-video.component';
 import { of, Subscription } from '@actioncrew/streamix';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { map, switchMap } from '@actioncrew/streamix';
@@ -19,7 +19,7 @@ import { map, switchMap } from '@actioncrew/streamix';
         <ion-title>{{ playlist?.snippet?.title || 'Playlist' }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    
+
     <ion-content class="playlist-page">
       <div class="playlist-container scrollable">
         <!-- Playlist Header Section -->
@@ -63,7 +63,7 @@ import { map, switchMap } from '@actioncrew/streamix';
             </div>
           </ion-card>
         }
-    
+
         <!-- Videos Grid -->
         @if (videos.length > 0) {
           <div class="videos-grid">
@@ -81,7 +81,7 @@ import { map, switchMap } from '@actioncrew/streamix';
             }
           </div>
         }
-    
+
         <ion-infinite-scroll (ionInfinite)="loadMore()">
           <ion-infinite-scroll-content
             loadingSpinner="bubbles"
@@ -91,7 +91,7 @@ import { map, switchMap } from '@actioncrew/streamix';
         </ion-infinite-scroll>
       </div>
     </ion-content>
-    
+
     @if (selectedVideoIds.size > 0) {
       <ion-footer>
         <ion-toolbar>

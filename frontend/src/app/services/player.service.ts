@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { YoutubePlayerComponent } from "../components/youtube-player/youtube-player.component";
+import { YoutubePlayerComponent } from "../components/player/youtube-player.component";
 import { createBehaviorSubject } from "@actioncrew/streamix";
 
 @Injectable({

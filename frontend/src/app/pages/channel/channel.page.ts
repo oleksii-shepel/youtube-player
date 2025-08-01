@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { YoutubePlaylistComponent } from '../../components/youtube-playlist/youtube-playlist.component';
+import { YoutubePlaylistComponent } from '../../components/playlist/youtube-playlist.component';
 import { Subscription } from '@actioncrew/streamix';
 
 @Component({
@@ -17,7 +17,7 @@ import { Subscription } from '@actioncrew/streamix';
         <ion-title>{{ channel?.snippet.title || 'Channel' }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    
+
     <ion-content class="channel-page">
       <div class="scrollable">
         @if (isLoadingChannel) {
@@ -44,11 +44,11 @@ import { Subscription } from '@actioncrew/streamix';
             </ion-card>
           }
         }
-    
-    
+
+
         <ion-list class="playlists">
           <ion-list-header>Playlists</ion-list-header>
-    
+
           @if (isLoadingPlaylists) {
             @for (i of [1,2,3]; track i) {
               <ion-item lines="none">
@@ -68,8 +68,8 @@ import { Subscription } from '@actioncrew/streamix';
               }
             </div>
           }
-    
-    
+
+
         </ion-list>
       </div>
     </ion-content>

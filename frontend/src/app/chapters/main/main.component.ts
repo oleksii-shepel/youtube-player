@@ -9,11 +9,11 @@ import {
   ElementRef,
 } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
-import { YoutubePlayerComponent } from '../../components/youtube-player/youtube-player.component';
+import { YoutubePlayerComponent } from '../../components/player/youtube-player.component';
 import { Subscription } from '@actioncrew/streamix';
 import { PlayerService } from 'src/app/services/player.service';
 import { RecorderService } from 'src/app/services/recorder.service';
-import { PlaylistComponent } from '../../components/playlist/playlist.component';
+import { PlaylistComponent } from '../../components/sidebar/playlist.component';
 import { RecorderComponent } from '../../components/recorder/recorder.component';
 import { RouterModule } from '@angular/router';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
