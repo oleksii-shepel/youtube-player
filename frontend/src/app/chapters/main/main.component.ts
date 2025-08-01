@@ -135,8 +135,6 @@ export class MainChapter implements AfterViewInit, OnDestroy {
         this.isOverlayMenuVisible = false;
       });
     }
-
-    await this.theme.initTheme()
   }
 
   disableDragOverlay() {

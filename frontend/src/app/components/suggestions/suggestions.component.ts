@@ -50,6 +50,17 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
         </div>
       }
     </ng-template>
+
+    @if (appearanceSettings && appearanceSettings.autoComplete === 'chips' && suggestions.length > 0) {
+      <ng-template class="suggestions-chips" #chipsTpl>
+        @for (suggestion of suggestions; track suggestion) {
+          <ion-chip (mousedown)="$event.preventDefault(); selectSuggestion(suggestion)">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-label>{{ suggestion }}</ion-label>
+          </ion-chip>
+        }
+      </ng-template>
+    }
   `,
   styles: [`
     .suggestions-dropdown {
@@ -119,14 +130,30 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    .suggestions-chips {
+      position: relative;
+      margin-top: 8px;
+      background: var(--ion-overlay-background);
+      border: 1px solid var(--ion-border-color);
+      border-radius: 12px;
+      box-shadow: 0 8px 20px var(--ion-box-shadow-color);
+      padding: 8px;
+      z-index: 1000;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      animation: fadeInSlideUp 0.2s forwards ease-out;
+    }
   `],
   standalone: true,
   imports: [CommonModule, IonicModule]
 })
-export class SuggestionsDropdownComponent implements AfterViewInit, OnDestroy {
+export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   @Input() searchQuery: string = '';
   @Input() appearanceSettings!: AppearanceSettings;
   @Input() searchContainer!: HTMLElement;
+  @Input() suggestionsContainer!: ViewContainerRef;
   @Output() suggestionSelected = new EventEmitter<string>();
 
   public suggestions: string[] = [];
@@ -147,7 +174,6 @@ export class SuggestionsDropdownComponent implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit(): void {
-    // Render dropdown to body using a portal
     this.portalViewRef = this.dropdownTpl.createEmbeddedView({});
     this.viewContainerRef.insert(this.portalViewRef);
     const rootNode = this.portalViewRef.rootNodes[0];

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,9 +9,8 @@ import { YoutubeVideoComponent } from 'src/app/components/video/youtube-video.co
 import { YoutubePlaylistComponent } from 'src/app/components/playlist/youtube-playlist.component';
 import { YoutubeChannelComponent } from 'src/app/components/channel/youtube-channel.component';
 import { FilterComponent } from 'src/app/components/filter/filter.component';
-import { SuggestionsDropdownComponent } from 'src/app/components/suggestions/suggestions.component';
+import { SuggestionsComponent } from 'src/app/components/suggestions/suggestions.component';
 import { DirectiveModule } from 'src/app/directives';
-import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { YoutubeDataService } from 'src/app/services/data.service';
 import { Authorization } from 'src/app/services/authorization.service';
@@ -355,7 +354,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
     YoutubePlaylistComponent,
     YoutubeChannelComponent,
     FilterComponent,
-    SuggestionsDropdownComponent
+    SuggestionsComponent
   ],
 })
 export class SearchPage implements AfterViewInit, OnDestroy {
@@ -380,7 +379,6 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   public showSearchInput: boolean = false;
   public appearanceSettings!: AppearanceSettings;
   private lastSearchQuery: string = '';
-  private lastSearchType: string = '';
   public readonly queryChanged$ = createSubject<string>();
   private readonly destroy$ = createSubject<void>();
   public readonly auth$ = this.authorization.authSubject;
@@ -390,10 +388,9 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   @ViewChild('googleLogInButton', { static: false }) googleLogInButton!: ElementRef<HTMLElement>;
-  @ViewChild('suggestionsDropdown') private suggestionsDropdown!: SuggestionsDropdownComponent;
+  @ViewChild('suggestionsDropdown') private suggestionsDropdown!: SuggestionsComponent;
 
   constructor(
-    private googleSuggestionsService: GoogleSuggestionsService,
     private dataService: YoutubeDataService,
     private playlistService: PlaylistService,
     private playerService: PlayerService,
@@ -401,8 +398,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     private authorization: Authorization,
     private toastCtrl: ToastController,
     private router: Router,
-    private settings: Settings,
-    private cdr: ChangeDetectorRef
+    private settings: Settings
   ) {}
 
   ngAfterViewInit(): void {
@@ -437,7 +433,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.suggestionsDropdown.onDocumentClick(event)) {
+    if (this.suggestionsDropdown && !this.suggestionsDropdown.onDocumentClick(event)) {
       return;
     }
   }
@@ -480,7 +476,6 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     const params = this.buildSearchParams();
     this.queryInvalid = false;
     this.lastSearchQuery = this.searchQuery.trim();
-    this.lastSearchType = this.searchType;
 
     if (!this.filters.trending && this.lastSearchQuery === '') {
       this.queryInvalid = true;
