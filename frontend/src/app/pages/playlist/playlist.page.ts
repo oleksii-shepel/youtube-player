@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { YoutubeVideoComponent } from '../../components/video/youtube-video.component';
+import { YoutubeVideoComponent } from '../../components/video/video.component';
 import { of, Subscription } from '@actioncrew/streamix';
 import { PlaylistService } from 'src/app/services/playlist.service';
 import { map, switchMap } from '@actioncrew/streamix';

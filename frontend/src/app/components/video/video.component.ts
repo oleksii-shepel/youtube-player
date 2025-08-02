@@ -51,7 +51,7 @@ import { AppFontSize, AppThumbnailSize } from 'src/app/interfaces/settings';
       }
     </div>
     `,
-  styleUrls: ['./youtube-video.component.scss'],
+  styleUrls: ['./video.component.scss'],
   standalone: true,
   imports: [CommonModule, IonicModule, ToFriendlyDurationPipe, ShrinkNumberPipe],
 })
