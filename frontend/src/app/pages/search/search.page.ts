@@ -117,7 +117,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                 triggerAction="click"
                 [dismissOnSelect]="true"
                 showBackdrop="false"
-                class="scrollable"
+                class="scrollable popover"
               >
                 <ng-template>
                   <ion-list>
@@ -213,7 +213,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                 triggerAction="click"
                 [dismissOnSelect]="true"
                 showBackdrop="false"
-                class="scrollable"
+                class="scrollable popover"
               >
                 <ng-template>
                   <ion-list>

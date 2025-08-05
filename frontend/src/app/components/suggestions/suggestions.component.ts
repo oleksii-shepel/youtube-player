@@ -130,7 +130,10 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
     if (this.viewAttached) return;  // Prevent double attachment
 
     this.dropdownElement = this.document.createElement('div');
-    this.document.body.appendChild(this.dropdownElement);
+    const appRoot = this.document.querySelector('ion-app');
+    if (appRoot) {
+      appRoot.appendChild(this.dropdownElement);
+    };
 
     const viewRef = this.viewContainerRef.createEmbeddedView(this.dropdownTemplate);
     viewRef.rootNodes.forEach(node => {
