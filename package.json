@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@actioncrew/actionstack": "^3.0.7",
-    "@actioncrew/streamix": "^2.0.17",
+    "@actioncrew/streamix": "^2.0.18",
     "@angular/animations": "^20.1.4",
     "@angular/cdk": "^20.1.4",
     "@angular/common": "^20.1.4",

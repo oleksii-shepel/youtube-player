@@ -30,7 +30,7 @@ export class YoutubeDataService {
 
     return fromPromise(this.buildHttpParams(queryParams)).pipe(
       switchMap((params: Record<string, string>) =>
-        this.http.get(url, readJson, { params }).pipe(
+        this.http.get(url, { params }, readJson).pipe(
           map((response: any) => ({
             ...response,
             nextPageToken: response.nextPageToken,
@@ -403,12 +403,12 @@ export class YoutubeDataService {
     };
 
     // Must use OAuth-based HTTP client, not API key
-    return this.http.get(`${this.baseUrl}/videos`, readJson, {
+    return this.http.get(`${this.baseUrl}/videos`, {
       ...params,
       headers: {
         Authorization: `Bearer ${environment.youtube.apiKey}`
       }
-    }).pipe(
+    }, readJson).pipe(
       map((response: any) => ({
         ...response,
         nextPageToken: response.nextPageToken,

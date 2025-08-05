@@ -30,13 +30,13 @@ export class Helper {
 
   /** 🧑‍🎤 Get current user's channel */
   getMyChannel(): Stream<any> {
-    return this.http.get(`${this.baseUrl}/channels`, readJson, {
+    return this.http.get(`${this.baseUrl}/channels`, {
       params: {
         part: 'snippet,statistics,brandingSettings',
         mine: 'true'
       },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** 📺 List user's playlists */
@@ -50,10 +50,10 @@ export class Helper {
       params.pageToken = pageToken;
     }
 
-    return this.http.get(`${this.baseUrl}/playlists`, readJson, {
+    return this.http.get(`${this.baseUrl}/playlists`, {
       params,
       headers: this.authHeaders(),
-    });
+    }, readJson);
   }
 
   /** 📄 List user's subscriptions with pagination */
@@ -68,15 +68,15 @@ export class Helper {
       params.pageToken = pageToken;
     }
 
-    return this.http.get(`${this.baseUrl}/subscriptions`, readJson, {
+    return this.http.get(`${this.baseUrl}/subscriptions`, {
       params,
       headers: this.authHeaders(),
-    });
+    }, readJson);
   }
 
   /** ➕ Create a playlist */
   createPlaylist(title: string, description = '', privacyStatus: 'private' | 'public' | 'unlisted' = 'private'): Stream<any> {
-    return this.http.post(`${this.baseUrl}/playlists?part=snippet,status`, readJson, {
+    return this.http.post(`${this.baseUrl}/playlists?part=snippet,status`, {
       body: {
         snippet: {
           title: title,
@@ -87,20 +87,20 @@ export class Helper {
         }
       },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** 🗑️ Delete a playlist */
   deletePlaylist(playlistId: string): Stream<any> {
-    return this.http.delete(`${this.baseUrl}/playlists`, readJson, {
+    return this.http.delete(`${this.baseUrl}/playlists`, {
       params: { id: playlistId },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** 🎞️ Add video to playlist */
   addVideoToPlaylist(videoId: string, playlistId: string): Stream<any> {
-    return this.http.post(`${this.baseUrl}/playlistItems`, readJson, {
+    return this.http.post(`${this.baseUrl}/playlistItems`, {
       body: {
         snippet: {
           playlistId,
@@ -111,24 +111,24 @@ export class Helper {
         }
       },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** 📄 List subscriptions */
   listSubscriptions(): Stream<any> {
-    return this.http.get(`${this.baseUrl}/subscriptions`, readJson, {
+    return this.http.get(`${this.baseUrl}/subscriptions`, {
       params: {
         part: 'snippet',
         mine: 'true',
         maxResults: '50'
       },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** ➕ Subscribe to a channel */
   subscribeToChannel(channelId: string): Stream<any> {
-    return this.http.post(`${this.baseUrl}/subscriptions`, readJson, {
+    return this.http.post(`${this.baseUrl}/subscriptions`, {
       body: {
         snippet: {
           resourceId: {
@@ -138,20 +138,20 @@ export class Helper {
         }
       },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** 🗑️ Unsubscribe from a channel */
   unsubscribe(subscriptionId: string): Stream<any> {
-    return this.http.delete(`${this.baseUrl}/subscriptions`, readJson, {
+    return this.http.delete(`${this.baseUrl}/subscriptions`, {
       params: { id: subscriptionId },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** 🆙 Upload video (stub for resumable upload) */
   initiateVideoUpload(title: string, description: string): Stream<any> {
-    return this.http.post(`${this.uploadUrl}/videos`, readJson, {
+    return this.http.post(`${this.uploadUrl}/videos`, {
       params: {
         uploadType: 'resumable',
         part: 'snippet,status'
@@ -164,12 +164,12 @@ export class Helper {
         ...this.authHeaders(),
         'X-Upload-Content-Type': 'video/*'
       }
-    });
+    }, readJson);
   }
 
   /** ✏️ Update video metadata */
   updateVideo(videoId: string, title: string, description: string): Stream<any> {
-    return this.http.put(`${this.baseUrl}/videos`, readJson, {
+    return this.http.put(`${this.baseUrl}/videos`, {
       params: {
         part: 'snippet'
       },
@@ -182,20 +182,21 @@ export class Helper {
         }
       },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** 🗑️ Delete video */
   deleteVideo(videoId: string): Stream<any> {
-    return this.http.delete(`${this.baseUrl}/videos`, readJson, {
+    return this.http.delete(`${this.baseUrl}/videos`, {
       params: { id: videoId },
       headers: this.authHeaders()
-    });
+    },
+    readJson);
   }
 
   /** 💬 Post a comment (optional, not full comment flow) */
   postComment(videoId: string, text: string): Stream<any> {
-    return this.http.post(`${this.baseUrl}/commentThreads`, readJson, {
+    return this.http.post(`${this.baseUrl}/commentThreads`, {
       body: {
         snippet: {
           videoId,
@@ -207,7 +208,7 @@ export class Helper {
         }
       },
       headers: this.authHeaders()
-    });
+    }, readJson);
   }
 
   /** 🌍 Detect user's region and language via geolocation and IP using http.get */
