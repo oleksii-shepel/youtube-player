@@ -107,7 +107,7 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   private readonly queryChanged$ = createBehaviorSubject<string>("");
   private subscriptions: Subscription[] = [];
   private viewAttached = false;
-
+  private const appRoot: HTMLElement | null = null;
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
     private renderer: Renderer2,
@@ -130,9 +130,9 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
     if (this.viewAttached) return;  // Prevent double attachment
 
     this.dropdownElement = this.document.createElement('div');
-    const appRoot = this.document.querySelector('ion-app');
-    if (appRoot) {
-      appRoot.appendChild(this.dropdownElement);
+    this.appRoot = this.document.querySelector('ion-app');
+    if (this.appRoot) {
+      this.appRoot.appendChild(this.dropdownElement);
     };
 
     const viewRef = this.viewContainerRef.createEmbeddedView(this.dropdownTemplate);
@@ -146,8 +146,9 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   private cleanupDropdown(): void {
     if (!this.viewAttached) return;
 
-    if (this.dropdownElement) {
-      this.document.body.removeChild(this.dropdownElement);
+    if (this.appRoot && this.dropdownElement) {
+      this.appRoot.removeChild(this.dropdownElement);
+      this.appRoot = null;
       this.dropdownElement = null;
     }
 
