@@ -50,6 +50,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                   [(ngModel)]="searchQuery"
                   placeholder="Enter search query"
                   (ionInput)="onQueryChanged($event)"
+                  (click)="suggestionsDropdown.dropdownOpen$.next(!suggestionsDropdown.dropdownOpen$.snappy)"
                   (keydown)="suggestionsDropdown.onKeydown($event); onKeydown($event);"
                   [class.disabled]="filters.trending && searchType === 'videos'"
                   [class.invalid]="queryInvalid"
