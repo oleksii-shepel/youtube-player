@@ -438,10 +438,19 @@ export class SearchPage implements AfterViewInit, OnDestroy {
 
   onKeydown(event: KeyboardEvent): void {
     // Handle keyboard navigation for suggestions
-    if (this.appearanceSettings.autoComplete === "dropdown") {
-      this.suggestionsDropdown.dropdownOpen$.next(false);
-    }
     if (event.key === 'Enter') {
+      if (this.searchQuery.trim().length <= 2) {
+        this.queryInvalid = true;
+      }
+
+      if (this.appearanceSettings.autoComplete === "dropdown") {
+        this.suggestionsDropdown.dropdownOpen$.next(!this.suggestionsDropdown.dropdownOpen$.snappy);
+
+        if (!this.suggestionsDropdown.dropdownOpen$.snappy && this.searchQuery.trim().length > 2) {
+          this.performSearch();
+        }
+      }
+
       // If dropdown is not open, trigger search on Enter
       if (this.appearanceSettings?.displayResults === 'change') {
         this.performSearch();
