@@ -16,8 +16,8 @@
     "deploy:vercel": "vercel deploy"
   },
   "dependencies": {
-    "@actioncrew/actionstack": "^3.0.2",
-    "@actioncrew/streamix": "^2.0.14",
+    "@actioncrew/actionstack": "^3.0.7",
+    "@actioncrew/streamix": "^2.0.17",
     "@angular/animations": "^20.1.2",
     "@angular/cdk": "^20.1.2",
     "@angular/common": "^20.1.2",
