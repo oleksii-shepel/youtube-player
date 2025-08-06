@@ -13,7 +13,7 @@ import { IonicModule } from '@ionic/angular';
 import ISO6391 from 'iso-639-1';
 import { DirectiveModule } from 'src/app/directives';
 import { Language } from 'src/app/interfaces/settings';
-
+import countries from 'world-countries';
 
 @Component({
   selector: 'app-language-select-modal',
@@ -172,6 +172,15 @@ export class LanguageSelectModalComponent implements OnInit {
         l.nativeName.toLowerCase().includes(term) ||
         l.code.toLowerCase().includes(term)
     );
+  }
+
+  getLanguageCodesByCountry(cca2: string): string[] {
+    const country = countries.find(c => c.cca2 === cca2);
+    if (!country || !country.languages) return [];
+
+    return Object.values(country.languages)
+      .map(lang => ISO6391.getCode(lang))
+      .filter(code => code && code.length === 2) as string[];
   }
 
   selectLanguage(lang: Language) {
