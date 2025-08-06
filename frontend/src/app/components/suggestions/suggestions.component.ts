@@ -107,7 +107,7 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   private readonly queryChanged$ = createBehaviorSubject<string>("");
   private subscriptions: Subscription[] = [];
   private viewAttached = false;
-  private const appRoot: HTMLElement | null = null;
+  private appRoot: HTMLElement | null = null;
   constructor(
     private googleSuggestionsService: GoogleSuggestionsService,
     private renderer: Renderer2,
