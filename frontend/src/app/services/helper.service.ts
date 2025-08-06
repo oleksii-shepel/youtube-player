@@ -23,7 +23,7 @@ export class Helper {
 
   private authHeaders() {
     return {
-      Authorization: `Bearer ${this.authorization.getAccessToken()}`,
+      Authorization: `Bearer ${this.authorization.getAccessToken()?.accessToken ?? ''}`,
       'Content-Type': 'application/json'
     };
   }
