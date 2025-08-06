@@ -11,7 +11,7 @@ import {
 } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
 import { Settings } from './settings.service';
-import { UserInfoSettings } from '../interfaces/settings';
+import { AccessToken, UserInfoSettings } from '../interfaces/settings';
 
 declare const google: any;
 
@@ -41,6 +41,28 @@ interface AuthorizationProfile {
   sub: string;
 }
 
+export function convertToDescriptiveToken(raw: TokenResponse): AccessToken {
+  return {
+    accessToken: raw.access_token,
+    authUserIndex: raw.authuser,
+    expiresInSeconds: raw.expires_in,
+    promptMode: raw.prompt,
+    scopesGranted: raw.scope,
+    tokenType: raw.token_type,
+  };
+}
+
+export function convertToTokenResponse(descriptive: AccessToken): TokenResponse {
+  return {
+    access_token: descriptive.accessToken,
+    authuser: descriptive.authUserIndex,
+    expires_in: descriptive.expiresInSeconds,
+    prompt: descriptive.promptMode,
+    scope: descriptive.scopesGranted,
+    token_type: descriptive.tokenType,
+  };
+}
+
 export function convertAuthorizationProfile(raw: AuthorizationProfile): UserInfoSettings {
   return {
     audience: raw.aud,
@@ -62,12 +84,12 @@ export function convertAuthorizationProfile(raw: AuthorizationProfile): UserInfo
 
 @Injectable({ providedIn: 'root' })
 export class Authorization {
-  private accessToken: string | null = null;
+  private accessToken: AccessToken | null = null;
   private profile: UserInfoSettings | null = null;
   private autoSignInTimer: Subscription | null = null;
 
   // Create subject once and make it readonly
-  readonly authSubject: Subject<{ profile: UserInfoSettings; accessToken: string } | null> = createSubject();
+  readonly authSubject: Subject<{ profile: UserInfoSettings; accessToken: AccessToken } | null> = createSubject();
 
   constructor(private zone: NgZone, private settings: Settings) {
     this.profile = this.settings.userInfo.snappy!;
@@ -101,7 +123,7 @@ export class Authorization {
 
   private handleOAuth2Response(response: TokenResponse) {
     try {
-      this.accessToken = response.access_token;
+      this.accessToken = convertToDescriptiveToken(response);
 
       // Get user profile using the access token
       this.getUserProfile(response.access_token).then((profile) => {
@@ -109,7 +131,7 @@ export class Authorization {
         this.setAuthTimer(response.expires_in || 3600);
 
         // Emit successful authentication
-        this.authSubject.next({ profile, accessToken: response.access_token });
+        this.authSubject.next({ profile, accessToken: this.accessToken! });
       }).catch((err) => {
         console.error('Failed to get user profile:', err);
         this.authSubject.error(err);
@@ -173,7 +195,7 @@ export class Authorization {
   }
 
   // Silent token refresh without popup
-  private refreshAccessToken(): Promise<string> {
+  private refreshAccessToken(): Promise<AccessToken> {
     return new Promise((resolve, reject) => {
       if (!this.profile) {
         reject(new Error('No profile available for token refresh'));
@@ -188,7 +210,7 @@ export class Authorization {
           hint: this.profile!.email, // Use the existing user's email
           callback: (response: TokenResponse) => {
             if (response?.access_token) {
-              resolve(response.access_token);
+              resolve(convertToDescriptiveToken(response));
             } else {
               reject(new Error('Token refresh failed'));
             }
@@ -255,7 +277,7 @@ export class Authorization {
           return [];
         })
       )
-      .subscribe((newToken: string) => {
+      .subscribe((newToken) => {
         // Update the access token and emit new auth state
         this.accessToken = newToken;
         if (this.profile) {
@@ -289,7 +311,7 @@ export class Authorization {
     return !!this.profile && !!this.accessToken;
   }
 
-  getAccessToken(): string | null {
+  getAccessToken(): AccessToken | null {
     return this.accessToken;
   }
 
@@ -298,7 +320,7 @@ export class Authorization {
   }
 
   // Helper method to get current auth state
-  getCurrentAuthState(): { profile: UserInfoSettings; accessToken: string } | null {
+  getCurrentAuthState(): { profile: UserInfoSettings; accessToken: AccessToken } | null {
     if (this.profile && this.accessToken) {
       return { profile: this.profile, accessToken: this.accessToken };
     }

@@ -122,7 +122,8 @@ export class SettingsChapter implements OnInit {
     private settings: Settings,
     private helper: Helper,
     private authorization: Authorization,
-    private theme: ThemeService
+    private theme: ThemeService,
+    private crypto: Crypto
   ) {}
 
   async ngOnInit() {

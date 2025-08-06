@@ -1,3 +1,12 @@
+export interface AccessToken {
+  accessToken: string;
+  authUserIndex: string;     // Google returns this as a string index (e.g. '0')
+  expiresInSeconds: number;
+  promptMode: string;        // e.g., 'consent', 'none'
+  scopesGranted: string;     // space-separated OAuth scopes
+  tokenType: string;         // usually 'Bearer'
+}
+
 export interface UserInfoSettings {
   audience: string;
   authorizedParty: string;
