@@ -126,7 +126,7 @@ export class Authorization {
       this.accessToken = convertToDescriptiveToken(response);
 
       // Get user profile using the access token
-      this.getUserProfile(response.access_token).then((profile) => {
+      this.getUserProfile(this.accessToken).then((profile) => {
         this.profile = profile;
         this.setAuthTimer(response.expires_in || 3600);
 
@@ -143,10 +143,10 @@ export class Authorization {
   }
 
   // Get user profile using access token
-  private getUserProfile(accessToken: string): Promise<UserInfoSettings> {
+  private getUserProfile(accessToken: AccessToken): Promise<UserInfoSettings> {
     return fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {
-        'Authorization': `Bearer ${accessToken}`
+        'Authorization': `Bearer ${accessToken.accessToken}`
       }
     })
     .then(response => response.json())
@@ -173,7 +173,7 @@ export class Authorization {
       });
   }
 
-  requestAccessToken(): Promise<string> {
+  requestAccessToken(): Promise<AccessToken> {
     return new Promise((resolve, reject) => {
       this.zone.run(() => {
         const tokenClient = google.accounts.oauth2.initTokenClient({
@@ -182,7 +182,7 @@ export class Authorization {
           prompt: '',
           callback: (response: TokenResponse) => {
             if (response?.access_token) {
-              resolve(response.access_token);
+              resolve(convertToDescriptiveToken(response));
             } else {
               reject(new Error('Access token request failed'));
             }
@@ -241,7 +241,7 @@ export class Authorization {
     return new Promise((resolve, reject) => {
       if (!this.accessToken) return resolve();
 
-      google.accounts.oauth2.revoke(this.accessToken, (done: any) => {
+      google.accounts.oauth2.revoke(this.accessToken.accessToken, (done: any) => {
         if (done.successful) {
           this.accessToken = null;
           resolve();
