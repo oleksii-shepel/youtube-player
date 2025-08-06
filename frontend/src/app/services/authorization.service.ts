@@ -59,7 +59,7 @@ export function convertToDescriptiveToken(raw: TokenResponse): AccessToken {
     promptMode: raw.prompt,
     scopesGranted: raw.scope,
     tokenType: raw.token_type,
-    validFrom: 0
+    validFrom: Math.floor(Date.now() / 1000) // Set when token is created
   };
 }
 
@@ -99,20 +99,36 @@ export interface AuthState {
 }
 
 @Injectable({ providedIn: 'root' })
-export class Authorization implements OnDestroy {
+export class Authorization {
   private autoSignInTimer: Subscription | null = null;
   private destroy$ = createSubject<void>();
+  private isGsiInitialized = false;
 
   readonly authSubject: Subject<AuthState | null> = createSubject();
 
   constructor(private zone: NgZone, private settings: Settings) {
-    queueMicrotask(() => this.initializeSettings());
+
+    queueMicrotask(() => {
+      this.initializeGoogleServices();
+      this.initializeSettings();
+    });
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.stopAutoSignInTimer();
+  // 🔹 Google Services Initialization
+  private initializeGoogleServices() {
+    // Initialize Google Identity Services
+    if (typeof google !== 'undefined' && google.accounts?.id) {
+      google.accounts.id.initialize({
+        client_id: environment.youtube.clientId,
+        callback: () => {}, // Empty callback since we're using OAuth2 flow
+        auto_select: true,
+        cancel_on_tap_outside: true,
+      });
+      this.isGsiInitialized = true;
+      console.log('Google Identity Services initialized');
+    } else {
+      console.warn('Google Identity Services not available');
+    }
   }
 
   // 🔹 Token Validation Helpers
@@ -161,7 +177,7 @@ export class Authorization implements OnDestroy {
     }
 
     // Token expired - sign out
-    if (this.isSignedIn() && this.isTokenExpired(accessToken)) {
+    if (this.isTokenExpired(accessToken)) {
       console.log('Stored token has expired, signing out');
       this.signOut().catch(console.error);
       return;
@@ -190,6 +206,8 @@ export class Authorization implements OnDestroy {
           client_id: environment.youtube.clientId,
           scope: 'https://www.googleapis.com/auth/youtube openid email profile',
           include_granted_scopes: true,
+          prompt: '',
+          hint: this.settings.userInfo.snappy?.email,
           callback: (response: TokenResponse) => {
             if (this.validateTokenResponse(response)) {
               this.handleOAuth2Response(response).then(resolve).catch(reject);
@@ -286,11 +304,10 @@ export class Authorization implements OnDestroy {
         const tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: environment.youtube.clientId,
           scope: 'https://www.googleapis.com/auth/youtube',
-          prompt: '',
+          prompt: 'none',
           callback: (response: TokenResponse) => {
             if (this.validateTokenResponse(response)) {
               const token = convertToDescriptiveToken(response);
-              token.validFrom = Math.floor(Date.now() / 1000);
               this.settings.updateAccessToken(token);
               resolve(token);
             } else {
@@ -324,7 +341,6 @@ export class Authorization implements OnDestroy {
           callback: (response: TokenResponse) => {
             if (this.validateTokenResponse(response)) {
               const token = convertToDescriptiveToken(response);
-              token.validFrom = Math.floor(Date.now() / 1000);
               this.settings.updateAccessToken(token);
               resolve(token);
             } else {
@@ -412,14 +428,20 @@ export class Authorization implements OnDestroy {
   // 🔹 Sign Out & Revocation
   async revokeProfile(): Promise<void> {
     const profile = this.settings.userInfo.snappy;
-    if (!profile?.email) return;
+    if (!profile?.email || !this.isGsiInitialized) {
+      console.warn('Cannot revoke profile: GSI not initialized or no profile');
+      this.settings.userInfo.next(defaultUserInfoSettings);
+      return;
+    }
 
     return new Promise((resolve, reject) => {
       google.accounts.id.revoke(profile.email, (result: any) => {
+        this.settings.userInfo.next(defaultUserInfoSettings);
         if (result.successful) {
-          this.settings.userInfo.next(defaultUserInfoSettings);
           resolve();
         } else {
+          console.warn('Profile revocation failed:', result);
+          // Still clear the profile locally even if revocation fails
           reject(
             new Error(result.error_description || 'Profile revocation failed')
           );
@@ -430,14 +452,20 @@ export class Authorization implements OnDestroy {
 
   async revokeAccessToken(): Promise<void> {
     const token = this.settings.accessToken.snappy;
-    if (!token?.accessToken) return;
+    if (!token?.accessToken) {
+      console.warn('No access token to revoke');
+      this.settings.accessToken.next(defaultAccessToken);
+      return;
+    }
 
     return new Promise((resolve, reject) => {
       google.accounts.oauth2.revoke(token.accessToken, (result: any) => {
+        this.settings.accessToken.next(defaultAccessToken);
         if (result.successful) {
-          this.settings.accessToken.next(defaultAccessToken);
           resolve();
         } else {
+          console.warn('Access token revocation failed:', result);
+          // Still clear the token locally even if revocation fails
           reject(
             new Error(
               result.error_description || 'Access token revocation failed'
@@ -452,14 +480,26 @@ export class Authorization implements OnDestroy {
     try {
       this.stopAutoSignInTimer();
 
-      await Promise.allSettled([
+      // Use Promise.allSettled to ensure both operations complete
+      const results = await Promise.allSettled([
         this.revokeProfile(),
         this.revokeAccessToken(),
       ]);
 
+      // Log any failures but don't throw
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          const operation = index === 0 ? 'profile revocation' : 'token revocation';
+          console.warn(`${operation} failed:`, result.reason);
+        }
+      });
+
       this.authSubject.next(null);
     } catch (error) {
       console.error('Sign out failed:', error);
+      // Ensure user is signed out locally even if revocation fails
+      this.settings.userInfo.next(defaultUserInfoSettings);
+      this.settings.accessToken.next(defaultAccessToken);
       this.authSubject.next(null);
       throw error;
     }
@@ -467,7 +507,9 @@ export class Authorization implements OnDestroy {
 
   // 🔹 Utility Methods
   disableAutoSelect() {
-    google.accounts.id.disableAutoSelect();
+    if (this.isGsiInitialized) {
+      google.accounts.id.disableAutoSelect();
+    }
   }
 
   decodeJwt(token: string): UserInfoSettings {
@@ -524,16 +566,17 @@ export class Authorization implements OnDestroy {
 
   getDefaultAvatarUrl(): string {
     const initials = this.settings.userInfo.snappy?.firstName
-      .split(' ')
+      ?.split(' ')
       .map((n) => n[0])
       .join('')
-      .toUpperCase();
+      .toUpperCase() || '?';
+
     const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="6.25em" height="6.25em">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
           <rect width="100" height="100" fill="#555"/>
-          <text x="50%" y="55%" font-size="4rem" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
+          <text x="50%" y="55%" font-size="40" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
         </svg>`;
-    // Properly encode base64 of SVG
+
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   }
 }
