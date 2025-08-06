@@ -24,11 +24,11 @@
     @if(userInfoSettings) {
       <div class="user-header">
         <div class="user-avatar">
-          <img [src]="userInfoSettings.avatar" alt="User Avatar" />
+          <img [src]="userInfoSettings.profilePictureUrl" alt="User Avatar" />
           <div class="online-indicator" [class.connected]="isApiConnected"></div>
         </div>
         <div class="user-info">
-          <h2>{{ userInfoSettings.name || 'Not Connected' }}</h2>
+          <h2>{{ userInfoSettings.fullName || 'Not Connected' }}</h2>
           <p>YouTube Data API Settings</p>
           <ion-chip [color]="isApiConnected ? 'success' : 'danger'" size="small">
             <ion-icon [name]="isApiConnected ? 'checkmark-circle' : 'close-circle'" slot="start"></ion-icon>

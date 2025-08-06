@@ -132,15 +132,9 @@ export class SettingsChapter implements OnInit {
       this.settings.userInfo.subscribe(value => this.userInfoSettings = value),
       this.settings.playlists.subscribe(value => this.playlistsSettings = value),
       this.settings.subscriptions.subscribe(value => this.subscriptionsSettings = value),
-      this.settings.apiConfig.subscribe(value => this.apiConfigSettings = value),
+      this.settings.apiConfig.subscribe(value => { this.apiConfigSettings = value; this.checkApiConnection(); }),
       this.settings.about.subscribe(value => this.aboutSettings = value),
     );
-
-    queueMicrotask(async () => {
-      this.loadUserProfile();
-      // await this.loadPlaylists();
-      // await this.loadSubscriptions();
-    });
   }
 
   ngOnDestroy(): void {
@@ -252,18 +246,6 @@ export class SettingsChapter implements OnInit {
     return this.subscriptionState.items.length;
   }
 
-  loadUserProfile() {
-    const profile = this.authorization.getProfile();
-    if (profile) {
-      this.userInfoSettings = {
-        ...this.userInfoSettings,
-        name: profile.name,
-        email: profile.email,
-        avatar: profile.picture || this.getDefaultAvatarUrl(profile.name),
-      };
-    }
-  }
-
   async checkApiConnection() {
     if (this.authorization.isSignedIn()) {
       this.isApiConnected = true;
@@ -276,7 +258,6 @@ export class SettingsChapter implements OnInit {
     this.isLoading = true;
     try {
       this.isApiConnected = true;
-      await this.loadUserData();
     } catch (error) {
       console.error('API Connection Error:', error);
       this.isApiConnected = false;
@@ -286,15 +267,16 @@ export class SettingsChapter implements OnInit {
   }
 
   async loadUserData() {
+    this.checkApiConnection();
     this.isLoading = true;
     try {
       const authProfile = this.authorization.getProfile();
       if (authProfile) {
         this.userInfoSettings = {
           ...this.userInfoSettings,
-          name: authProfile.name,
+          firstName: authProfile.firstName,
           email: authProfile.email,
-          avatar: authProfile.picture || this.getDefaultAvatarUrl(authProfile.name),
+          profilePictureUrl: authProfile.profilePictureUrl || this.getDefaultAvatarUrl(authProfile.firstName),
         };
       }
       if (this.isApiConnected) {
@@ -473,7 +455,6 @@ export class SettingsChapter implements OnInit {
 
   async saveApiConfig() {
     this.settings.apiConfig.next(this.apiConfigSettings);
-    this.checkApiConnection();
   }
 
   async testApiConnection() {

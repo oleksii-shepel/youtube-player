@@ -10,10 +10,12 @@ import {
   createSubject,
 } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
+import { Settings } from './settings.service';
+import { UserInfoSettings } from '../interfaces/settings';
 
 declare const google: any;
 
-export interface TokenResponse {
+interface TokenResponse {
   access_token: string;
   authuser: string;
   expires_in: number;
@@ -22,7 +24,7 @@ export interface TokenResponse {
   token_type: string;
 }
 
-export interface AuthorizationProfile {
+interface AuthorizationProfile {
   aud: string;
   azp: string;
   email: string;
@@ -39,16 +41,36 @@ export interface AuthorizationProfile {
   sub: string;
 }
 
+export function convertAuthorizationProfile(raw: AuthorizationProfile): UserInfoSettings {
+  return {
+    audience: raw.aud,
+    authorizedParty: raw.azp,
+    email: raw.email,
+    isEmailVerified: raw.email_verified,
+    expiresAt: raw.exp,
+    lastName: raw.family_name,
+    firstName: raw.given_name,
+    issuedAt: raw.iat,
+    issuer: raw.iss,
+    tokenId: raw.jti,
+    fullName: raw.name,
+    validFrom: raw.nbf,
+    profilePictureUrl: raw.picture,
+    userId: raw.sub,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class Authorization {
   private accessToken: string | null = null;
-  private profile: AuthorizationProfile | null = null;
+  private profile: UserInfoSettings | null = null;
   private autoSignInTimer: Subscription | null = null;
 
   // Create subject once and make it readonly
-  readonly authSubject: Subject<{ profile: AuthorizationProfile; accessToken: string } | null> = createSubject();
+  readonly authSubject: Subject<{ profile: UserInfoSettings; accessToken: string } | null> = createSubject();
 
-  constructor(private zone: NgZone) {
+  constructor(private zone: NgZone, private settings: Settings) {
+    this.profile = this.settings.userInfo.snappy!;
   }
 
   initializeGsiButton() {
@@ -99,7 +121,7 @@ export class Authorization {
   }
 
   // Get user profile using access token
-  private getUserProfile(accessToken: string): Promise<AuthorizationProfile> {
+  private getUserProfile(accessToken: string): Promise<UserInfoSettings> {
     return fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {
         'Authorization': `Bearer ${accessToken}`
@@ -121,7 +143,12 @@ export class Authorization {
       nbf: Math.floor(Date.now() / 1000),
       picture: data.picture,
       sub: data.id
-    }));
+    }))
+      .then((response) => convertAuthorizationProfile(response))
+      .then((settings) => {
+        this.settings.updateUserInfo(settings)
+        return settings;
+      });
   }
 
   requestAccessToken(): Promise<string> {
@@ -207,8 +234,8 @@ export class Authorization {
     google.accounts.id.disableAutoSelect();
   }
 
-  decodeJwt(token: string): AuthorizationProfile {
-    return jwtDecode<AuthorizationProfile>(token);
+  decodeJwt(token: string): UserInfoSettings {
+    return convertAuthorizationProfile(jwtDecode<AuthorizationProfile>(token));
   }
 
   setAuthTimer(expiresInSeconds: number) {
@@ -266,12 +293,12 @@ export class Authorization {
     return this.accessToken;
   }
 
-  getProfile(): AuthorizationProfile | null {
+  getProfile(): UserInfoSettings | null {
     return this.profile;
   }
 
   // Helper method to get current auth state
-  getCurrentAuthState(): { profile: AuthorizationProfile; accessToken: string } | null {
+  getCurrentAuthState(): { profile: UserInfoSettings; accessToken: string } | null {
     if (this.profile && this.accessToken) {
       return { profile: this.profile, accessToken: this.accessToken };
     }

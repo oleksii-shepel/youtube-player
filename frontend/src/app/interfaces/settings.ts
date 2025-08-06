@@ -1,8 +1,19 @@
 export interface UserInfoSettings {
-  name: string;
-  avatar: string;
+  audience: string;
+  authorizedParty: string;
   email: string;
-};
+  isEmailVerified: boolean;
+  expiresAt: number;
+  lastName: string;
+  firstName: string;
+  issuedAt: number;
+  issuer: string;
+  tokenId: string;
+  fullName: string;
+  validFrom: number;
+  profilePictureUrl: string;
+  userId: string;
+}
 
 export type AppTheme = 'default' | 'dark' | 'light';
 export type AppFontSize = 'small' | 'medium' | 'large';

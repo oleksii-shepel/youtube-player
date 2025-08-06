@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject, createBehaviorSubject, Subscription } from '@actioncrew/streamix';
 import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, PlaylistsSettings, RegionLanguageSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
 import { Storage } from '@ionic/storage-angular';
+import { environment } from 'src/environments/environment';
 
 export const defaultAppearanceSettings: AppearanceSettings = {
   theme: 'default',
@@ -26,9 +27,20 @@ export const defaultRegionLanguageSettings: RegionLanguageSettings = {
 };
 
 export const defaultUserInfoSettings: UserInfoSettings = {
-  name: '',
+  audience: '',
+  authorizedParty: '',
   email: '',
-  avatar: ''
+  isEmailVerified: false,
+  expiresAt: 0,
+  lastName: '',
+  firstName: '',
+  issuedAt: 0,
+  issuer: '',
+  tokenId: '',
+  fullName: '',
+  validFrom: 0,
+  profilePictureUrl: '',
+  userId: '',
 };
 
 export const defaultChannelInfoSettings: ChannelInfoSettings = {
@@ -66,8 +78,8 @@ export const defaultSubscriptionsSettings: SubscriptionsSettings = {
 };
 
 export const defaultApiConfigSettings: ApiConfigSettings = {
-  apiKey: '',
-  clientId: '',
+  apiKey: environment.youtube.apiKey,
+  clientId: environment.youtube.clientId,
   clientSecret: '',
   quotaUsage: 0,
   quotaLimit: 10000,
