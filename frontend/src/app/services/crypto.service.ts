@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
-export class Crypto {
+export class CryptoService {
   private ENCRYPTION_KEY_ALIAS = 'app-settings-key';
   private IV_LENGTH = 12; // AES-GCM standard IV length
 

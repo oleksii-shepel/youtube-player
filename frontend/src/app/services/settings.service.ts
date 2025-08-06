@@ -1,8 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Subject, createBehaviorSubject, Subscription } from '@actioncrew/streamix';
-import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, PlaylistsSettings, RegionLanguageSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
+import { AboutSettings, AccessToken, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, PlaylistsSettings, RegionLanguageSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
 import { Storage } from '@ionic/storage-angular';
 import { environment } from 'src/environments/environment';
+import { CryptoService } from './crypto.service';
+
+export const defaultAccessToken: AccessToken = {
+  accessToken: '',
+  authUserIndex: '',
+  expiresInSeconds: 0,
+  promptMode: '',
+  scopesGranted: '',
+  tokenType: '',
+};
 
 export const defaultAppearanceSettings: AppearanceSettings = {
   theme: 'default',
@@ -97,6 +107,7 @@ export const defaultAboutSettings: AboutSettings = {
 
 @Injectable({ providedIn: 'root' })
 export class Settings {
+  accessToken: Subject<AccessToken>;
   userInfo: Subject<UserInfoSettings>;
   appearance: Subject<AppearanceSettings>;
   channelInfo: Subject<ChannelInfoSettings>; // Fixed type
@@ -109,8 +120,9 @@ export class Settings {
   subs: Subscription[] = [];
   private initialized = false;
 
-  constructor(private storage: Storage) {
+  constructor(private storage: Storage, private crypto: CryptoService) {
     // Initialize subjects with defaults
+    this.accessToken = createBehaviorSubject<AccessToken>(defaultAccessToken);
     this.userInfo = createBehaviorSubject<UserInfoSettings>(defaultUserInfoSettings);
     this.appearance = createBehaviorSubject<AppearanceSettings>(defaultAppearanceSettings);
     this.channelInfo = createBehaviorSubject<ChannelInfoSettings>(defaultChannelInfoSettings);
@@ -128,6 +140,7 @@ export class Settings {
 
     // Load all stored values first
     const storedValues = await Promise.all([
+      this.storage.get('accessToken'),
       this.storage.get('userInfo'),
       this.storage.get('appearance'),
       this.storage.get('channelInfo'),
@@ -138,11 +151,14 @@ export class Settings {
       this.storage.get('about')
     ]);
 
-    const [userInfo, appearance, channelInfo, regionLanguage, playlists, subscriptions, apiConfig, about] = storedValues;
+    const [accessToken, userInfo, appearance, channelInfo, regionLanguage, playlists, subscriptions, apiConfig, about] = storedValues;
 
     // Update subjects with stored values (or keep defaults if no stored value)
+    if (accessToken !== null && accessToken !== undefined) {
+      this.accessToken.next(await this.crypto.decryptData(accessToken));
+    }
     if (userInfo !== null && userInfo !== undefined) {
-      this.userInfo.next(userInfo);
+      this.userInfo.next(await this.crypto.decryptData(userInfo));
     }
     if (appearance !== null && appearance !== undefined) {
       this.appearance.next(appearance);
@@ -168,8 +184,11 @@ export class Settings {
 
     // NOW subscribe to changes to save future updates
     this.subs.push(
+      this.accessToken.subscribe(value => {
+        if (this.initialized) this.storage.set('accessToken', this.crypto.encryptData(value));
+      }),
       this.userInfo.subscribe(value => {
-        if (this.initialized) this.storage.set('userInfo', value);
+        if (this.initialized) this.storage.set('userInfo', this.crypto.encryptData(value));
       }),
       this.appearance.subscribe(value => {
         if (this.initialized) this.storage.set('appearance', value);
@@ -198,6 +217,11 @@ export class Settings {
   }
 
   // Helper method to update settings programmatically
+  updateAccessToken(updates: Partial<AccessToken>): void {
+    const current = this.accessToken.snappy;
+    this.accessToken.next({ ...current!, ...updates });
+  }
+
   updateUserInfo(updates: Partial<UserInfoSettings>): void {
     const current = this.userInfo.snappy;
     this.userInfo.next({ ...current!, ...updates });

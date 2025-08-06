@@ -14,6 +14,7 @@ import { DirectiveModule } from 'src/app/directives';
 import { GridComponent } from 'src/app/components/grid/grid.component';
 import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Playlist as PlaylistEntity, PlaylistsSettings, RegionLanguageSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
 import { Settings } from 'src/app/services/settings.service';
+import { CryptoService } from 'src/app/services/crypto.service';
 
 export enum SettingsSection {
   Appearance = 'appearance',
@@ -123,7 +124,7 @@ export class SettingsChapter implements OnInit {
     private helper: Helper,
     private authorization: Authorization,
     private theme: ThemeService,
-    private crypto: Crypto
+    private crypto: CryptoService
   ) {}
 
   async ngOnInit() {

@@ -1,3 +1,4 @@
+import { Subscription as SubscriptionSettings } from './../interfaces/settings';
 import { Injectable, NgZone } from '@angular/core';
 import { jwtDecode } from 'jwt-decode';
 import {
@@ -10,11 +11,12 @@ import {
   createSubject,
 } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
-import { Settings } from './settings.service';
+import { defaultAccessToken, defaultUserInfoSettings, Settings } from './settings.service';
 import { AccessToken, UserInfoSettings } from '../interfaces/settings';
 
 declare const google: any;
 
+// 🔹 Types for Google's OAuth2 responses
 interface TokenResponse {
   access_token: string;
   authuser: string;
@@ -41,6 +43,7 @@ interface AuthorizationProfile {
   sub: string;
 }
 
+// 🔹 Converters
 export function convertToDescriptiveToken(raw: TokenResponse): AccessToken {
   return {
     accessToken: raw.access_token,
@@ -84,26 +87,20 @@ export function convertAuthorizationProfile(raw: AuthorizationProfile): UserInfo
 
 @Injectable({ providedIn: 'root' })
 export class Authorization {
-  private accessToken: AccessToken | null = null;
-  private profile: UserInfoSettings | null = null;
   private autoSignInTimer: Subscription | null = null;
+  private subscriptions: Subscription[] = [];
 
-  // Create subject once and make it readonly
   readonly authSubject: Subject<{ profile: UserInfoSettings; accessToken: AccessToken } | null> = createSubject();
 
-  constructor(private zone: NgZone, private settings: Settings) {
-    this.profile = this.settings.userInfo.snappy!;
-  }
+  constructor(private zone: NgZone, private settings: Settings) {}
 
   initializeGsiButton() {
-    // Create a custom button that triggers OAuth2 flow directly
     const button = document.getElementById('google-signin-btn');
     if (button) {
       button.addEventListener('click', () => this.signInWithOAuth2());
     }
   }
 
-  // Single OAuth2 flow that gets both profile and access token
   signInWithOAuth2() {
     const tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: environment.youtube.clientId,
@@ -123,15 +120,14 @@ export class Authorization {
 
   private handleOAuth2Response(response: TokenResponse) {
     try {
-      this.accessToken = convertToDescriptiveToken(response);
+      const token = convertToDescriptiveToken(response);
+      this.settings.updateAccessToken(token);
 
-      // Get user profile using the access token
-      this.getUserProfile(this.accessToken).then((profile) => {
-        this.profile = profile;
-        this.setAuthTimer(response.expires_in || 3600);
+      this.getUserProfile(token).then((profile) => {
+        this.settings.updateUserInfo(profile);
+        this.setAuthTimer(token.expiresInSeconds || 3600);
 
-        // Emit successful authentication
-        this.authSubject.next({ profile, accessToken: this.accessToken! });
+        this.authSubject.next({ profile, accessToken: token });
       }).catch((err) => {
         console.error('Failed to get user profile:', err);
         this.authSubject.error(err);
@@ -142,34 +138,32 @@ export class Authorization {
     }
   }
 
-  // Get user profile using access token
   private getUserProfile(accessToken: AccessToken): Promise<UserInfoSettings> {
     return fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: {
-        'Authorization': `Bearer ${accessToken.accessToken}`
-      }
+        Authorization: `Bearer ${accessToken.accessToken}`,
+      },
     })
-    .then(response => response.json())
-    .then(data => ({
-      aud: data.id,
-      azp: environment.youtube.clientId,
-      email: data.email,
-      email_verified: data.verified_email,
-      exp: Math.floor(Date.now() / 1000) + 3600,
-      family_name: data.family_name || '',
-      given_name: data.given_name || '',
-      iat: Math.floor(Date.now() / 1000),
-      iss: 'https://accounts.google.com',
-      jti: '',
-      name: data.name,
-      nbf: Math.floor(Date.now() / 1000),
-      picture: data.picture,
-      sub: data.id
-    }))
-      .then((response) => convertAuthorizationProfile(response))
-      .then((settings) => {
-        this.settings.updateUserInfo(settings)
-        return settings;
+      .then((response) => response.json())
+      .then((data) => {
+        const now = Math.floor(Date.now() / 1000);
+        const profile: AuthorizationProfile = {
+          aud: data.id,
+          azp: environment.youtube.clientId,
+          email: data.email,
+          email_verified: data.verified_email,
+          exp: now + 3600,
+          family_name: data.family_name || '',
+          given_name: data.given_name || '',
+          iat: now,
+          iss: 'https://accounts.google.com',
+          jti: '',
+          name: data.name,
+          nbf: now,
+          picture: data.picture,
+          sub: data.id,
+        };
+        return convertAuthorizationProfile(profile);
       });
   }
 
@@ -182,7 +176,9 @@ export class Authorization {
           prompt: '',
           callback: (response: TokenResponse) => {
             if (response?.access_token) {
-              resolve(convertToDescriptiveToken(response));
+              const token = convertToDescriptiveToken(response);
+              this.settings.updateAccessToken(token);
+              resolve(token);
             } else {
               reject(new Error('Access token request failed'));
             }
@@ -194,10 +190,9 @@ export class Authorization {
     });
   }
 
-  // Silent token refresh without popup
   private refreshAccessToken(): Promise<AccessToken> {
     return new Promise((resolve, reject) => {
-      if (!this.profile) {
+      if (!this.settings.userInfo.snappy?.email) {
         reject(new Error('No profile available for token refresh'));
         return;
       }
@@ -206,11 +201,13 @@ export class Authorization {
         const tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: environment.youtube.clientId,
           scope: 'https://www.googleapis.com/auth/youtube',
-          prompt: 'none', // This prevents the popup
-          hint: this.profile!.email, // Use the existing user's email
+          prompt: 'none',
+          hint: this.settings.userInfo.snappy!.email,
           callback: (response: TokenResponse) => {
             if (response?.access_token) {
-              resolve(convertToDescriptiveToken(response));
+              const token = convertToDescriptiveToken(response);
+              this.settings.updateAccessToken(token);
+              resolve(token);
             } else {
               reject(new Error('Token refresh failed'));
             }
@@ -224,11 +221,11 @@ export class Authorization {
 
   revokeProfile(): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (!this.profile) return resolve();
+      if (!this.settings.userInfo.snappy?.email) return resolve();
 
-      google.accounts.id.revoke(this.profile.email, (done: any) => {
+      google.accounts.id.revoke(this.settings.userInfo.snappy.email, (done: any) => {
         if (done.successful) {
-          this.profile = null;
+          this.settings.userInfo.next(defaultUserInfoSettings);
           resolve();
         } else {
           reject(new Error(done.error_description || 'Profile revocation failed'));
@@ -239,11 +236,11 @@ export class Authorization {
 
   revokeAccessToken(): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (!this.accessToken) return resolve();
+      if (!this.settings.accessToken.snappy?.accessToken) return resolve();
 
-      google.accounts.oauth2.revoke(this.accessToken.accessToken, (done: any) => {
+      google.accounts.oauth2.revoke(this.settings.accessToken.snappy.accessToken, (done: any) => {
         if (done.successful) {
-          this.accessToken = null;
+          this.settings.accessToken.next(defaultAccessToken);
           resolve();
         } else {
           reject(new Error(done.error_description || 'Access token revocation failed'));
@@ -268,22 +265,20 @@ export class Authorization {
   startTimerToNextAuth(timeInMs: number): Subscription {
     return timer(timeInMs)
       .pipe(
-        switchMap(() => fromPromise(this.refreshAccessToken())), // Use refreshAccessToken instead
+        switchMap(() => fromPromise(this.refreshAccessToken())),
         catchError((error) => {
           console.warn('Token refresh failed, reloading page.', error);
-          // Emit null to indicate auth failure before reload
           this.authSubject.next(null);
           window.location.reload();
           return [];
         })
       )
       .subscribe((newToken) => {
-        // Update the access token and emit new auth state
-        this.accessToken = newToken;
-        if (this.profile) {
+        const profile = this.settings.userInfo.snappy;
+        if (profile?.email) {
           this.authSubject.next({
-            profile: this.profile,
-            accessToken: newToken
+            profile,
+            accessToken: newToken,
           });
         }
       });
@@ -295,39 +290,36 @@ export class Authorization {
   }
 
   signOut(): Promise<void> {
-    return Promise.all([this.revokeProfile(), this.revokeAccessToken()]).then(() => {
-      this.stopAutoSignInTimer();
-      // Emit null to indicate signed out state
-      this.authSubject.next(null);
-    }).catch((error) => {
-      console.error('Sign out failed:', error);
-      // Still emit null state even if revocation fails
-      this.authSubject.next(null);
-      throw error;
-    });
+    return Promise.all([this.revokeProfile(), this.revokeAccessToken()])
+      .then(() => {
+        this.stopAutoSignInTimer();
+        this.authSubject.next(null);
+      })
+      .catch((error) => {
+        console.error('Sign out failed:', error);
+        this.authSubject.next(null);
+        throw error;
+      });
   }
 
   isSignedIn(): boolean {
-    return !!this.profile && !!this.accessToken;
+    return !!this.settings.userInfo.snappy?.email && !!this.settings.accessToken.snappy?.accessToken;
   }
 
   getAccessToken(): AccessToken | null {
-    return this.accessToken;
+    return this.settings.accessToken.snappy ?? null;
   }
 
   getProfile(): UserInfoSettings | null {
-    return this.profile;
+    return this.settings.userInfo.snappy ?? null;
   }
 
-  // Helper method to get current auth state
   getCurrentAuthState(): { profile: UserInfoSettings; accessToken: AccessToken } | null {
-    if (this.profile && this.accessToken) {
-      return { profile: this.profile, accessToken: this.accessToken };
-    }
-    return null;
+    const profile = this.getProfile();
+    const accessToken = this.getAccessToken();
+    return profile && accessToken ? { profile, accessToken } : null;
   }
 
-  // Method to complete the subject when service is destroyed
   completeAuth() {
     this.authSubject.complete();
   }
