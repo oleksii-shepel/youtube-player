@@ -59,7 +59,7 @@ export function convertToDescriptiveToken(raw: TokenResponse): AccessToken {
     promptMode: raw.prompt,
     scopesGranted: raw.scope,
     tokenType: raw.token_type,
-    validFrom: Math.floor(Date.now() / 1000) // ✅ Fixed: Proper Unix timestamp
+    validFrom: 0
   };
 }
 
@@ -161,7 +161,7 @@ export class Authorization implements OnDestroy {
     }
 
     // Token expired - sign out
-    if (this.isTokenExpired(accessToken)) {
+    if (this.isSignedIn() && this.isTokenExpired(accessToken)) {
       console.log('Stored token has expired, signing out');
       this.signOut().catch(console.error);
       return;
@@ -290,6 +290,7 @@ export class Authorization implements OnDestroy {
           callback: (response: TokenResponse) => {
             if (this.validateTokenResponse(response)) {
               const token = convertToDescriptiveToken(response);
+              token.validFrom = Math.floor(Date.now() / 1000);
               this.settings.updateAccessToken(token);
               resolve(token);
             } else {
@@ -323,6 +324,7 @@ export class Authorization implements OnDestroy {
           callback: (response: TokenResponse) => {
             if (this.validateTokenResponse(response)) {
               const token = convertToDescriptiveToken(response);
+              token.validFrom = Math.floor(Date.now() / 1000);
               this.settings.updateAccessToken(token);
               resolve(token);
             } else {

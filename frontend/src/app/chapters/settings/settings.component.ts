@@ -14,7 +14,6 @@ import { DirectiveModule } from 'src/app/directives';
 import { GridComponent } from 'src/app/components/grid/grid.component';
 import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Playlist as PlaylistEntity, PlaylistsSettings, RegionLanguageSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
 import { Settings } from 'src/app/services/settings.service';
-import { CryptoService } from 'src/app/services/crypto.service';
 
 export enum SettingsSection {
   Appearance = 'appearance',
@@ -248,23 +247,16 @@ export class SettingsChapter implements OnInit {
   }
 
   async checkApiConnection() {
-    if (this.authorization.isSignedIn()) {
-      this.isApiConnected = true;
+    if (!this.authorization.isSignedIn()) {
+      this.isApiConnected = false;
       return;
     }
     if (!this.apiConfigSettings.apiKey) {
       this.isApiConnected = false;
       return;
     }
-    this.isLoading = true;
-    try {
-      this.isApiConnected = true;
-    } catch (error) {
-      console.error('API Connection Error:', error);
-      this.isApiConnected = false;
-    } finally {
-      this.isLoading = false;
-    }
+
+    this.isApiConnected = true;
   }
 
   async loadUserData() {
