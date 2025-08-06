@@ -206,7 +206,6 @@ export class Authorization {
           client_id: environment.youtube.clientId,
           scope: 'https://www.googleapis.com/auth/youtube openid email profile',
           include_granted_scopes: true,
-          prompt: '',
           hint: this.settings.userInfo.snappy?.email,
           callback: (response: TokenResponse) => {
             if (this.validateTokenResponse(response)) {
