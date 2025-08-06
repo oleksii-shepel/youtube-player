@@ -239,12 +239,21 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                       <ion-item class="popover-item" button (click)="signOut()"
                       >Sign Out</ion-item>
                     } @else {
-                      <ion-item class="popover-item" button (click)="signIn()">
-                        <ion-label>
-                          <div class="google-signin-label">
-                            Sign in with Google
-                          </div>
-                        </ion-label>
+                      <ion-item class="popover-item" button (click)="!isSignedIn() ? signIn() : signOut()">
+                        @if (isSignedIn()) {
+                          <ion-label>
+                            <div class="google-signin-label">
+                              Sign Out
+                            </div>
+                          </ion-label>
+                        } @else {
+                          <ion-label>
+                            <div class="google-signin-label">
+                              Sign In with Google
+                            </div>
+                          </ion-label>
+
+                        }
                         <ion-button
                           #googleLogInButton
                           id="google-signin-btn"
