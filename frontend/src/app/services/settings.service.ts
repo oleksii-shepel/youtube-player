@@ -12,6 +12,7 @@ export const defaultAccessToken: AccessToken = {
   promptMode: '',
   scopesGranted: '',
   tokenType: '',
+  validFrom: Math.floor(Date.now() / 1000)
 };
 
 export const defaultAppearanceSettings: AppearanceSettings = {

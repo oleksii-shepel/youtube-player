@@ -207,7 +207,10 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
                 }
               </ion-button>
               <ion-button fill="clear" size="small" id="settings-button">
-                <ion-icon name="settings-outline"></ion-icon>
+                <ion-avatar *ngIf="isSignedIn()">
+                  <img [src]="getAvatarUrl()" [alt]="getDisplayName()" (error)="onAvatarError($event)">
+                </ion-avatar>
+                <ion-icon *ngIf="!isSignedIn()" name="settings-outline"></ion-icon>
               </ion-button>
               <ion-popover
                 trigger="settings-button"
@@ -473,18 +476,36 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     this.suggestions = suggestions;
   }
 
-  clearSearch(event: Event): void {
-    event.preventDefault();
-    this.searchQuery = '';
-    this.onQueryChanged({ detail: { value: '' } } as CustomEvent);
-  }
-
   onSuggestionSelected(suggestion: string): void {
     this.searchQuery = suggestion;
     this.suggestions = [];
     if (this.appearanceSettings?.displayResults === 'change') {
       this.performSearch();
     }
+  }
+
+  isSignedIn(): boolean {
+    return this.authorization.isSignedIn();
+  }
+
+  getAvatarUrl(): string {
+    const profile = this.settings.userInfo.snappy;
+    return profile?.profilePictureUrl || this.authorization.getDefaultAvatarUrl();
+  }
+
+  getDisplayName(): string {
+    const profile = this.settings.userInfo.snappy;
+    return profile?.fullName || profile?.email || 'User';
+  }
+
+  onAvatarError(event: any) {
+    event.target.src = this.authorization.getDefaultAvatarUrl();
+  }
+
+  clearSearch(event: Event): void {
+    event.preventDefault();
+    this.searchQuery = '';
+    this.onQueryChanged({ detail: { value: '' } } as CustomEvent);
   }
 
   performSearch(): void {

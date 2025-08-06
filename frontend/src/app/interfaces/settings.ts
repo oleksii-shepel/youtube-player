@@ -5,6 +5,7 @@ export interface AccessToken {
   promptMode: string;        // e.g., 'consent', 'none'
   scopesGranted: string;     // space-separated OAuth scopes
   tokenType: string;         // usually 'Bearer'
+  validFrom: number;
 }
 
 export interface UserInfoSettings {

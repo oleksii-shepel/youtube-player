@@ -123,8 +123,7 @@ export class SettingsChapter implements OnInit {
     private settings: Settings,
     private helper: Helper,
     private authorization: Authorization,
-    private theme: ThemeService,
-    private crypto: CryptoService
+    private theme: ThemeService
   ) {}
 
   async ngOnInit() {
@@ -278,7 +277,7 @@ export class SettingsChapter implements OnInit {
           ...this.userInfoSettings,
           firstName: authProfile.firstName,
           email: authProfile.email,
-          profilePictureUrl: authProfile.profilePictureUrl || this.getDefaultAvatarUrl(authProfile.firstName),
+          profilePictureUrl: authProfile.profilePictureUrl || this.authorization.getDefaultAvatarUrl(),
         };
       }
       if (this.isApiConnected) {
@@ -299,21 +298,6 @@ export class SettingsChapter implements OnInit {
     } finally {
       this.isLoading = false;
     }
-  }
-
-  getDefaultAvatarUrl(name: string): string {
-    const initials = name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="6.25em" height="6.25em">
-        <rect width="100" height="100" fill="#555"/>
-        <text x="50%" y="55%" font-size="4rem" text-anchor="middle" fill="#fff" font-family="Arial" dy=".3em">${initials}</text>
-      </svg>`;
-    // Properly encode base64 of SVG
-    return `data:image/svg+xml;base64,${btoa(svg)}`;
   }
 
   async loadPlaylists(pageToken?: string): Promise<{ items: PlaylistEntity[]; nextPageToken?: string }> {
