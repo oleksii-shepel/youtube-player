@@ -1,4 +1,3 @@
-import { Storage } from '@ionic/storage-angular';
 import { catchError, createSubject, fromPromise, Stream } from '@actioncrew/streamix';
 import { HttpClient, readJson } from '@actioncrew/streamix/http';
 
@@ -7,6 +6,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, switchMap } from '@actioncrew/streamix';
 import { environment } from 'src/environments/environment';
 import { HTTP_CLIENT } from 'src/main';
+import { Settings } from './settings.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +18,7 @@ export class YoutubeDataService {
   private http: HttpClient;
   searchError$ = createSubject<string>();
 
-  constructor(private storage: Storage) {
+  constructor(private settings: Settings) {
     this.http = inject<HttpClient>(HTTP_CLIENT);
   }
 
@@ -385,9 +385,22 @@ export class YoutubeDataService {
    * Uses the `chart=mostPopular` parameter and API key authorization.
    */
   fetchTrendingVideos(params?: IYoutubeQueryParams): Stream<any> {
+    const regionSettings = this.settings.regionLanguage.snappy;
+    const useAutoLocation = regionSettings?.useAutoLocation;
+
+    const countryCode = useAutoLocation
+      ? regionSettings?.detectedCountry?.code
+      : regionSettings?.country?.code;
+
+    const languageCode = useAutoLocation
+      ? regionSettings?.detectedLanguage?.code
+      : regionSettings?.language?.code;
+
     return this.search('videos', {
       part: 'snippet,contentDetails,statistics',
       chart: 'mostPopular',
+      regionCode: countryCode,
+      hl: languageCode,
       pageToken: params?.pageToken ?? ''
     });
   }
@@ -453,8 +466,8 @@ export class YoutubeDataService {
     });
 
     // Get settings dynamically
-    const appearanceSettings = await this.storage.get('appearanceSettings');
-    const regionSettings = await this.storage.get('regionAndLanguageSettings');
+    const appearanceSettings = this.settings.appearance.snappy;
+    const regionSettings = this.settings.regionLanguage.snappy;
 
     // Inject maxResults if not provided
     if (!params['maxResults'] && appearanceSettings?.maxItemsPerRequest) {

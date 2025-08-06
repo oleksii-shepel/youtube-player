@@ -131,6 +131,7 @@ export interface IYoutubeQueryParams {
 
   // Video-specific parameters
   chart?: string;
+  hl?: string;
   myRating?: string;
   videoDuration?: YouTubeVideoDuration; // any | short | medium | long
   videoDefinition?: YouTubeVideoDefinition; // standard | high
