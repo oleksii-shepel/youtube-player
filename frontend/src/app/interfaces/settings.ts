@@ -1,3 +1,5 @@
+import { YouTubeSafeSearch } from "./search";
+
 export interface AccessToken {
   accessToken: string;
   authUserIndex: string;     // Google returns this as a string index (e.g. '0')
@@ -75,6 +77,7 @@ export interface SearchSettings {
   numberFormat: string;              // e.g., 'en-US', 'fr-FR'
   detectedCountry: Country | null;           // From IP/location detection
   detectedLanguage: Language | null;          // From browser or location
+  safeSearch: YouTubeSafeSearch;
 };
 
 export interface Playlist {

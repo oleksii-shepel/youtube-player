@@ -42,7 +42,7 @@ export interface PageState<T> {
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, LanguageSelectModalComponent, CountrySelectModalComponent, GridComponent, DirectiveModule],
+  imports: [CommonModule, FormsModule, IonicModule, CountrySelectModalComponent, GridComponent, DirectiveModule],
 })
 export class SettingsChapter implements OnInit {
   selectedMainSection = 'appearance';
@@ -211,24 +211,6 @@ export class SettingsChapter implements OnInit {
     this.saveSearchSettings(); // optional: persist setting
     this.sheetDirective.dismiss();
     this.isCountryModalOpen = false;
-  }
-
-  async openLanguageModal() {
-    this.isLanguageModalOpen = true; // Show the wrapper div
-    // Use setTimeout to ensure the DOM element is rendered before calling present
-    await new Promise(resolve => setTimeout(resolve, 0));
-    this.sheetDirective.present();
-  }
-
-  onCloseLanguageModal() {
-    this.sheetDirective.dismiss(); // smoothly closes modal if SheetDirective is used
-    this.isLanguageModalOpen = false;
-  }
-
-  onCancelLanguageModal() {
-    console.log('Country selection cancelled');
-    this.sheetDirective.dismiss();
-    this.isLanguageModalOpen = false;
   }
 
   onSelectLanguage(language: any) {

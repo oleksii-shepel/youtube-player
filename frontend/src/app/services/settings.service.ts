@@ -4,6 +4,7 @@ import { AboutSettings, AccessToken, ApiConfigSettings, AppearanceSettings, Chan
 import { Storage } from '@ionic/storage-angular';
 import { environment } from 'src/environments/environment';
 import { CryptoService } from './crypto.service';
+import { YouTubeSafeSearch } from '../interfaces/search';
 
 export const defaultAccessToken: AccessToken = {
   accessToken: '',
@@ -35,6 +36,7 @@ export const defaultSearchSettings: SearchSettings = {
   detectedCountry: null,
   detectedLanguage: null,
   maxItemsPerRequest: '5',
+  safeSearch: YouTubeSafeSearch.Moderate
 };
 
 export const defaultUserInfoSettings: UserInfoSettings = {
