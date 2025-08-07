@@ -1,15 +1,3 @@
-
-<app-country-select-modal
-  *ngIf="isCountryModalOpen"
-  [selectedCountry]="searchSettings.country"
-  [selectedLanguage]="searchSettings.language"
-  [isOpen]="isCountryModalOpen"
-  (close)="onCloseCountryModal()"
-  (cancel)="onCancelCountryModal()"
-  (select)="onSelectCountryLanguage($event)"
-  [appSheet]="countrySelectSheetConfig">
-</app-country-select-modal>
-
 <ion-content class="youtube-api-settings-content">
   <div class="settings-container scrollable">
     @if(userInfoSettings) {

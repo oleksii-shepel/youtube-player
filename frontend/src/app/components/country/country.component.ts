@@ -7,6 +7,7 @@ import {
   Input,
   Output,
   OnInit,
+  ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -16,6 +17,8 @@ import { DirectiveModule } from 'src/app/directives';
 import countryLanguages from './country-languages.json';
 import ISO6391 from 'iso-639-1';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { SheetConfig, SheetDirective } from 'src/app/directives/sheet/sheet.directive';
+import { createSubject } from '@actioncrew/streamix';
 
 // Extended interfaces
 export interface Language {
@@ -44,18 +47,17 @@ export interface CountryLanguageSelection {
     FormsModule,
     IonicModule,
     DirectiveModule,
-    ScrollingModule,
+    ScrollingModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+  <div [appSheet]="appSheet" #sheetDirective="appSheetDirective">
     <div
       class="modal-backdrop"
-      [class.hidden]="!isOpen"
       (click)="onClose()"
     ></div>
     <div
       class="modal-container"
-      [class.hidden]="!isOpen"
       [class.with-border]="showBorder"
       (click)="$event.stopPropagation()"
     >
@@ -355,13 +357,41 @@ export interface CountryLanguageSelection {
   styleUrls: ['country.component.scss'],
 })
 export class CountrySelectModalComponent implements OnInit {
-  @Input() isOpen = false;
+  // Public property that the service can access
+  public sheetDirectiveInstance!: SheetDirective;
+
+  // Use a setter with @ViewChild to capture the directive instance
+  @ViewChild('sheetDirective') set sheetDirective(directive: SheetDirective) {
+    if (directive) {
+      this.sheetDirectiveInstance = directive;
+      this.directiveReady.emit(directive);
+      // Connect the directive's dismiss event to the component's didDismiss subject
+      this.sheetDirectiveInstance.didDismiss.subscribe(() => {
+        this.didDismiss.next(null);
+        this.didDismiss.complete();
+      });
+    }
+  }
+  @Input() appSheet: SheetConfig = {
+    breakpoints: [
+      { id: 'small', height: 90 },    // Show search and few countries
+      { id: 'medium', height: 90 },   // Show more countries
+      { id: 'full', height: 90 }      // Full list with all features
+    ],
+    initialBreakpoint: 'medium',
+    backdropDismiss: true,
+    showBackdrop: true,
+    canDismiss: true
+  };
+
   @Input() showBorder = true;
   @Input() selectedCountry: Country | null = null;
   @Input() selectedLanguage: Language | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
   @Output() select = new EventEmitter<CountryLanguageSelection>();
+  @Output() directiveReady = new EventEmitter<SheetDirective>();
+  public didDismiss = createSubject<any>();
 
   allCountries: Country[] = [];
   filteredCountries: Country[] = [];
@@ -369,7 +399,7 @@ export class CountrySelectModalComponent implements OnInit {
   tempSelectedCountry: Country | null = null;
   searchTerm = '';
   isLoading = true;
-  showLanguageStep = true; // Start with country selection
+  showLanguageStep = true;
 
   // Geolocation properties
   enableAutoDetection = false;
@@ -383,6 +413,12 @@ export class CountrySelectModalComponent implements OnInit {
 
   async ngOnInit() {
     await this.loadCountries();
+  }
+
+  ngAfterViewInit() {
+    if (!this.sheetDirective) {
+      console.error('SheetDirective initialization failed!');
+    }
   }
 
   trackByCode(index: number, item: { code: string }): string {

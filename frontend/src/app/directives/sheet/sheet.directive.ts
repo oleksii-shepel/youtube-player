@@ -7,7 +7,9 @@ import {
   OnInit,
   OnDestroy,
   Renderer2,
-  HostListener
+  HostListener,
+  Inject,
+  DOCUMENT
 } from '@angular/core';
 
 export interface SheetBreakpoint {
@@ -26,6 +28,7 @@ export interface SheetConfig {
 
 @Directive({
   selector: '[appSheet]',
+  exportAs: 'appSheetDirective',
   standalone: false
 })
 export class SheetDirective implements OnInit, OnDestroy {
@@ -51,6 +54,7 @@ export class SheetDirective implements OnInit, OnDestroy {
   private startY = 0;
   private startHeight = 0;
   private animationId: number | null = null;
+  private rootElement: HTMLElement;
 
   private readonly ANIMATION_DURATION = 300;
   private readonly VELOCITY_THRESHOLD = 0.5;
@@ -66,14 +70,19 @@ export class SheetDirective implements OnInit, OnDestroy {
 
   constructor(
     private elementRef: ElementRef<HTMLElement>,
-    private renderer: Renderer2
-  ) {}
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private document: Document
+  ) {
+    this.rootElement = this.document.querySelector('ion-app') || this.document.body;
+  }
 
   ngOnInit() {
     this.initializeSheet();
   }
 
   ngOnDestroy() {
+    this.renderer.removeChild(this.rootElement, this.elementRef.nativeElement);
+
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
@@ -89,6 +98,7 @@ export class SheetDirective implements OnInit, OnDestroy {
   private initializeSheet() {
     const element = this.elementRef.nativeElement;
 
+    this.renderer.appendChild(this.rootElement, element);
     this.modalBackdrop = element.querySelector('.modal-backdrop') as HTMLElement;
     this.modalContainer = element.querySelector('.modal-container') as HTMLElement;
 

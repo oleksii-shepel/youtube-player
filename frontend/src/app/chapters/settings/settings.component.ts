@@ -8,12 +8,12 @@ import { Helper } from 'src/app/services/helper.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
 import { IonicModule } from '@ionic/angular';
-import { LanguageSelectModalComponent } from '../../components/language/language.component';
 import { CountryLanguageSelection, CountrySelectModalComponent } from '../../components/country/country.component';
 import { DirectiveModule } from 'src/app/directives';
 import { GridComponent } from 'src/app/components/grid/grid.component';
 import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Playlist as PlaylistEntity, PlaylistsSettings, SearchSettings as SearchSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
 import { Settings } from 'src/app/services/settings.service';
+import { SheetService } from 'src/app/services/sheet.service';
 
 export enum SettingsSection {
   Appearance = 'appearance',
@@ -42,7 +42,7 @@ export interface PageState<T> {
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, CountrySelectModalComponent, GridComponent, DirectiveModule],
+  imports: [CommonModule, FormsModule, IonicModule, GridComponent, DirectiveModule],
 })
 export class SettingsChapter implements OnInit {
   selectedMainSection = 'appearance';
@@ -122,7 +122,8 @@ export class SettingsChapter implements OnInit {
     private settings: Settings,
     private helper: Helper,
     private authorization: Authorization,
-    private theme: ThemeService
+    private theme: ThemeService,
+    private sheetService: SheetService
   ) {}
 
   async ngOnInit() {
@@ -193,36 +194,31 @@ export class SettingsChapter implements OnInit {
   }
 
   async openCountryModal() {
-    this.isCountryModalOpen = true; // Show the wrapper div
-    // Use setTimeout to ensure the DOM element is rendered before calling present
-    await new Promise(resolve => setTimeout(resolve, 0));
-    this.sheetDirective.present();
+    const modal = await this.sheetService.open(CountrySelectModalComponent, {
+      breakpoints: [
+        { id: 'small', height: 40 },
+        { id: 'large', height: 80 },
+        { id: 'close', height: 0, isClosing: true }
+      ],
+      initialBreakpoint: 'small',
+      backdropDismiss: true,
+      showBackdrop: true,
+      canDismiss: true
+    }, {
+      selectedCountry: this.searchSettings.country,
+      selectedLanguage: this.searchSettings.language
+    });
+
+    // Handle outputs
+    modal.instance.close.subscribe(() => this.sheetService.close());
+    modal.instance.select.subscribe((event: any) => this.handleSelection(event));
   }
 
-  onCloseCountryModal() {
-    this.sheetDirective.dismiss(); // smoothly closes modal if SheetDirective is used
-    this.isCountryModalOpen = false;
-  }
-
-  onCancelCountryModal() {
-    console.log('Country selection cancelled');
-    this.sheetDirective.dismiss();
-    this.isCountryModalOpen = false;
-  }
-
-  onSelectCountryLanguage(event: CountryLanguageSelection) {
+  async handleSelection(event: CountryLanguageSelection) {
+    // Process selection
     this.searchSettings.country = event.country;
     this.searchSettings.language = event.language;
-    this.saveSearchSettings(); // optional: persist setting
-    this.sheetDirective.dismiss();
-    this.isCountryModalOpen = false;
-  }
-
-  onSelectLanguage(language: any) {
-    this.searchSettings.language = language;
-    this.saveSearchSettings(); // optional: persist setting
-    this.sheetDirective.dismiss();
-    this.isLanguageModalOpen = false;
+    await this.sheetService.close();
   }
 
   get playlistCount(): number {
