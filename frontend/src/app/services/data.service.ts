@@ -1,3 +1,4 @@
+import { SearchSettings } from './../interfaces/settings';
 import { catchError, createSubject, fromPromise, Stream } from '@actioncrew/streamix';
 import { HttpClient, readJson } from '@actioncrew/streamix/http';
 
@@ -385,7 +386,7 @@ export class YoutubeDataService {
    * Uses the `chart=mostPopular` parameter and API key authorization.
    */
   fetchTrendingVideos(params?: IYoutubeQueryParams): Stream<any> {
-    const regionSettings = this.settings.regionLanguage.snappy;
+    const regionSettings = this.settings.search.snappy;
     const useAutoLocation = regionSettings?.useAutoLocation;
 
     const countryCode = useAutoLocation
@@ -466,23 +467,22 @@ export class YoutubeDataService {
     });
 
     // Get settings dynamically
-    const appearanceSettings = this.settings.appearance.snappy;
-    const regionSettings = this.settings.regionLanguage.snappy;
+    const searchSettings = this.settings.search.snappy;
 
     // Inject maxResults if not provided
-    if (!params['maxResults'] && appearanceSettings?.maxItemsPerRequest) {
-      params['maxResults'] = appearanceSettings.maxItemsPerRequest.toString();
+    if (!params['maxResults'] && searchSettings?.maxItemsPerRequest) {
+      params['maxResults'] = searchSettings.maxItemsPerRequest.toString();
     }
 
-    const useAutoLocation = regionSettings?.useAutoLocation;
+    const useAutoLocation = searchSettings?.useAutoLocation;
 
     const countryCode = useAutoLocation
-      ? regionSettings?.detectedCountry?.code
-      : regionSettings?.country?.code;
+      ? searchSettings?.detectedCountry?.code
+      : searchSettings?.country?.code;
 
     const languageCode = useAutoLocation
-      ? regionSettings?.detectedLanguage?.code
-      : regionSettings?.language?.code;
+      ? searchSettings?.detectedLanguage?.code
+      : searchSettings?.language?.code;
 
     // Inject regionCode and relevanceLanguage if not already set
     if (!params['regionCode'] && countryCode) {

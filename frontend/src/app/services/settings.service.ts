@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject, createBehaviorSubject, Subscription } from '@actioncrew/streamix';
-import { AboutSettings, AccessToken, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, PlaylistsSettings, RegionLanguageSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
+import { AboutSettings, AccessToken, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, PlaylistsSettings, SearchSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
 import { Storage } from '@ionic/storage-angular';
 import { environment } from 'src/environments/environment';
 import { CryptoService } from './crypto.service';
@@ -23,10 +23,9 @@ export const defaultAppearanceSettings: AppearanceSettings = {
   displayDescription: true,
   visibleBackdrop: true,
   displayResults: 'search',
-  maxItemsPerRequest: '5',
 };
 
-export const defaultRegionLanguageSettings: RegionLanguageSettings = {
+export const defaultSearchSettings: SearchSettings = {
   useAutoLocation: true,
   country: null,
   language: null,
@@ -35,6 +34,7 @@ export const defaultRegionLanguageSettings: RegionLanguageSettings = {
   numberFormat: 'en-US',
   detectedCountry: null,
   detectedLanguage: null,
+  maxItemsPerRequest: '5',
 };
 
 export const defaultUserInfoSettings: UserInfoSettings = {
@@ -112,7 +112,7 @@ export class Settings {
   userInfo: Subject<UserInfoSettings>;
   appearance: Subject<AppearanceSettings>;
   channelInfo: Subject<ChannelInfoSettings>; // Fixed type
-  regionLanguage: Subject<RegionLanguageSettings>;
+  search: Subject<SearchSettings>;
   playlists: Subject<PlaylistsSettings>;
   subscriptions: Subject<SubscriptionsSettings>;
   apiConfig: Subject<ApiConfigSettings>;
@@ -127,7 +127,7 @@ export class Settings {
     this.userInfo = createBehaviorSubject<UserInfoSettings>(defaultUserInfoSettings);
     this.appearance = createBehaviorSubject<AppearanceSettings>(defaultAppearanceSettings);
     this.channelInfo = createBehaviorSubject<ChannelInfoSettings>(defaultChannelInfoSettings);
-    this.regionLanguage = createBehaviorSubject<RegionLanguageSettings>(defaultRegionLanguageSettings);
+    this.search = createBehaviorSubject<SearchSettings>(defaultSearchSettings);
     this.playlists = createBehaviorSubject<PlaylistsSettings>(defaultPlaylistsSettings);
     this.subscriptions = createBehaviorSubject<SubscriptionsSettings>(defaultSubscriptionsSettings);
     this.apiConfig = createBehaviorSubject<ApiConfigSettings>(defaultApiConfigSettings);
@@ -168,7 +168,7 @@ export class Settings {
       this.channelInfo.next(channelInfo);
     }
     if (regionLanguage !== null && regionLanguage !== undefined) {
-      this.regionLanguage.next(regionLanguage);
+      this.search.next(regionLanguage);
     }
     if (playlists !== null && playlists !== undefined) {
       this.playlists.next(playlists);
@@ -197,7 +197,7 @@ export class Settings {
       this.channelInfo.subscribe(value => {
         if (this.initialized) this.storage.set('channelInfo', value);
       }),
-      this.regionLanguage.subscribe(value => {
+      this.search.subscribe(value => {
         if (this.initialized) this.storage.set('regionLanguage', value);
       }),
       this.playlists.subscribe(value => {
@@ -238,9 +238,9 @@ export class Settings {
     this.channelInfo.next({ ...current!, ...updates });
   }
 
-  updateRegionLanguage(updates: Partial<RegionLanguageSettings>): void {
-    const current = this.regionLanguage.snappy;
-    this.regionLanguage.next({ ...current!, ...updates });
+  updateRegionLanguage(updates: Partial<SearchSettings>): void {
+    const current = this.search.snappy;
+    this.search.next({ ...current!, ...updates });
   }
 
   updatePlaylists(updates: Partial<PlaylistsSettings>): void {
@@ -268,7 +268,7 @@ export class Settings {
     this.userInfo.next(defaultUserInfoSettings);
     this.appearance.next(defaultAppearanceSettings);
     this.channelInfo.next(defaultChannelInfoSettings);
-    this.regionLanguage.next(defaultRegionLanguageSettings);
+    this.search.next(defaultSearchSettings);
     this.playlists.next(defaultPlaylistsSettings);
     this.subscriptions.next(defaultSubscriptionsSettings);
     this.apiConfig.next(defaultApiConfigSettings);

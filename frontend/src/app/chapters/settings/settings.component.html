@@ -11,7 +11,7 @@
 <app-language-select-modal
   *ngIf="isLanguageModalOpen"
   [isOpen]="isLanguageModalOpen"
-  [selectedLanguage]="regionLanguageSettings.language"
+  [selectedLanguage]="searchSettings.language"
   (close)="onCloseLanguageModal()"
   (cancel)="onCancelLanguageModal()"
   (select)="onSelectLanguage($event)"
@@ -52,9 +52,9 @@
         <ion-icon name="person-circle-outline"></ion-icon>
         <span>Channel Info</span>
       </div>
-      <div class="nav-item" [class.active]="selectedMainSection === 'region-language'" (click)="selectMainSection('region-language')">
+      <div class="nav-item" [class.active]="selectedMainSection === 'search'" (click)="selectMainSection('search')">
         <ion-icon name="globe-outline"></ion-icon>
-        <span>Region & Language</span>
+        <span>Search Preferences</span>
       </div>
       <div class="nav-item" [class.active]="selectedMainSection === 'playlists'" (click)="selectMainSection('playlists')">
         <ion-icon name="list-outline"></ion-icon>
@@ -206,46 +206,31 @@
               <ion-select-option value="search">On Search</ion-select-option>
             </ion-select>
           </ion-item>
+        </ion-list>
+      </div>
+
+      <!-- Search Preferences Section -->
+
+      <div *ngIf="selectedMainSection === 'search' && searchSettings" class="content-section">
+        <ion-list>
           <ion-item>
             <ion-icon name="server-outline" slot="start"></ion-icon>
             <ion-label>Max Items per Request</ion-label>
-            <ion-select [(ngModel)]="appearanceSettings.maxItemsPerRequest" (ionChange)="onMaxItemsPerRequestChange()" interface="popover">
+            <ion-select [(ngModel)]="searchSettings.maxItemsPerRequest" (ionChange)="onMaxItemsPerRequestChange()" interface="popover">
               <ion-select-option value="5">5</ion-select-option>
               <ion-select-option value="10">10</ion-select-option>
               <ion-select-option value="25">25</ion-select-option>
             </ion-select>
           </ion-item>
-        </ion-list>
-      </div>
-
-      <!-- Region & Language Section -->
-
-      <div *ngIf="selectedMainSection === 'region-language' && regionLanguageSettings" class="content-section">
-        <ion-list>
-          <!-- Toggle: Use current location -->
-          <ion-item class="location-item">
-            <ion-icon name="locate-outline" slot="start"></ion-icon>
-            <ion-label class="main-label">
-              Use Current Location
-              <br><small class="subtext"
-                *ngIf="regionLanguageSettings.detectedCountry && regionLanguageSettings.detectedLanguage">
-                Detected: {{ regionLanguageSettings.detectedCountry.name || '...' }} / {{ regionLanguageSettings.detectedLanguage.name
-                || '...' }}
-              </small>
-            </ion-label>
-            <ion-toggle [(ngModel)]="regionLanguageSettings.useAutoLocation" (ionChange)="onAutoLocationToggle()"
-              class="location-toggle">
-            </ion-toggle>
-          </ion-item>
 
           <!-- Country/Region Select -->
-          <ion-item [disabled]="regionLanguageSettings.useAutoLocation" class="region-item">
+          <ion-item [disabled]="searchSettings.useAutoLocation" class="region-item">
             <ion-icon name="flag-outline" slot="start"></ion-icon>
             <ion-label class="main-label">
               Country/Region
               <br><small class="subtext"
-                *ngIf="regionLanguageSettings.country">
-                Selected: {{ regionLanguageSettings.country.nativeName || '...' }}
+                *ngIf="searchSettings.country">
+                Selected: {{ searchSettings.country.nativeName || '...' }}
               </small>
             </ion-label>
             <div class="action-buttons">
@@ -253,20 +238,20 @@
                 fill="clear"
                 (click)="openCountryModal()"
                 class="search-button"
-                [disabled]="regionLanguageSettings.useAutoLocation">
+                [disabled]="searchSettings.useAutoLocation">
                 <ion-icon name="search-outline"></ion-icon>
               </ion-button>
             </div>
           </ion-item>
 
           <!-- Language Select -->
-          <ion-item [disabled]="regionLanguageSettings.useAutoLocation" class="region-item">
+          <ion-item [disabled]="searchSettings.useAutoLocation" class="region-item">
             <ion-icon name="flag-outline" slot="start"></ion-icon>
             <ion-label class="main-label">
               Language
             <br><small class="subtext"
-                *ngIf="regionLanguageSettings.language">
-                Selected: {{ regionLanguageSettings.language.nativeName || '...' }}
+                *ngIf="searchSettings.language">
+                Selected: {{ searchSettings.language.nativeName || '...' }}
               </small>
             </ion-label>
             <div class="action-buttons">
@@ -274,7 +259,7 @@
                 fill="clear"
                 (click)="openLanguageModal()"
                 class="search-button"
-                [disabled]="regionLanguageSettings.useAutoLocation">
+                [disabled]="searchSettings.useAutoLocation">
                 <ion-icon name="search-outline"></ion-icon>
               </ion-button>
             </div>

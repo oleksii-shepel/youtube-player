@@ -12,13 +12,13 @@ import { LanguageSelectModalComponent } from '../../components/language/language
 import { CountrySelectModalComponent } from '../../components/country/country.component';
 import { DirectiveModule } from 'src/app/directives';
 import { GridComponent } from 'src/app/components/grid/grid.component';
-import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Playlist as PlaylistEntity, PlaylistsSettings, RegionLanguageSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
+import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Playlist as PlaylistEntity, PlaylistsSettings, SearchSettings as SearchSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
 import { Settings } from 'src/app/services/settings.service';
 
 export enum SettingsSection {
   Appearance = 'appearance',
   UserInfo = 'user-info',
-  RegionLanguage = 'region-language',
+  Search = 'search',
   Playlists = 'playlists',
   Subscriptions = 'subscriptions',
   ApiConfig = 'api-key',
@@ -49,7 +49,7 @@ export class SettingsChapter implements OnInit {
 
   userInfoSettings!: UserInfoSettings;
   appearanceSettings!: AppearanceSettings;
-  regionLanguageSettings!: RegionLanguageSettings;
+  searchSettings!: SearchSettings;
   channelInfoSettings!: ChannelInfoSettings;
   playlistsSettings!: PlaylistsSettings;
   subscriptionsSettings!: SubscriptionsSettings;
@@ -128,7 +128,7 @@ export class SettingsChapter implements OnInit {
   async ngOnInit() {
     this.subscriptions.push(
       this.settings.appearance.subscribe(value => this.appearanceSettings = value),
-      this.settings.regionLanguage.subscribe(value => this.regionLanguageSettings = value),
+      this.settings.search.subscribe(value => this.searchSettings = value),
       this.settings.userInfo.subscribe(value => this.userInfoSettings = value),
       this.settings.playlists.subscribe(value => this.playlistsSettings = value),
       this.settings.subscriptions.subscribe(value => this.subscriptionsSettings = value),
@@ -172,14 +172,14 @@ export class SettingsChapter implements OnInit {
   }
 
   onMaxItemsPerRequestChange() {
-    this.saveAppearanceSettings();
+    this.saveSearchSettings();
   }
 
   getSectionTitle(): string {
     const sectionTitles: { [key: string]: string } = {
       'channel-info': 'Channel Info',
       appearance: 'Theme Settings',
-      'region-language': 'Region & Language',
+      'search': 'Search Preferences',
       playlists: 'Playlists Management',
       subscriptions: 'Subscriptions',
       'api-key': 'API Configuration',
@@ -207,8 +207,8 @@ export class SettingsChapter implements OnInit {
   }
 
   onSelectCountry(country: any) {
-    this.regionLanguageSettings.country = country;
-    this.saveRegionLanguageSettings(); // optional: persist setting
+    this.searchSettings.country = country;
+    this.saveSearchSettings(); // optional: persist setting
     this.sheetDirective.dismiss();
     this.isCountryModalOpen = false;
   }
@@ -232,8 +232,8 @@ export class SettingsChapter implements OnInit {
   }
 
   onSelectLanguage(language: any) {
-    this.regionLanguageSettings.language = language;
-    this.saveRegionLanguageSettings(); // optional: persist setting
+    this.searchSettings.language = language;
+    this.saveSearchSettings(); // optional: persist setting
     this.sheetDirective.dismiss();
     this.isLanguageModalOpen = false;
   }
@@ -427,8 +427,8 @@ export class SettingsChapter implements OnInit {
     this.settings.appearance.next(this.appearanceSettings);
   }
 
-  async saveRegionLanguageSettings() {
-    this.settings.regionLanguage.next(this.regionLanguageSettings);
+  async saveSearchSettings() {
+    this.settings.search.next(this.searchSettings);
   }
 
   async saveApiConfig() {
@@ -496,16 +496,16 @@ export class SettingsChapter implements OnInit {
   }
 
   formatNumber(num: number): string {
-    return num.toLocaleString(this.regionLanguageSettings.numberFormat);
+    return num.toLocaleString(this.searchSettings.numberFormat);
   }
 
   async onAutoLocationToggle() {
-    if (this.regionLanguageSettings.useAutoLocation) {
+    if (this.searchSettings.useAutoLocation) {
      const { country, language } = await this.helper.detectRegionAndLanguage();
-     this.regionLanguageSettings.detectedCountry = country;
-     this.regionLanguageSettings.detectedLanguage = language;
+     this.searchSettings.detectedCountry = country;
+     this.searchSettings.detectedLanguage = language;
     }
-    this.saveRegionLanguageSettings();
+    this.saveSearchSettings();
   }
 
   getQuotaPercentage(): number {

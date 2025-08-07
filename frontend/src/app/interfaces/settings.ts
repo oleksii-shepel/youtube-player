@@ -39,7 +39,6 @@ export interface AppearanceSettings {
   displayDescription: boolean;
   visibleBackdrop: boolean;
   displayResults: AppDisplayResults;
-  maxItemsPerRequest: string;
 };
 
 export interface ChannelInfoSettings {
@@ -66,7 +65,8 @@ export interface Country {
   nativeName: string;
 };
 
-export interface RegionLanguageSettings {
+export interface SearchSettings {
+  maxItemsPerRequest: string;
   useAutoLocation: boolean;
   country: Country | null;            // ISO 3166-1 alpha-2 code, e.g., 'US'
   language: Language | null;           // BCP 47 tag, e.g., 'en', 'uk'
