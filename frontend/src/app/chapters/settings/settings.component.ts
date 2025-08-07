@@ -42,7 +42,7 @@ export interface PageState<T> {
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, CountrySelectModalComponent, LanguageSelectModalComponent, GridComponent, DirectiveModule],
+  imports: [CommonModule, FormsModule, IonicModule, LanguageSelectModalComponent, CountrySelectModalComponent, GridComponent, DirectiveModule],
 })
 export class SettingsChapter implements OnInit {
   selectedMainSection = 'appearance';
@@ -64,8 +64,8 @@ export class SettingsChapter implements OnInit {
   isCountryModalOpen = false;
   countrySelectSheetConfig: SheetConfig = {
     breakpoints: [
-      { id: 'small', height: 40 },    // Show search and few countries
-      { id: 'medium', height: 70 },   // Show more countries
+      { id: 'small', height: 90 },    // Show search and few countries
+      { id: 'medium', height: 90 },   // Show more countries
       { id: 'full', height: 90 }      // Full list with all features
     ],
     initialBreakpoint: 'medium',

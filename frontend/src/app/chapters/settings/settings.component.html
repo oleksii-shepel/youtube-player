@@ -2,7 +2,6 @@
 <app-country-select-modal
   *ngIf="isCountryModalOpen"
   [isOpen]="isCountryModalOpen"
-  [selectedCountry]="regionLanguageSettings.country"
   (close)="onCloseCountryModal()"
   (cancel)="onCancelCountryModal()"
   (select)="onSelectCountry($event)"
