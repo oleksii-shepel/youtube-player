@@ -1,6 +1,8 @@
 
 <app-country-select-modal
   *ngIf="isCountryModalOpen"
+  [selectedCountry]="searchSettings.country"
+  [selectedLanguage]="searchSettings.language"
   [isOpen]="isCountryModalOpen"
   (close)="onCloseCountryModal()"
   (cancel)="onCancelCountryModal()"
@@ -220,7 +222,7 @@
               Country/Language
               <br><small class="subtext"
                 *ngIf="searchSettings.country && searchSettings.language">
-                Selected: {{ searchSettings.country.nativeName || '...' }} / {{ searchSettings.language.nativeName || '...' }}
+                Selected: {{ searchSettings.country.nativeName || '...' }}/{{ searchSettings.language.nativeName || '...' }}
               </small>
             </ion-label>
             <div class="action-buttons">

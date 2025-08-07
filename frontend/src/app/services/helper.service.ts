@@ -7,7 +7,7 @@ import ISO6391 from 'iso-639-1';
 import * as countries from 'i18n-iso-countries';
 import englishCountries from 'i18n-iso-countries/langs/en.json';
 import { Country, Language } from '../interfaces/settings';
-
+import countryLanguages from '../components/country/country-languages.json';
 
 @Injectable({ providedIn: 'root' })
 export class Helper {
@@ -212,75 +212,89 @@ export class Helper {
   }
 
   /** 🌍 Detect user's region and language via geolocation and IP using http.get */
-  detectRegionAndLanguage(): Promise<{ country: Country; language: Language }> {
-    return new Promise(resolve => {
-      const fallback = () => {
-        firstValueFrom(this.http.get('https://ipapi.co/json', readJson))
-          .then((data: any) => {
-            const countryCode = data.country || 'US';
-            const languageCode = (data.languages?.split(',')[0]) || 'en';
+  async detectRegionAndLanguage(): Promise<{ country: Country; language: Language }> {
+    const fallback = async (): Promise<{ country: Country; language: Language }> => {
+      try {
+        const data: any = await firstValueFrom(this.http.get('https://ipapi.co/json', readJson));
+        const countryCode = data.country || 'US';
+        const languageCodes = (countryLanguages as any)[countryCode] || [];
+        const languages: Language[] = languageCodes.map((langCode: string) => ({
+          code: langCode,
+          name: ISO6391.getName(langCode) || langCode.toUpperCase(),
+          nativeName: ISO6391.getNativeName(langCode) || ISO6391.getName(langCode) || langCode.toUpperCase(),
+        }));
 
-            resolve({
-              country: {
-                code: countryCode,
-                name: countries.getAlpha2Code(countryCode, 'en') || countryCode,
-                nativeName: countries.getName(countryCode, 'en') || countryCode
-              },
-              language: {
-                code: languageCode,
-                name: ISO6391.getName(languageCode) || 'English',
-                nativeName: ISO6391.getNativeName(languageCode) || 'English'
-              }
-            });
-          })
-          .catch(() => {
-            resolve({
-              country: {
-                code: 'US',
-                name: countries.getAlpha2Code('US', 'en') || 'US',
-                nativeName: countries.getName('US', 'en') || 'United States'
-              },
-              language: {
-                code: 'en',
-                name: 'English',
-                nativeName: 'English'
-              }
-            });
-          });
-      };
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => {
-            const { latitude, longitude } = pos.coords;
-            const geoUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
-
-            firstValueFrom(this.http.get(geoUrl, readJson))
-              .then((data: any) => {
-                const countryCode = data.countryCode || 'US';
-                const languageCode = navigator.language.split('-')[0] || 'en';
-
-                resolve({
-                  country: {
-                    code: countryCode,
-                    name: countries.getName(countryCode, 'en') || countryCode,
-                    nativeName: countries.getName(countryCode, 'en') || countryCode
-                  },
-                  language: {
-                    code: languageCode,
-                    name: ISO6391.getName(languageCode) || 'English',
-                    nativeName: ISO6391.getNativeName(languageCode) || 'English'
-                  }
-                });
-              })
-              .catch(() => fallback());
+        return {
+          country: {
+            code: countryCode,
+            name: countries.getName(countryCode, 'en') || countryCode,
+            nativeName: countries.getName(countryCode, 'en') || countryCode,
+            languages,
           },
-          () => fallback(),
-          { timeout: 5000 }
-        );
-      } else {
-        fallback();
+          language: {
+            code: languageCodes[0] || 'en',
+            name: ISO6391.getName(languageCodes[0]) || 'English',
+            nativeName: ISO6391.getNativeName(languageCodes[0]) || 'English',
+          },
+        };
+      } catch {
+        // hardcoded fallback
+        return {
+          country: {
+            code: 'US',
+            name: 'United States',
+            nativeName: 'United States',
+            languages: [
+              { code: 'en', name: 'English', nativeName: 'English' },
+            ],
+          },
+          language: { code: 'en', name: 'English', nativeName: 'English' },
+        };
       }
-    });
+    };
+
+    if (navigator.geolocation) {
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+        });
+
+        const { latitude, longitude } = position.coords;
+        const geoUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+
+        const data: any = await firstValueFrom(this.http.get(geoUrl, readJson));
+        const countryCode = data.countryCode || 'US';
+
+        const languageCodes = (countryLanguages as any)[countryCode] || [];
+        const browserLang = (navigator.language || 'en').split('-')[0];
+        const languageCode = languageCodes.includes(browserLang)
+          ? browserLang
+          : languageCodes[0] || 'en';
+
+        const languages: Language[] = languageCodes.map((langCode: string) => ({
+          code: langCode,
+          name: ISO6391.getName(langCode) || langCode.toUpperCase(),
+          nativeName: ISO6391.getNativeName(langCode) || ISO6391.getName(langCode) || langCode.toUpperCase(),
+        }));
+
+        return {
+          country: {
+            code: countryCode,
+            name: countries.getName(countryCode, 'en') || countryCode,
+            nativeName: countries.getName(countryCode, 'en') || countryCode,
+            languages,
+          },
+          language: {
+            code: languageCode,
+            name: ISO6391.getName(languageCode) || 'English',
+            nativeName: ISO6391.getNativeName(languageCode) || 'English',
+          },
+        };
+      } catch {
+        return fallback();
+      }
+    } else {
+      return fallback();
+    }
   }
 }

@@ -1,5 +1,3 @@
-import { YouTubeSafeSearch } from "./search";
-
 export interface AccessToken {
   accessToken: string;
   authUserIndex: string;     // Google returns this as a string index (e.g. '0')
@@ -65,6 +63,7 @@ export interface Country {
   code: string;
   name: string;
   nativeName: string;
+  languages: Language[];
 };
 
 export interface SearchSettings {
