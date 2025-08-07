@@ -9,7 +9,7 @@ import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
 import { IonicModule } from '@ionic/angular';
 import { LanguageSelectModalComponent } from '../../components/language/language.component';
-import { CountrySelectModalComponent } from '../../components/country/country.component';
+import { CountryLanguageSelection, CountrySelectModalComponent } from '../../components/country/country.component';
 import { DirectiveModule } from 'src/app/directives';
 import { GridComponent } from 'src/app/components/grid/grid.component';
 import { AboutSettings, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, Playlist as PlaylistEntity, PlaylistsSettings, SearchSettings as SearchSettings, Subscription as SubscriptionEntity, SubscriptionsSettings, UserInfoSettings } from 'src/app/interfaces/settings';
@@ -175,6 +175,10 @@ export class SettingsChapter implements OnInit {
     this.saveSearchSettings();
   }
 
+  onSafeSearchChange() {
+    this.saveSearchSettings();
+  }
+
   getSectionTitle(): string {
     const sectionTitles: { [key: string]: string } = {
       'channel-info': 'Channel Info',
@@ -206,8 +210,9 @@ export class SettingsChapter implements OnInit {
     this.isCountryModalOpen = false;
   }
 
-  onSelectCountry(country: any) {
-    this.searchSettings.country = country;
+  onSelectCountryLanguage(event: CountryLanguageSelection) {
+    this.searchSettings.country = event.country;
+    this.searchSettings.language = event.language;
     this.saveSearchSettings(); // optional: persist setting
     this.sheetDirective.dismiss();
     this.isCountryModalOpen = false;

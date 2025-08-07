@@ -77,7 +77,7 @@ export interface SearchSettings {
   numberFormat: string;              // e.g., 'en-US', 'fr-FR'
   detectedCountry: Country | null;           // From IP/location detection
   detectedLanguage: Language | null;          // From browser or location
-  safeSearch: YouTubeSafeSearch;
+  safeSearch: string;
 };
 
 export interface Playlist {

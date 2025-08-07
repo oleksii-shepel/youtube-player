@@ -4,7 +4,7 @@
   [isOpen]="isCountryModalOpen"
   (close)="onCloseCountryModal()"
   (cancel)="onCancelCountryModal()"
-  (select)="onSelectCountry($event)"
+  (select)="onSelectCountryLanguage($event)"
   [appSheet]="countrySelectSheetConfig">
 </app-country-select-modal>
 
@@ -231,6 +231,15 @@
                 <ion-icon name="search-outline"></ion-icon>
               </ion-button>
             </div>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="color-palette-outline" slot="start"></ion-icon>
+            <ion-label>SafeSearch</ion-label>
+            <ion-select [(ngModel)]="searchSettings.safeSearch" (ionChange)="onSafeSearchChange()" interface="popover">
+              <ion-select-option value="none">None</ion-select-option>
+              <ion-select-option value="moderate">Moderate</ion-select-option>
+              <ion-select-option value="strict">Strict</ion-select-option>
+            </ion-select>
           </ion-item>
         </ion-list>
       </div>

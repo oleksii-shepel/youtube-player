@@ -36,7 +36,7 @@ export const defaultSearchSettings: SearchSettings = {
   detectedCountry: null,
   detectedLanguage: null,
   maxItemsPerRequest: '5',
-  safeSearch: YouTubeSafeSearch.Moderate
+  safeSearch: 'moderate'
 };
 
 export const defaultUserInfoSettings: UserInfoSettings = {
