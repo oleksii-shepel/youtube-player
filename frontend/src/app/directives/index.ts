@@ -5,6 +5,7 @@ import { NgModule, Directive } from '@angular/core';
 import { SortableDirective } from './sortable/sortable.directive';
 import { SwipeableDirective } from './swipeable/swipeable.directive';
 import { SheetDirective } from './sheet/sheet.directive';
+import { VirtualScrollDirective } from './virtual-scroll/virtual-scroll.directive';
 
 export * from './tooltip/tooltip.directive';
 export * from './fixed/fixed.directive';
@@ -13,7 +14,7 @@ export * from './grid/dense-layout.directive';
 export * from './grid/masonry-layout.directive';
 
 @NgModule({
-  declarations: [SortableDirective, DraggableDirective, ResizableDirective, SwipeableDirective, SheetDirective, NgLetDirective],
-  exports: [SortableDirective, DraggableDirective, ResizableDirective, SwipeableDirective, SheetDirective, NgLetDirective],
+  declarations: [SortableDirective, DraggableDirective, ResizableDirective, SwipeableDirective, SheetDirective, VirtualScrollDirective, NgLetDirective],
+  exports: [SortableDirective, DraggableDirective, ResizableDirective, SwipeableDirective, SheetDirective, VirtualScrollDirective, NgLetDirective],
 })
 export class DirectiveModule {}

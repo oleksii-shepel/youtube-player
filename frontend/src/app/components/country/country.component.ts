@@ -205,28 +205,7 @@ export interface CountryLanguageSelection {
                     <p>Try adjusting your search terms</p>
                   </div>
                 } @else {
-                  <cdk-virtual-scroll-viewport itemSize="80" class="viewport country-list">
-                    <ion-item
-                      *cdkVirtualFor="let country of filteredCountries; trackBy: trackByCode"
-                      button
-                      (click)="selectCountry(country)"
-                      [class.selected]="tempSelectedCountry?.code === country.code"
-                      [class.detected]="detectedCountry?.code === country.code"
-                    >
-                      <ion-label>
-                        <h3>{{ country.name }}</h3>
-                        <p>{{ country.nativeName }}</p>
-                        <p class="country-code">{{ country.code }}</p>
-                        <p class="language-count">{{ country.languages.length }} language(s)</p>
-                      </ion-label>
-
-                      @if (tempSelectedCountry?.code === country.code) {
-                        <ion-icon name="checkmark-circle" slot="end" color="primary"></ion-icon>
-                      } @if (detectedCountry?.code === country.code && tempSelectedCountry?.code !== country.code) {
-                        <ion-icon name="location" slot="end" color="medium"></ion-icon>
-                      }
-                    </ion-item>
-                  </cdk-virtual-scroll-viewport>
+                  <div virtualScroll [virtualScrollItemTemplate]="countryItemTemplate" [virtualScrollOf]="filteredCountries" class="viewport country-list"></div>
 
                   @if (searchTerm && filteredCountries.length > 0) {
                     <div class="status-message">
@@ -243,26 +222,70 @@ export interface CountryLanguageSelection {
                 <p>Select a language spoken in this country:</p>
               </div>
 
-              <cdk-virtual-scroll-viewport itemSize="72" class="viewport language-list">
-                <ion-item
-                  *cdkVirtualFor="let language of filteredLanguages; trackBy: trackByCode"
-                  button
-                  (click)="selectLanguage(language)"
-                  [class.selected]="tempSelectedLanguage?.code === language.code"
-                >
-                  <ion-label>
-                    <h3>{{ language.name }}</h3>
-                    <p class="language-code">{{ language.code }}</p>
-                  </ion-label>
-
-                  @if (tempSelectedLanguage?.code === language.code) {
-                    <ion-icon name="checkmark-circle" slot="end" color="primary"></ion-icon>
-                  }
-                </ion-item>
-              </cdk-virtual-scroll-viewport>
+              <div virtualScroll [virtualScrollItemTemplate]="languageItemTemplate" [virtualScrollOf]="filteredLanguages" class="viewport language-list"></div>
             }
           }
         </div>
+
+        <ng-template
+          #countryItemTemplate
+          let-country
+          let-index="index"
+          let-top="top"
+        >
+          <ion-item
+            button
+            (click)="selectCountry(country)"
+            [class.selected]="tempSelectedCountry?.code === country.code"
+            [class.detected]="detectedCountry?.code === country.code"
+          >
+            <ion-label>
+              <h3>{{ country.name }}</h3>
+              <p>{{ country.nativeName }}</p>
+              <p class="country-code">{{ country.code }}</p>
+              <p class="language-count">
+                {{ country.languages.length }} language(s)
+              </p>
+            </ion-label>
+
+            @if (tempSelectedCountry?.code === country.code) {
+            <ion-icon
+              name="checkmark-circle"
+              slot="end"
+              color="primary"
+            ></ion-icon>
+            } @if (detectedCountry?.code === country.code &&
+            tempSelectedCountry?.code !== country.code) {
+            <ion-icon name="location" slot="end" color="medium"></ion-icon>
+            }
+          </ion-item>
+        </ng-template>
+
+        <ng-template
+          #languageItemTemplate
+          let-language
+          let-index="index"
+          let-top="top"
+        >
+          <ion-item
+            button
+            (click)="selectLanguage(language)"
+            [class.selected]="tempSelectedLanguage?.code === language.code"
+          >
+            <ion-label>
+              <h3>{{ language.name }}</h3>
+              <p class="language-code">{{ language.code }}</p>
+            </ion-label>
+
+            @if (tempSelectedLanguage?.code === language.code) {
+            <ion-icon
+              name="checkmark-circle"
+              slot="end"
+              color="primary"
+            ></ion-icon>
+            }
+          </ion-item>
+        </ng-template>
 
         <div class="controls">
           @if (!showLanguageStep) {
