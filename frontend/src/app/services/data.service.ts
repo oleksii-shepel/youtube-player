@@ -387,15 +387,9 @@ export class YoutubeDataService {
    */
   fetchTrendingVideos(params?: IYoutubeQueryParams): Stream<any> {
     const regionSettings = this.settings.search.snappy;
-    const useAutoLocation = regionSettings?.useAutoLocation;
 
-    const countryCode = useAutoLocation
-      ? regionSettings?.detectedCountry?.code
-      : regionSettings?.country?.code;
-
-    const languageCode = useAutoLocation
-      ? regionSettings?.detectedLanguage?.code
-      : regionSettings?.language?.code;
+    const countryCode = regionSettings?.country?.code;
+    const languageCode = regionSettings?.language?.code;
 
     return this.search('videos', {
       part: 'snippet,contentDetails,statistics',
@@ -474,15 +468,8 @@ export class YoutubeDataService {
       params['maxResults'] = searchSettings.maxItemsPerRequest.toString();
     }
 
-    const useAutoLocation = searchSettings?.useAutoLocation;
-
-    const countryCode = useAutoLocation
-      ? searchSettings?.detectedCountry?.code
-      : searchSettings?.country?.code;
-
-    const languageCode = useAutoLocation
-      ? searchSettings?.detectedLanguage?.code
-      : searchSettings?.language?.code;
+    const countryCode = searchSettings?.country?.code;
+    const languageCode = searchSettings?.language?.code;
 
     // Inject regionCode and relevanceLanguage if not already set
     if (!params['regionCode'] && countryCode) {

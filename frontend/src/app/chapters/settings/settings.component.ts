@@ -216,9 +216,7 @@ export class SettingsChapter implements OnInit {
   }
 
   async handleSelection(event: CountryLanguageSelection) {
-    // Process selection
-    this.searchSettings.country = event.country;
-    this.searchSettings.language = event.language;
+    this.settings.updateSearchPreferences({...this.settings.search.snappy, country: event.country, language: event.language })
     await this.sheetService.close();
   }
 
@@ -481,15 +479,6 @@ export class SettingsChapter implements OnInit {
 
   formatNumber(num: number): string {
     return num.toLocaleString(this.searchSettings.numberFormat);
-  }
-
-  async onAutoLocationToggle() {
-    if (this.searchSettings.useAutoLocation) {
-     const { country, language } = await this.helper.detectRegionAndLanguage();
-     this.searchSettings.detectedCountry = country;
-     this.searchSettings.detectedLanguage = language;
-    }
-    this.saveSearchSettings();
   }
 
   getQuotaPercentage(): number {

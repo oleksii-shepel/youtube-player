@@ -27,14 +27,11 @@ export const defaultAppearanceSettings: AppearanceSettings = {
 };
 
 export const defaultSearchSettings: SearchSettings = {
-  useAutoLocation: true,
   country: null,
   language: null,
   dateFormat: 'dd/MM/yyyy',
   timeFormat: '24h',
   numberFormat: 'en-US',
-  detectedCountry: null,
-  detectedLanguage: null,
   maxItemsPerRequest: '5',
   safeSearch: 'moderate'
 };

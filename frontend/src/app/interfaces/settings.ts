@@ -68,14 +68,11 @@ export interface Country {
 
 export interface SearchSettings {
   maxItemsPerRequest: string;
-  useAutoLocation: boolean;
   country: Country | null;            // ISO 3166-1 alpha-2 code, e.g., 'US'
   language: Language | null;           // BCP 47 tag, e.g., 'en', 'uk'
   dateFormat: 'MM/dd/yyyy' | 'dd/MM/yyyy' | string;
   timeFormat: '12h' | '24h' | string;
   numberFormat: string;              // e.g., 'en-US', 'fr-FR'
-  detectedCountry: Country | null;           // From IP/location detection
-  detectedLanguage: Language | null;          // From browser or location
   safeSearch: string;
 };
 
