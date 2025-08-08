@@ -51,321 +51,228 @@ export interface CountryLanguageSelection {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-  <div [appSheet]="appSheet" #sheetDirective="appSheetDirective">
-    <div
-      class="modal-backdrop"
-      (click)="onClose()"
-    ></div>
-    <div
-      class="modal-container"
-      [class.with-border]="showBorder"
-      (click)="$event.stopPropagation()"
-    >
-      <!-- Header -->
-      <div class="modal-header">
-        <ion-toolbar>
-          <ion-title>
-            {{
-              selectedCountry && !showLanguageStep
-                ? 'Select Language'
-                : 'Select Country'
-            }}
-          </ion-title>
-          <ion-buttons slot="end">
-            @if (selectedCountry && !showLanguageStep) {
-            <ion-button (click)="backToCountrySelection()">
-              <ion-icon name="arrow-back"></ion-icon>
-            </ion-button>
-            }
-            <ion-button (click)="onClose()">
-              <ion-icon name="close"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-
-        <!-- Progress indicator -->
-        <div class="progress-indicator">
-          <div
-            class="step"
-            [class.active]="showLanguageStep || !selectedCountry"
-            [class.completed]="selectedCountry && !showLanguageStep"
-          >
-            <div class="step-number">1</div>
-            <span>Country</span>
-          </div>
-          <div class="step-connector" [class.active]="selectedCountry"></div>
-          <div
-            class="step"
-            [class.active]="selectedCountry && !showLanguageStep"
-            [class.completed]="selectedLanguage"
-          >
-            <div class="step-number">2</div>
-            <span>Language</span>
-          </div>
-        </div>
-
-        <!-- Auto-detection option -->
-        @if (showLanguageStep || !selectedCountry) {
-        <div class="auto-detection-section">
-          <ion-item
-            lines="none"
-            class="auto-detection-item"
-            button
-            (click)="toggleAutoDetection()"
-          >
-            <ion-checkbox
-              slot="start"
-              [(ngModel)]="enableAutoDetection"
-              (ionChange)="onAutoDetectionToggle()"
-              [disabled]="isDetectingLocation"
-              (click)="$event.stopPropagation()"
-            ></ion-checkbox>
-
-            <ion-label>
-              <h3>Auto-detect my country</h3>
-              <p class="subdued">
-                Use your location to automatically select your country
-              </p>
-            </ion-label>
-
-            @if (isDetectingLocation) {
-            <ion-spinner name="crescent" slot="end"></ion-spinner>
-            } @if (geolocationError) {
-            <ion-icon name="alert-circle" slot="end" color="warning"></ion-icon>
-            }
-          </ion-item>
-
-          @if (geolocationError) {
-          <div class="error-message ion-padding-start">
-            <ion-icon name="information-circle" color="warning"></ion-icon>
-            <span class="warning-text">{{ geolocationError }}</span>
-          </div>
-          }
-        </div>
-        } @if (showLanguageStep && !enableAutoDetection) {
-        <ion-toolbar>
-          <div class="searchbar-wrapper">
-            <div class="search-container">
-              <ion-icon name="search-outline"></ion-icon>
-              <ion-input
-                [(ngModel)]="searchTerm"
-                (ionInput)="filterItems()"
-                debounce="300"
-                placeholder="Search country..."
-                type="search"
-                autocomplete="off"
-                autocorrect="off"
-                spellcheck="false"
-              ></ion-input>
-              <ion-button
-                fill="clear"
-                size="small"
-                (click)="clearSearch()"
-                *ngIf="searchTerm"
-              >
-                <ion-icon name="close-circle"></ion-icon>
+    <div [appSheet]="appSheet" #sheetDirective="appSheetDirective">
+      <div class="modal-backdrop" (click)="onClose()"></div>
+      <div class="modal-container" [class.with-border]="showBorder" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <ion-toolbar>
+            <ion-title>
+              {{ showLanguageStep ? 'Select Country' : 'Select Language' }}
+            </ion-title>
+            <ion-buttons slot="end">
+              @if (!showLanguageStep) {
+              <ion-button (click)="backToCountrySelection()">
+                <ion-icon name="arrow-back"></ion-icon>
               </ion-button>
+              }
+              <ion-button (click)="onClose()">
+                <ion-icon name="close"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+
+          <div class="progress-indicator">
+            <div
+              class="step"
+              [class.active]="showLanguageStep"
+              [class.completed]="tempSelectedCountry"
+            >
+              <div class="step-number">1</div>
+              <span>{{ tempSelectedCountry?.nativeName || 'Country' }}</span>
+            </div>
+            <div class="step-connector" [class.active]="tempSelectedCountry"></div>
+            <div
+              class="step"
+              [class.active]="!showLanguageStep"
+              [class.completed]="tempSelectedLanguage"
+            >
+              <div class="step-number">2</div>
+              <span>{{ tempSelectedLanguage?.name || 'Language' }}</span>
             </div>
           </div>
-        </ion-toolbar>
-        }
-      </div>
 
-      <!-- Content -->
-      <div class="modal-content scrollable">
-        @if (isLoading) {
-        <div class="status-message">
-          <ion-spinner name="crescent"></ion-spinner>
-          Loading
-          {{
-            selectedCountry && !showLanguageStep ? 'languages' : 'countries'
-          }}...
+          @if (showLanguageStep && !enableAutoDetection) {
+            <ion-toolbar>
+              <div class="searchbar-wrapper">
+                <div class="search-container">
+                  <ion-icon name="search-outline"></ion-icon>
+                  <ion-input
+                    [(ngModel)]="searchTerm"
+                    (ionInput)="filterItems()"
+                    debounce="300"
+                    placeholder="Search country..."
+                    type="search"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                  ></ion-input>
+                  <ion-button
+                    fill="clear"
+                    size="small"
+                    (click)="clearSearch()"
+                    *ngIf="searchTerm"
+                  >
+                    <ion-icon name="close-circle"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+            </ion-toolbar>
+          }
         </div>
-        } @else {
-        <!-- COUNTRY SELECTION -->
-        @if (showLanguageStep || !selectedCountry) {
-        <!-- Detected Country -->
-        @if (enableAutoDetection && detectedCountry) {
-        <div class="detected-country-section">
-          <div class="detected-country-header">
-            <ion-icon name="location" color="primary"></ion-icon>
-            <h4>Detected Country</h4>
-          </div>
 
-          <ion-item
-            button
-            (click)="selectCountry(detectedCountry)"
-            [class.selected]="
-              tempSelectedCountry?.code === detectedCountry.code
-            "
-            class="detected-country-item"
-          >
-            <ion-label>
-              <h3>{{ detectedCountry.name }}</h3>
-              <p>{{ detectedCountry.nativeName }}</p>
-              <p class="country-code">{{ detectedCountry.code }}</p>
-              <p class="language-count">
-                {{ detectedCountry.languages.length }} language(s)
-              </p>
-            </ion-label>
-            @if (tempSelectedCountry?.code === detectedCountry.code) {
-            <ion-icon
-              name="checkmark-circle"
-              slot="end"
-              color="primary"
-            ></ion-icon>
+        <div class="modal-content scrollable">
+          @if (isLoading) {
+            <div class="status-message">
+              <ion-spinner name="crescent"></ion-spinner>
+              Loading {{ showLanguageStep ? 'countries' : 'languages' }}...
+            </div>
+          } @else {
+            @if (showLanguageStep) {
+              @if (enableAutoDetection && detectedCountry) {
+                <div class="detected-country-section">
+                  <div class="detected-country-header">
+                    <ion-icon name="location" color="primary"></ion-icon>
+                    <h4>Detected Country</h4>
+                  </div>
+
+                  <ion-item
+                    button
+                    (click)="selectCountry(detectedCountry)"
+                    [class.selected]="tempSelectedCountry?.code === detectedCountry.code"
+                    class="detected-country-item"
+                  >
+                    <ion-label>
+                      <h3>{{ detectedCountry.name }}</h3>
+                      <p>{{ detectedCountry.nativeName }}</p>
+                      <p class="country-code">{{ detectedCountry.code }}</p>
+                      <p class="language-count">{{ detectedCountry.languages.length }} language(s)</p>
+                    </ion-label>
+                    @if (tempSelectedCountry?.code === detectedCountry.code) {
+                      <ion-icon name="checkmark-circle" slot="end" color="primary"></ion-icon>
+                    }
+                  </ion-item>
+
+                  <div class="manual-selection-divider">
+                    <span>or choose manually</span>
+                  </div>
+                </div>
+              }
+
+              @if (!enableAutoDetection || detectedCountry) {
+                @if (filteredCountries.length === 0 && searchTerm) {
+                  <div class="overlay">
+                    <ion-icon name="search-outline" size="large"></ion-icon>
+                    <p>No countries found</p>
+                    <p>Try adjusting your search terms</p>
+                  </div>
+                } @else {
+                  <cdk-virtual-scroll-viewport itemSize="80" class="viewport country-list">
+                    <ion-item
+                      *cdkVirtualFor="let country of filteredCountries; trackBy: trackByCode"
+                      button
+                      (click)="selectCountry(country)"
+                      [class.selected]="tempSelectedCountry?.code === country.code"
+                      [class.detected]="detectedCountry?.code === country.code"
+                    >
+                      <ion-label>
+                        <h3>{{ country.name }}</h3>
+                        <p>{{ country.nativeName }}</p>
+                        <p class="country-code">{{ country.code }}</p>
+                        <p class="language-count">{{ country.languages.length }} language(s)</p>
+                      </ion-label>
+
+                      @if (tempSelectedCountry?.code === country.code) {
+                        <ion-icon name="checkmark-circle" slot="end" color="primary"></ion-icon>
+                      } @if (detectedCountry?.code === country.code && tempSelectedCountry?.code !== country.code) {
+                        <ion-icon name="location" slot="end" color="medium"></ion-icon>
+                      }
+                    </ion-item>
+                  </cdk-virtual-scroll-viewport>
+
+                  @if (searchTerm && filteredCountries.length > 0) {
+                    <div class="status-message">
+                      {{ filteredCountries.length }} of {{ allCountries.length }} countries
+                    </div>
+                  }
+                }
+              }
             }
-          </ion-item>
 
-          <div class="manual-selection-divider">
-            <span>or choose manually</span>
-          </div>
-        </div>
-        }
+            @if (!showLanguageStep) {
+              <div class="selected-country-info">
+                <h4>{{ selectedCountry?.name }}</h4>
+                <p>Select a language spoken in this country:</p>
+              </div>
 
-        <!-- Country List or Empty State -->
-        @if (!enableAutoDetection || detectedCountry) { @if
-        (filteredCountries.length === 0 && searchTerm) {
-        <div class="overlay">
-          <ion-icon name="search-outline" size="large"></ion-icon>
-          <p>No countries found</p>
-          <p>Try adjusting your search terms</p>
-        </div>
-        } @else {
-        <!-- CDK Virtual Scroll Country List -->
-        <cdk-virtual-scroll-viewport
-          itemSize="80"
-          class="viewport country-list"
-        >
-          <ion-item
-            *cdkVirtualFor="
-              let country of filteredCountries;
-              trackBy: trackByCode
-            "
-            button
-            (click)="selectCountry(country)"
-            [class.selected]="tempSelectedCountry?.code === country.code"
-            [class.detected]="detectedCountry?.code === country.code"
-          >
-            <ion-label>
-              <h3>{{ country.name }}</h3>
-              <p>{{ country.nativeName }}</p>
-              <p class="country-code">{{ country.code }}</p>
-              <p class="language-count">
-                {{ country.languages.length }} language(s)
-              </p>
-            </ion-label>
+              <cdk-virtual-scroll-viewport itemSize="72" class="viewport language-list">
+                <ion-item
+                  *cdkVirtualFor="let language of filteredLanguages; trackBy: trackByCode"
+                  button
+                  (click)="selectLanguage(language)"
+                  [class.selected]="tempSelectedLanguage?.code === language.code"
+                >
+                  <ion-label>
+                    <h3>{{ language.name }}</h3>
+                    <p class="language-code">{{ language.code }}</p>
+                  </ion-label>
 
-            @if (tempSelectedCountry?.code === country.code) {
-            <ion-icon
-              name="checkmark-circle"
-              slot="end"
-              color="primary"
-            ></ion-icon>
-            } @if ( detectedCountry?.code === country.code &&
-            tempSelectedCountry?.code !== country.code ) {
-            <ion-icon name="location" slot="end" color="medium"></ion-icon>
+                  @if (tempSelectedLanguage?.code === language.code) {
+                    <ion-icon name="checkmark-circle" slot="end" color="primary"></ion-icon>
+                  }
+                </ion-item>
+              </cdk-virtual-scroll-viewport>
             }
-          </ion-item>
-        </cdk-virtual-scroll-viewport>
-
-        @if (searchTerm && filteredCountries.length > 0) {
-        <div class="status-message">
-          {{ filteredCountries.length }} of {{ allCountries.length }} countries
-        </div>
-        } } } }
-
-        <!-- LANGUAGE SELECTION -->
-        @if (selectedCountry && !showLanguageStep) {
-        <div class="selected-country-info">
-          <h4>{{ selectedCountry.name }}</h4>
-          <p>Select a language spoken in this country:</p>
+          }
         </div>
 
-        <!-- CDK Virtual Scroll Language List -->
-        <cdk-virtual-scroll-viewport
-          itemSize="72"
-          class="viewport language-list"
-        >
-          <ion-item
-            *cdkVirtualFor="
-              let language of filteredLanguages;
-              trackBy: trackByCode
-            "
-            button
-            (click)="selectLanguage(language)"
-            [class.selected]="selectedLanguage?.code === language.code"
-          >
-            <ion-label>
-              <h3>{{ language.name }}</h3>
-              <p class="language-code">{{ language.code }}</p>
-            </ion-label>
-
-            @if (selectedLanguage?.code === language.code) {
-            <ion-icon
-              name="checkmark-circle"
-              slot="end"
+        <div class="controls">
+          @if (!showLanguageStep) {
+            <ion-button
+              (click)="onCountryLanguageSelect()"
+              fill="solid"
               color="primary"
-            ></ion-icon>
-            }
-          </ion-item>
-        </cdk-virtual-scroll-viewport>
-        } }
-      </div>
+              size="small"
+              [disabled]="!tempSelectedLanguage"
+            >
+              <ion-icon name="checkmark" slot="start"></ion-icon>
+              Select {{ tempSelectedLanguage?.name ?? 'Language' }}
+            </ion-button>
+          } @else {
+            <ion-button
+              (click)="proceedToLanguageSelection()"
+              fill="solid"
+              color="primary"
+              size="small"
+              [disabled]="!tempSelectedCountry"
+            >
+              <ion-icon name="arrow-forward" slot="start"></ion-icon>
+              Next: Select Language
+            </ion-button>
+          }
 
-      <!-- Controls -->
-      <div class="controls">
-        @if (selectedCountry && !showLanguageStep) {
-        <!-- Language step controls -->
-        <ion-button
-          (click)="onCountryLanguageSelect()"
-          fill="solid"
-          color="primary"
-          size="small"
-          [disabled]="!selectedLanguage"
-        >
-          <ion-icon name="checkmark" slot="start"></ion-icon>
-          Select {{ selectedLanguage?.name ?? 'Language' }}
-        </ion-button>
-        } @else {
-        <!-- Country step controls -->
-        <ion-button
-          (click)="proceedToLanguageSelection()"
-          fill="solid"
-          color="primary"
-          size="small"
-          [disabled]="!tempSelectedCountry"
-        >
-          <ion-icon name="arrow-forward" slot="start"></ion-icon>
-          Next: Select Language
-        </ion-button>
-        }
-
-        <ion-button
-          (click)="onClose()"
-          fill="clear"
-          color="primary"
-          size="small"
-          class="close-btn"
-        >
-          <ion-icon name="close" slot="start"></ion-icon>
-          Cancel
-        </ion-button>
+          <ion-button
+            (click)="onClose()"
+            fill="clear"
+            color="primary"
+            size="small"
+            class="close-btn"
+          >
+            <ion-icon name="close" slot="start"></ion-icon>
+            Cancel
+          </ion-button>
+        </div>
       </div>
     </div>
   `,
   styleUrls: ['country.component.scss'],
 })
 export class CountrySelectModalComponent implements OnInit {
-  // Public property that the service can access
   public sheetDirectiveInstance!: SheetDirective;
 
-  // Use a setter with @ViewChild to capture the directive instance
   @ViewChild('sheetDirective') set sheetDirective(directive: SheetDirective) {
     if (directive) {
       this.sheetDirectiveInstance = directive;
       this.directiveReady.emit(directive);
-      // Connect the directive's dismiss event to the component's didDismiss subject
       this.sheetDirectiveInstance.didDismiss.subscribe(() => {
         this.didDismiss.next(null);
         this.didDismiss.complete();
@@ -374,11 +281,11 @@ export class CountrySelectModalComponent implements OnInit {
   }
   @Input() appSheet: SheetConfig = {
     breakpoints: [
-      { id: 'small', height: 90 },    // Show search and few countries
-      { id: 'medium', height: 90 },   // Show more countries
-      { id: 'full', height: 90 }      // Full list with all features
+      { id: 'small', height: 90 },
+      { id: 'medium', height: 90 },
+      { id: 'full', height: 90 }
     ],
-    initialBreakpoint: 'medium',
+    initialBreakpoint: 'full',
     backdropDismiss: true,
     showBackdrop: true,
     canDismiss: true
@@ -397,11 +304,11 @@ export class CountrySelectModalComponent implements OnInit {
   filteredCountries: Country[] = [];
   filteredLanguages: Language[] = [];
   tempSelectedCountry: Country | null = null;
+  tempSelectedLanguage: Language | null = null;
   searchTerm = '';
   isLoading = true;
-  showLanguageStep = true;
+  showLanguageStep = true; // Always start at the country selection step
 
-  // Geolocation properties
   enableAutoDetection = false;
   isDetectingLocation = false;
   detectedCountry: Country | null = null;
@@ -413,12 +320,15 @@ export class CountrySelectModalComponent implements OnInit {
 
   async ngOnInit() {
     await this.loadCountries();
-  }
 
-  ngAfterViewInit() {
-    if (!this.sheetDirective) {
-      console.error('SheetDirective initialization failed!');
-    }
+    // Set initial temporary selections from inputs
+    this.tempSelectedCountry = this.selectedCountry;
+    this.tempSelectedLanguage = this.selectedLanguage;
+
+    // Always start at the country selection step, regardless of initial input.
+    this.showLanguageStep = true;
+
+    this.cdr.markForCheck();
   }
 
   trackByCode(index: number, item: { code: string }): string {
@@ -454,13 +364,6 @@ export class CountrySelectModalComponent implements OnInit {
         .sort((a, b) => a.name.localeCompare(b.name));
 
       this.filteredCountries = [...this.allCountries];
-
-      // Set initial state based on existing selection
-      if (this.selectedCountry) {
-        this.tempSelectedCountry = this.selectedCountry;
-        this.showLanguageStep = false;
-        this.filteredLanguages = [...this.selectedCountry.languages];
-      }
     } catch (error) {
       console.error('Error loading countries:', error);
     } finally {
@@ -506,7 +409,6 @@ export class CountrySelectModalComponent implements OnInit {
           this.allCountries.find((c) => c.code === countryCode) || null;
 
         if (this.detectedCountry) {
-          // Auto-select the detected country
           this.tempSelectedCountry = this.detectedCountry;
         } else {
           this.geolocationError = 'Could not find country information';
@@ -527,7 +429,7 @@ export class CountrySelectModalComponent implements OnInit {
       const options: PositionOptions = {
         enableHighAccuracy: true,
         timeout: 15000,
-        maximumAge: 300000, // 5 minutes cache
+        maximumAge: 300000,
       };
 
       navigator.geolocation.getCurrentPosition(resolve, reject, options);
@@ -539,7 +441,6 @@ export class CountrySelectModalComponent implements OnInit {
     lng: number
   ): Promise<string | null> {
     try {
-      // Using a free geocoding service (you might want to use a different one)
       const response = await fetch(
         `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
       );
@@ -584,10 +485,10 @@ export class CountrySelectModalComponent implements OnInit {
   }
 
   filterItems() {
-    if (this.selectedCountry && !this.showLanguageStep) {
-      this.filterLanguages();
-    } else {
+    if (this.showLanguageStep) {
       this.filterCountries();
+    } else {
+      this.filterLanguages();
     }
   }
 
@@ -625,7 +526,7 @@ export class CountrySelectModalComponent implements OnInit {
   }
 
   selectLanguage(language: Language) {
-    this.selectedLanguage = language;
+    this.tempSelectedLanguage = language;
   }
 
   proceedToLanguageSelection() {
@@ -654,10 +555,12 @@ export class CountrySelectModalComponent implements OnInit {
   }
 
   onCountryLanguageSelect() {
-    if (this.selectedCountry && this.selectedLanguage) {
+    if (this.tempSelectedCountry && this.tempSelectedLanguage) {
+      this.selectedCountry = this.tempSelectedCountry;
+      this.selectedLanguage = this.tempSelectedLanguage;
       this.select.emit({
-        country: this.selectedCountry,
-        language: this.selectedLanguage,
+        country: this.tempSelectedCountry,
+        language: this.tempSelectedLanguage,
       });
     }
   }

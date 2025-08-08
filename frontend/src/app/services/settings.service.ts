@@ -147,14 +147,14 @@ export class Settings {
       this.storage.get('userInfo'),
       this.storage.get('appearance'),
       this.storage.get('channelInfo'),
-      this.storage.get('regionLanguage'),
+      this.storage.get('search'),
       this.storage.get('playlists'),
       this.storage.get('subscriptions'),
       this.storage.get('apiConfig'),
       this.storage.get('about')
     ]);
 
-    const [accessToken, userInfo, appearance, channelInfo, regionLanguage, playlists, subscriptions, apiConfig, about] = storedValues;
+    const [accessToken, userInfo, appearance, channelInfo, search, playlists, subscriptions, apiConfig, about] = storedValues;
 
     // Update subjects with stored values (or keep defaults if no stored value)
     if (accessToken !== null && accessToken !== undefined) {
@@ -169,8 +169,8 @@ export class Settings {
     if (channelInfo !== null && channelInfo !== undefined) {
       this.channelInfo.next(channelInfo);
     }
-    if (regionLanguage !== null && regionLanguage !== undefined) {
-      this.search.next(regionLanguage);
+    if (search !== null && search !== undefined) {
+      this.search.next(search);
     }
     if (playlists !== null && playlists !== undefined) {
       this.playlists.next(playlists);
@@ -200,7 +200,7 @@ export class Settings {
         if (this.initialized) this.storage.set('channelInfo', value);
       }),
       this.search.subscribe(value => {
-        if (this.initialized) this.storage.set('regionLanguage', value);
+        if (this.initialized) this.storage.set('search', value);
       }),
       this.playlists.subscribe(value => {
         if (this.initialized) this.storage.set('playlists', value);
@@ -240,7 +240,7 @@ export class Settings {
     this.channelInfo.next({ ...current!, ...updates });
   }
 
-  updateRegionLanguage(updates: Partial<SearchSettings>): void {
+  updateSearchPreferences(updates: Partial<SearchSettings>): void {
     const current = this.search.snappy;
     this.search.next({ ...current!, ...updates });
   }

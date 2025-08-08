@@ -210,7 +210,7 @@
               Country/Language
               <br><small class="subtext"
                 *ngIf="searchSettings.country && searchSettings.language">
-                Selected: {{ searchSettings.country.nativeName || '...' }}/{{ searchSettings.language.nativeName || '...' }}
+                Selected: {{ searchSettings.country.nativeName || '...' }}/{{ searchSettings.language.name || '...' }}
               </small>
             </ion-label>
             <div class="action-buttons">

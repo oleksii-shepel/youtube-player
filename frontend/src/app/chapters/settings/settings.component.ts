@@ -196,11 +196,12 @@ export class SettingsChapter implements OnInit {
   async openCountryModal() {
     const modal = await this.sheetService.open(CountrySelectModalComponent, {
       breakpoints: [
-        { id: 'small', height: 40 },
-        { id: 'large', height: 80 },
+        { id: 'small', height: 90 },
+        { id: 'medium', height: 90 },
+        { id: 'large', height: 90 },
         { id: 'close', height: 0, isClosing: true }
       ],
-      initialBreakpoint: 'small',
+      initialBreakpoint: 'large',
       backdropDismiss: true,
       showBackdrop: true,
       canDismiss: true
