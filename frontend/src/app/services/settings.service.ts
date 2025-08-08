@@ -55,8 +55,8 @@ export const defaultUserInfoSettings: UserInfoSettings = {
 
 export const defaultChannelInfoSettings: ChannelInfoSettings = {
   name: '',
+  channelUrl: '',
   channelId: '',
-  avatar: '',
   email: '',
   subscriberCount: 0,
   videoCount: 0,

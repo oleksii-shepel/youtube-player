@@ -43,8 +43,8 @@ export interface AppearanceSettings {
 
 export interface ChannelInfoSettings {
   name: string,
+  channelUrl: string,
   channelId: string,
-  avatar: string,
   email: string,
   subscriberCount: number,
   videoCount: number,

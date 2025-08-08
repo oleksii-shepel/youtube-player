@@ -245,25 +245,17 @@ export class SettingsChapter implements OnInit {
     this.isApiConnected = true;
   }
 
-  async loadUserData() {
-    this.checkApiConnection();
+  async loadChannelData() {
     this.isLoading = true;
     try {
-      const authProfile = this.authorization.getProfile();
-      if (authProfile) {
-        this.userInfoSettings = {
-          ...this.userInfoSettings,
-          firstName: authProfile.firstName,
-          email: authProfile.email,
-          profilePictureUrl: authProfile.profilePictureUrl || this.authorization.getDefaultAvatarUrl(),
-        };
-      }
       if (this.isApiConnected) {
         const channelResponse: any = await firstValueFrom(this.helper.getMyChannel());
         const channel = channelResponse.items[0];
         this.channelInfoSettings = {
           ...this.channelInfoSettings,
+          name: channel.snippet.title,
           channelId: channel.id,
+          channelUrl: channel.snippet.customUrl,
           subscriberCount: parseInt(channel.statistics.subscriberCount),
           videoCount: parseInt(channel.statistics.videoCount),
           totalViews: parseInt(channel.statistics.viewCount),
@@ -401,11 +393,35 @@ export class SettingsChapter implements OnInit {
     }
   }
 
-  selectMainSection(section: string) {
+  async selectMainSection(section: string) {
     this.selectedMainSection = section;
+
+    // Scroll to top
     const content = document.querySelector('ion-content');
     if (content) {
       content.scrollToTop(300);
+    }
+
+    // Ensure API connection is checked
+    await this.checkApiConnection();
+    if (!this.isApiConnected) return;
+
+    // Load data conditionally
+    switch (section) {
+      case SettingsSection.UserInfo:
+      case 'channel-info': // in case string literal is used
+        await this.loadChannelData();
+        break;
+
+      case SettingsSection.Playlists:
+      case 'playlists':
+        await this.loadPlaylists();
+        break;
+
+      case SettingsSection.Subscriptions:
+      case 'subscriptions':
+        await this.loadSubscriptions();
+        break;
     }
   }
 
@@ -430,7 +446,7 @@ export class SettingsChapter implements OnInit {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       this.isApiConnected = true;
-      await this.loadUserData();
+      await this.loadChannelData();
     } catch (error) {
       console.error('API Connection Error:', error);
       this.isApiConnected = false;
@@ -442,7 +458,7 @@ export class SettingsChapter implements OnInit {
   refreshData() {
     if (!this.isApiConnected) return;
     this.isLoading = true;
-    this.loadUserData().finally(() => {
+    this.loadChannelData().finally(() => {
       this.isLoading = false;
     });
   }

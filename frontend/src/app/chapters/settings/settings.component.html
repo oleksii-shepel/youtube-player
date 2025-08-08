@@ -69,56 +69,54 @@
 
       <!-- Channel Information Section -->
       <div *ngIf="selectedMainSection === 'channel-info' && channelInfoSettings" class="content-section channel-info">
-        <div class="section-card" *ngIf="isApiConnected">
-          <div class="user-details">
-            <div class="detail-row">
-              <ion-icon name="person-outline"></ion-icon>
-              <div class="detail-content">
-                <span class="label">Channel Name</span>
-                <span class="value">{{ channelInfoSettings.name || 'Loading...' }}</span>
-              </div>
+        <div class="user-details" *ngIf="isApiConnected">
+          <div class="detail-row">
+            <ion-icon name="person-outline"></ion-icon>
+            <div class="detail-content">
+              <span class="label">Channel Name</span>
+              <span class="value">{{ channelInfoSettings.name || 'Loading...' }}</span>
             </div>
-            <div class="detail-row">
-              <ion-icon name="mail-outline"></ion-icon>
-              <div class="detail-content">
-                <span class="label">Email</span>
-                <span class="value">{{ channelInfoSettings.email || 'Not available' }}</span>
-              </div>
+          </div>
+          <div class="detail-row">
+            <ion-icon name="mail-outline"></ion-icon>
+            <div class="detail-content">
+              <span class="label">URL</span>
+              <span class="value">{{ channelInfoSettings.channelUrl || 'Not available' }}</span>
             </div>
-            <div class="detail-row">
-              <ion-icon name="tv-outline"></ion-icon>
-              <div class="detail-content">
-                <span class="label">Channel ID</span>
-                <span class="value">{{ channelInfoSettings.channelId || 'Loading...' }}</span>
-              </div>
+          </div>
+          <div class="detail-row">
+            <ion-icon name="tv-outline"></ion-icon>
+            <div class="detail-content">
+              <span class="label">Channel ID</span>
+              <span class="value">{{ channelInfoSettings.channelId || 'Loading...' }}</span>
             </div>
-            <div class="detail-row">
-              <ion-icon name="people-outline"></ion-icon>
-              <div class="detail-content">
-                <span class="label">Subscribers</span>
-                <span class="value">{{ formatNumber(channelInfoSettings.subscriberCount) }}</span>
-              </div>
+          </div>
+          <div class="detail-row">
+            <ion-icon name="people-outline"></ion-icon>
+            <div class="detail-content">
+              <span class="label">Subscribers</span>
+              <span class="value">{{ formatNumber(channelInfoSettings.subscriberCount) }}</span>
             </div>
-            <div class="detail-row">
-              <ion-icon name="videocam-outline"></ion-icon>
-              <div class="detail-content">
-                <span class="label">Total Videos</span>
-                <span class="value">{{ formatNumber(channelInfoSettings.videoCount) }}</span>
-              </div>
+          </div>
+          <div class="detail-row">
+            <ion-icon name="videocam-outline"></ion-icon>
+            <div class="detail-content">
+              <span class="label">Total Videos</span>
+              <span class="value">{{ formatNumber(channelInfoSettings.videoCount) }}</span>
             </div>
-            <div class="detail-row">
-              <ion-icon name="eye-outline"></ion-icon>
-              <div class="detail-content">
-                <span class="label">Total Views</span>
-                <span class="value">{{ formatNumber(channelInfoSettings.totalViews) }}</span>
-              </div>
+          </div>
+          <div class="detail-row">
+            <ion-icon name="eye-outline"></ion-icon>
+            <div class="detail-content">
+              <span class="label">Total Views</span>
+              <span class="value">{{ formatNumber(channelInfoSettings.totalViews) }}</span>
             </div>
-            <div class="detail-row">
-              <ion-icon name="calendar-outline"></ion-icon>
-              <div class="detail-content">
-                <span class="label">Joined</span>
-                <span class="value">{{ channelInfoSettings.joinedDate || 'Not available' }}</span>
-              </div>
+          </div>
+          <div class="detail-row">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <div class="detail-content">
+              <span class="label">Joined</span>
+              <span class="value">{{ channelInfoSettings.joinedDate || 'Not available' }}</span>
             </div>
           </div>
         </div>
