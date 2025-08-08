@@ -1,6 +1,6 @@
 // custom-table.component.ts
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
-import { AlertController, IonicModule, ModalController } from '@ionic/angular';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, SimpleChanges } from '@angular/core';
+import { AlertController, IonicModule } from '@ionic/angular';
 import { createBehaviorSubject, createSubject } from '@actioncrew/streamix';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -85,19 +85,19 @@ export class GridComponent implements OnInit, OnDestroy {
   paginatedData: TableData[] = [];
 
   constructor(
-    private alertController: AlertController,
-    private modalController: ModalController
+    private alertController: AlertController
   ) {}
 
   ngOnInit() {
     this.itemsPerPage = this.pageSize;
+    this.data = this.data ?? [];
 
     // Initialize subjects
     this.dataSource$.next(this.data);
     this.pagination$.next({
       currentPage: 1,
       itemsPerPage: this.pageSize,
-      totalItems: this.data?.length || 0,
+      totalItems: this.data.length,
       totalPages: Math.ceil(this.data.length / this.pageSize)
     });
 
@@ -106,6 +106,17 @@ export class GridComponent implements OnInit, OnDestroy {
 
     // Initial data processing
     this.processData();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Check if the 'data' input property has changed.
+    if (changes['data'] && !changes['data'].isFirstChange()) {
+      // Update the internal data source with the new data.
+      this.dataSource$.next(changes['data'].currentValue);
+    } else if (changes['data'] && changes['data'].isFirstChange()) {
+      // For the first change, handle it here to ensure it's processed after subscriptions.
+      this.dataSource$.next(changes['data'].currentValue);
+    }
   }
 
   ngOnDestroy() {

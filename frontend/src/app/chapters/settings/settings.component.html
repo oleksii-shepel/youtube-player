@@ -256,7 +256,7 @@
 
       <!-- Subscriptions Section -->
       <div *ngIf="selectedMainSection === 'subscriptions' && subscriptionsSettings" class="content-section">
-        <app-grid *ngIf="!isApiConnected"
+        <app-grid *ngIf="isApiConnected"
           [data]="subscriptionState.pages![subscriptionState.pageIndex] || []"
           [columns]="[
             { key: 'name', label: 'Channel', sortable: true, type: 'text', size: '5' },
