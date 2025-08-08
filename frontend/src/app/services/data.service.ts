@@ -464,6 +464,11 @@ export class YoutubeDataService {
     const searchSettings = this.settings.search.snappy;
 
     // Inject maxResults if not provided
+    if (!params['safeSearch'] && searchSettings?.safeSearch) {
+      params['safeSearch'] = searchSettings.safeSearch;
+    }
+
+    // Inject maxResults if not provided
     if (!params['maxResults'] && searchSettings?.maxItemsPerRequest) {
       params['maxResults'] = searchSettings.maxItemsPerRequest.toString();
     }
