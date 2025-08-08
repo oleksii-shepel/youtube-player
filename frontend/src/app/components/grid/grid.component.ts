@@ -1,6 +1,6 @@
 // custom-table.component.ts
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, SimpleChanges } from '@angular/core';
-import { AlertController, IonicModule } from '@ionic/angular';
+import { AlertController, IonicModule, ModalController } from '@ionic/angular';
 import { createBehaviorSubject, createSubject } from '@actioncrew/streamix';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -15,7 +15,22 @@ export interface TableColumn {
 }
 
 export interface TableData {
+  id: string;
   [key: string]: any;
+}
+
+export interface Page<T = TableData> {
+  items: T[];
+  pageIndex: number;
+  pageToken?: string;
+  filter?: string;
+  sort?: { prop: string; dir: 'asc' | 'desc' };
+}
+
+export interface Table<T = TableData> {
+  total: number;
+  pages: Page<T>[];
+  pageSize: number;
 }
 
 export interface SortConfig {
@@ -36,38 +51,44 @@ export interface PaginationConfig {
   styleUrls: ['grid.component.scss'],
   imports: [CommonModule, IonicModule, FormsModule]
 })
-export class GridComponent implements OnInit, OnDestroy {
-  @Input() data: TableData[] = [];
+export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
   @Input() columns: TableColumn[] = [];
   @Input() title: string = '';
   @Input() pageSize: number = 10;
   @Input() showActions: boolean = true;
+  @Input() serverSidePagination: boolean = false;
+  @Input() data: Table<T> = {
+    total: 0,
+    pages: [],
+    pageSize: this.pageSize
+  };
 
-  @Output() add = new EventEmitter<TableData>();
-  @Output() edit = new EventEmitter<TableData>();
-  @Output() delete = new EventEmitter<TableData>();
+  @Output() add = new EventEmitter<T>();
+  @Output() edit = new EventEmitter<T>();
+  @Output() delete = new EventEmitter<T>();
+  @Output() pageChange = new EventEmitter<{page: number, pageSize: number}>();
 
   public Math = Math;
 
   // Streamix subjects for reactive state management
   private destroy$ = createSubject<void>();
-  private dataSource$ = createBehaviorSubject<TableData[]>([]);
+  private dataSource$ = createBehaviorSubject<Table<T>>(this.data);
   private searchText$ = createBehaviorSubject<string>('');
   private sortConfig$ = createBehaviorSubject<SortConfig>({ column: '', direction: 'asc' });
   private pagination$ = createBehaviorSubject<PaginationConfig>({
     currentPage: 1,
-    itemsPerPage: 10,
-    totalItems: 0,
-    totalPages: 0
+    itemsPerPage: this.pageSize,
+    totalItems: this.data.total,
+    totalPages: Math.ceil(this.data.total / this.pageSize)
   });
   private modalState$ = createBehaviorSubject<{
     isOpen: boolean;
     mode: 'add' | 'edit';
-    selectedItem: TableData;
+    selectedItem: T | null;
   }>({
     isOpen: false,
     mode: 'add',
-    selectedItem: {}
+    selectedItem: null
   });
 
   // Current state values (for template binding)
@@ -79,27 +100,23 @@ export class GridComponent implements OnInit, OnDestroy {
   totalPages: number = 0;
   isModalOpen: boolean = false;
   modalMode: 'add' | 'edit' = 'add';
-  selectedItem: TableData = {};
+  selectedItem: T | null = null;
 
-  filteredData: TableData[] = [];
-  paginatedData: TableData[] = [];
+  // Derived data for display
+  filteredData: T[] = [];
+  paginatedData: T[] = [];
 
   constructor(
-    private alertController: AlertController
+    private alertController: AlertController,
+    private modalController: ModalController
   ) {}
 
   ngOnInit() {
     this.itemsPerPage = this.pageSize;
-    this.data = this.data ?? [];
 
-    // Initialize subjects
+    // Initialize subjects with current data
     this.dataSource$.next(this.data);
-    this.pagination$.next({
-      currentPage: 1,
-      itemsPerPage: this.pageSize,
-      totalItems: this.data.length,
-      totalPages: Math.ceil(this.data.length / this.pageSize)
-    });
+    this.updatePaginationFromTable();
 
     // Subscribe to state changes
     this.setupSubscriptions();
@@ -109,19 +126,31 @@ export class GridComponent implements OnInit, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // Check if the 'data' input property has changed.
     if (changes['data'] && !changes['data'].isFirstChange()) {
-      // Update the internal data source with the new data.
-      this.dataSource$.next(changes['data'].currentValue);
-    } else if (changes['data'] && changes['data'].isFirstChange()) {
-      // For the first change, handle it here to ensure it's processed after subscriptions.
-      this.dataSource$.next(changes['data'].currentValue);
+      this.dataSource$.next(this.data);
+      this.updatePaginationFromTable();
+      this.processData();
+    }
+
+    if (changes['pageSize'] && !changes['pageSize'].isFirstChange()) {
+      this.itemsPerPage = this.pageSize;
+      this.updatePaginationFromTable();
+      this.processData();
     }
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private updatePaginationFromTable() {
+    this.pagination$.next({
+      currentPage: this.currentPage,
+      itemsPerPage: this.itemsPerPage,
+      totalItems: this.data.total,
+      totalPages: Math.ceil(this.data.total / this.itemsPerPage)
+    });
   }
 
   private setupSubscriptions() {
@@ -143,7 +172,21 @@ export class GridComponent implements OnInit, OnDestroy {
       this.currentPage = pagination.currentPage;
       this.itemsPerPage = pagination.itemsPerPage;
       this.totalPages = pagination.totalPages;
-      this.updatePaginatedData();
+
+      if (this.serverSidePagination) {
+        this.pageChange.emit({
+          page: this.currentPage,
+          pageSize: this.itemsPerPage
+        });
+      } else {
+        this.updatePaginatedData();
+      }
+    });
+
+    // Subscribe to data source changes
+    this.dataSource$.subscribe(tableData => {
+      this.data = tableData;
+      this.processData();
     });
 
     // Subscribe to modal state changes
@@ -152,47 +195,51 @@ export class GridComponent implements OnInit, OnDestroy {
       this.modalMode = state.mode;
       this.selectedItem = state.selectedItem;
     });
-
-    // Subscribe to data source changes
-    this.dataSource$.subscribe(data => {
-      this.data = data;
-      this.processData();
-    });
   }
 
   private processData() {
-    // Filter data
-    this.filteredData = this.data.filter(item =>
-      Object.values(item).some(value =>
-        value?.toString().toLowerCase().includes(this.searchText.toLowerCase())
-      )
-    );
+    // Get all items from pages
+    const allItems = this.data.pages.flatMap(page => page.items);
 
-    // Sort data
-    if (this.sortColumn) {
-      this.filteredData.sort((a, b) => {
-        const aVal = a[this.sortColumn];
-        const bVal = b[this.sortColumn];
+    // Filter data if not server-side
+    if (!this.serverSidePagination) {
+      this.filteredData = allItems.filter(item =>
+        Object.values(item).some(value =>
+          value?.toString().toLowerCase().includes(this.searchText.toLowerCase())
+        )
+      );
 
-        let comparison = 0;
-        if (typeof aVal === 'string' && typeof bVal === 'string') {
-          comparison = aVal.localeCompare(bVal);
-        } else {
-          comparison = aVal - bVal;
-        }
+      // Sort data if not server-side
+      if (this.sortColumn) {
+        this.filteredData.sort((a, b) => {
+          const aVal = a[this.sortColumn];
+          const bVal = b[this.sortColumn];
 
-        return this.sortDirection === 'asc' ? comparison : -comparison;
-      });
+          let comparison = 0;
+          if (typeof aVal === 'string' && typeof bVal === 'string') {
+            comparison = aVal.localeCompare(bVal);
+          } else {
+            comparison = aVal - bVal;
+          }
+
+          return this.sortDirection === 'asc' ? comparison : -comparison;
+        });
+      }
+    } else {
+      this.filteredData = allItems;
     }
 
     // Update pagination
-    const totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+    const totalPages = this.serverSidePagination
+      ? Math.ceil(this.data.total / this.itemsPerPage)
+      : Math.ceil(this.filteredData.length / this.itemsPerPage);
+
     const currentPage = Math.min(this.currentPage, totalPages || 1);
 
     this.pagination$.next({
       currentPage,
       itemsPerPage: this.itemsPerPage,
-      totalItems: this.filteredData.length,
+      totalItems: this.serverSidePagination ? this.data.total : this.filteredData.length,
       totalPages
     });
   }
@@ -241,8 +288,9 @@ export class GridComponent implements OnInit, OnDestroy {
 
   onPageSizeChange(event: any) {
     const itemsPerPage = parseInt(event.detail.value);
-    const currentPagination = this.pagination$.snappy;
+    this.itemsPerPage = itemsPerPage;
 
+    const currentPagination = this.pagination$.snappy;
     this.pagination$.next({
       ...currentPagination,
       itemsPerPage,
@@ -259,98 +307,6 @@ export class GridComponent implements OnInit, OnDestroy {
         currentPage: page
       });
     }
-  }
-
-  onAdd() {
-    this.modalState$.next({
-      isOpen: true,
-      mode: 'add',
-      selectedItem: {}
-    });
-  }
-
-  onEdit(item: TableData) {
-    this.modalState$.next({
-      isOpen: true,
-      mode: 'edit',
-      selectedItem: { ...item }
-    });
-  }
-
-  async onDelete(item: TableData) {
-    const alert = await this.alertController.create({
-      header: 'Confirm Delete',
-      message: `Are you sure you want to delete this item?`,
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel'
-        },
-        {
-          text: 'Delete',
-          role: 'destructive',
-          handler: () => {
-            this.delete.emit(item);
-
-            // Remove from local data if no parent handling
-            if (this.delete.observers.length === 0) {
-              const currentData = this.dataSource$.snappy as any[];
-              const updatedData = currentData.filter(d => d.id !== item['id']);
-              this.dataSource$.next(updatedData);
-            }
-          }
-        }
-      ]
-    });
-
-    await alert.present();
-  }
-
-  onSave() {
-    const currentModal = this.modalState$.snappy;
-
-    if (currentModal.mode === 'add') {
-      this.add.emit(currentModal.selectedItem);
-
-      // Add to local data if no parent handling
-      if (this.add.observers.length === 0) {
-        const currentData = this.dataSource$.snappy as any[];
-        const newId = Math.max(...currentData.map(d => d.id || 0)) + 1;
-        const newItem = { ...currentModal.selectedItem, id: newId };
-        this.dataSource$.next([...currentData, newItem]);
-      }
-    } else {
-      this.edit.emit(currentModal.selectedItem);
-
-      // Update local data if no parent handling
-      if (this.edit.observers.length === 0) {
-        const currentData = this.dataSource$.snappy as any[];
-        const updatedData = currentData.map(d =>
-          d.id === currentModal.selectedItem['id'] ? { ...currentModal.selectedItem } : d
-        );
-        this.dataSource$.next(updatedData);
-      }
-    }
-
-    this.closeModal();
-  }
-
-  closeModal() {
-    this.modalState$.next({
-      isOpen: false,
-      mode: 'add',
-      selectedItem: {}
-    });
-  }
-
-  onInputChange(key: string, value: any) {
-    const currentModal = this.modalState$.snappy;
-    const updatedItem = { ...currentModal.selectedItem, [key]: value };
-
-    this.modalState$.next({
-      ...currentModal,
-      selectedItem: updatedItem
-    });
   }
 
   getPageNumbers(): number[] {
@@ -378,26 +334,133 @@ export class GridComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  // Public methods to update data externally
-  updateData(newData: TableData[]) {
+  onAdd() {
+    this.modalState$.next({
+      isOpen: true,
+      mode: 'add',
+      selectedItem: null
+    });
+  }
+
+  onEdit(item: T) {
+    this.modalState$.next({
+      isOpen: true,
+      mode: 'edit',
+      selectedItem: { ...item }
+    });
+  }
+
+  async onDelete(item: T) {
+    const alert = await this.alertController.create({
+      header: 'Confirm Delete',
+      message: `Are you sure you want to delete this item?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this.delete.emit(item);
+
+            // Remove from local data if no parent handling
+            if (this.delete.observers.length === 0) {
+              this.removeItem(item.id);
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  onSave() {
+    const currentModal = this.modalState$.snappy;
+    if (!currentModal.selectedItem) return;
+
+    if (currentModal.mode === 'add') {
+      this.add.emit(currentModal.selectedItem);
+
+      // Add to local data if no parent handling
+      if (this.add.observers.length === 0) {
+        this.addItem(currentModal.selectedItem);
+      }
+    } else {
+      this.edit.emit(currentModal.selectedItem);
+
+      // Update local data if no parent handling
+      if (this.edit.observers.length === 0) {
+        this.updateItem(currentModal.selectedItem);
+      }
+    }
+
+    this.closeModal();
+  }
+
+  closeModal() {
+    this.modalState$.next({
+      isOpen: false,
+      mode: 'add',
+      selectedItem: null
+    });
+  }
+
+  onInputChange(key: string, value: any) {
+    const currentModal = this.modalState$.snappy;
+    if (!currentModal.selectedItem) {
+      this.modalState$.next({
+        ...currentModal,
+        selectedItem: { [key]: value } as T
+      });
+      return;
+    }
+
+    const updatedItem = { ...currentModal.selectedItem, [key]: value };
+    this.modalState$.next({
+      ...currentModal,
+      selectedItem: updatedItem
+    });
+  }
+
+  // Data manipulation methods
+  updateData(newData: Table<T>) {
+    this.data = newData;
     this.dataSource$.next(newData);
   }
 
-  addItem(item: TableData) {
-    const currentData = this.dataSource$.snappy as any[];
-    const newId = Math.max(...currentData.map(d => d.id || 0)) + 1;
-    this.dataSource$.next([...currentData, { ...item, id: newId }]);
+  addItem(item: T) {
+    const newData = {...this.data};
+    if (newData.pages.length === 0) {
+      newData.pages.push({
+        items: [item],
+        pageIndex: 0
+      });
+    } else {
+      newData.pages[0].items.unshift(item);
+    }
+    newData.total += 1;
+    this.updateData(newData);
   }
 
-  updateItem(item: TableData) {
-    const currentData = this.dataSource$.snappy as any[];
-    const updatedData = currentData.map(d => d.id === item['id'] ? { ...item } : d);
-    this.dataSource$.next(updatedData);
+  updateItem(item: T) {
+    const newData = {...this.data};
+    newData.pages = newData.pages.map(page => ({
+      ...page,
+      items: page.items.map(i => i.id === item.id ? item : i)
+    }));
+    this.updateData(newData);
   }
 
-  removeItem(itemId: any) {
-    const currentData = this.dataSource$.snappy as any[];
-    const updatedData = currentData.filter(d => d.id !== itemId);
-    this.dataSource$.next(updatedData);
+  removeItem(itemId: string) {
+    const newData = {...this.data};
+    newData.pages = newData.pages.map(page => ({
+      ...page,
+      items: page.items.filter(i => i.id !== itemId)
+    }));
+    newData.total = Math.max(0, newData.total - 1);
+    this.updateData(newData);
   }
 }

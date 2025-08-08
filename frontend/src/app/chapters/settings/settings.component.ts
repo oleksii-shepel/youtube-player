@@ -25,6 +25,20 @@ export enum SettingsSection {
   About = 'about',
 }
 
+export interface Page<T> {
+  items: T[];                     // items on this page
+  pageIndex: number;             // index in the pages array
+  pageToken?: string;            // YouTube API token to get this page (optional)
+  filter?: string;
+  sort?: { prop: string; dir: 'asc' | 'desc' };
+}
+
+export interface Table<T> {
+  total: number;                 // total items across all pages (from API)
+  pages: Page<T>[];             // cached pages of data
+  pageSize: number;              // items per page
+}
+
 export interface PageState<T> {
   items: T[]; // flat list of currently visible items
   pageIndex: number;
@@ -87,33 +101,23 @@ export class SettingsChapter implements OnInit {
     canDismiss: true
   };
 
-  playlistState: PageState<PlaylistEntity> = {
-    items: [],
-    pages: [],
-    pageIndex: 0,
-    nextPageToken: null,
-    prevPageToken: null,
-    filter: '',
-    pageSize: 10,
+  playlistTable: Table<PlaylistEntity> = {
     total: 0,
+    pages: [],
+    pageSize: 10
   };
 
-  subscriptionState: PageState<SubscriptionEntity> = {
-    items: [],
-    pages: [],
-    pageIndex: 0,
-    nextPageToken: null,
-    prevPageToken: null,
-    filter: '',
-    pageSize: 10,
+  subscriptionTable: Table<SubscriptionEntity> = {
     total: 0,
+    pages: [],
+    pageSize: 10
   };
 
   country!: HTMLIonModalElement;
   language!: HTMLIonModalElement;
 
   @ViewChild(SheetDirective) sheetDirective!: SheetDirective;
-  @ViewChild(GridComponent) gridComponent!: GridComponent;
+  @ViewChild(GridComponent) gridComponent!: GridComponent<any>;
 
   private subscriptions: Subscription[] = [];
 
@@ -225,11 +229,11 @@ export class SettingsChapter implements OnInit {
   }
 
   get playlistCount(): number {
-    return this.playlistState.items.length;
+    return this.playlistTable.total;
   }
 
   get subscriptionCount(): number {
-    return this.subscriptionState.items.length;
+    return this.subscriptionTable.total;
   }
 
   async checkApiConnection() {
@@ -270,34 +274,59 @@ export class SettingsChapter implements OnInit {
     }
   }
 
-  async loadPlaylists(pageToken?: string): Promise<{ items: PlaylistEntity[]; nextPageToken?: string }> {
+  async loadPlaylists(pageToken?: string): Promise<void> {
     if (!this.isApiConnected) {
-      return { items: this.playlistState.items, nextPageToken: '' };
-    }
-    this.isLoading = true;
-    try {
-      const response: any = await firstValueFrom(this.helper.listPlaylistsPaginated(pageToken));
-      const items = response.items.map((item: any) => ({
-        id: item.id,
-        name: item.snippet.title,
-        description: item.snippet.description,
-        videoCount: 0, // Additional API call needed for actual count
-        privacy: item.status.privacyStatus,
-        thumbnail: item.snippet.thumbnails?.default?.url || 'assets/playlist-default.jpg',
-        createdDate: new Date(item.snippet.publishedAt).toLocaleDateString(),
-      }));
-      this.playlistState = {
-        ...this.playlistState,
-        items,
-        pages: pageToken ? [...(this.playlistState.pages || []), items] : [items],
-        pageIndex: pageToken ? this.playlistState.pageIndex + 1 : 0,
-        nextPageToken: response.nextPageToken || null,
-        prevPageToken: pageToken || null,
+      this.playlistTable = {
+        total: 0,
+        pages: [],
+        pageSize: 10
       };
-      return { items, nextPageToken: response.nextPageToken };
+      return;
+    }
+
+    this.isLoading = true;
+
+    try {
+      const response = await firstValueFrom(this.helper.listPlaylistsPaginated(pageToken));
+      const pageInfo = response.pageInfo || {};
+
+      const items: PlaylistEntity[] = (response.items || []).map((item: any) => ({
+        id: item.id || '',
+        name: item.snippet?.title || 'Untitled Playlist',
+        description: item.snippet?.description || '',
+        videoCount: 0,
+        privacy: item.status?.privacyStatus || 'private',
+        thumbnail: item.snippet?.thumbnails?.default?.url || 'assets/playlist-default.jpg',
+        createdDate: item.snippet?.publishedAt ?
+          new Date(item.snippet.publishedAt).toLocaleDateString() : 'Unknown date'
+      }));
+
+      const currentPageIndex = pageToken
+        ? this.playlistTable.pages.length
+        : 0;
+
+      const newPage: Page<PlaylistEntity> = {
+        items,
+        pageIndex: currentPageIndex,
+        pageToken
+      };
+
+      this.playlistTable = {
+        total: pageInfo.totalResults || items.length,
+        pages: pageToken
+          ? [...this.playlistTable.pages, newPage]
+          : [newPage],
+        pageSize: pageInfo.resultsPerPage || this.playlistTable.pageSize
+      };
+
+      // Update the GridComponent if needed
+      if (this.gridComponent) {
+        this.gridComponent.updateData(this.playlistTable);
+      }
+
     } catch (error) {
-      console.error('Error loading playlists:', error);
-      return { items: this.playlistState.items, nextPageToken: '' };
+      console.error('Failed to load playlists:', error);
+      // Optionally keep previous state or show error
     } finally {
       this.isLoading = false;
     }
@@ -335,7 +364,7 @@ export class SettingsChapter implements OnInit {
   }
 
   // If you need to programmatically update the grid:
-  updatePlaylistData(newData: any[]) {
+  updatePlaylistData(newData: Table<any>) {
     this.gridComponent.updateData(newData);
   }
 
@@ -343,33 +372,51 @@ export class SettingsChapter implements OnInit {
     this.gridComponent.addItem(playlist);
   }
 
-  async loadSubscriptions(pageToken?: string): Promise<{ items: SubscriptionEntity[]; nextPageToken?: string }> {
+  // Updated loadSubscriptions method
+  async loadSubscriptions(pageToken?: string): Promise<void> {
     if (!this.isApiConnected) {
-      return ({ items: this.subscriptionsSettings.items || [], nextPageToken: '' });
+      this.subscriptionTable = {
+        total: 0,
+        pages: [],
+        pageSize: 10
+      };
+      return;
     }
+
     this.isLoading = true;
+
     try {
-      const response: any = await firstValueFrom(this.helper.listSubscriptionsPaginated(pageToken));
-      const items = response.items.map((item: any) => ({
-        id: item.snippet.resourceId.channelId,
-        name: item.snippet.title,
-        subscriberCount: 0, // Additional API call needed for actual count
-        category: '', // Not directly available
-        thumbnail: item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg',
+      const response = await firstValueFrom(this.helper.listSubscriptionsPaginated(pageToken));
+      const pageInfo = response.pageInfo || {};
+
+      const items: SubscriptionEntity[] = (response.items || []).map((item: any) => ({
+        id: item.snippet?.resourceId?.channelId || '',
+        name: item.snippet?.title || 'Unknown Channel',
+        subscriberCount: 0,
+        category: '',
+        thumbnail: item.snippet?.thumbnails?.default?.url || 'assets/channel-default.jpg'
       }));
-      this.subscriptionState = {
-        ...this.subscriptionState,
+
+      const currentPageIndex = pageToken
+        ? this.subscriptionTable.pages.length
+        : 0;
+
+      const newPage: Page<SubscriptionEntity> = {
         items,
-        pages: pageToken ? [...(this.subscriptionsSettings.pages || []), items] : [items],
-        pageIndex: pageToken ? this.subscriptionsSettings.pageIndex + 1 : 0,
-        nextPageToken: response.nextPageToken || null,
-        prevPageToken: pageToken || null,
+        pageIndex: currentPageIndex,
+        pageToken
       };
 
-      return { items, nextPageToken: response.nextPageToken };
+      this.subscriptionTable = {
+        total: pageInfo.totalResults || items.length,
+        pages: pageToken
+          ? [...this.subscriptionTable.pages, newPage]
+          : [newPage],
+        pageSize: pageInfo.resultsPerPage || this.subscriptionTable.pageSize
+      };
+
     } catch (error) {
-      console.error('Error loading subscriptions:', error);
-      return { items: this.subscriptionsSettings.items || [], nextPageToken: '' };
+      console.error('Failed to load subscriptions:', error);
     } finally {
       this.isLoading = false;
     }

@@ -40,11 +40,12 @@ export class Helper {
   }
 
   /** 📺 List user's playlists */
-  listPlaylistsPaginated(pageToken?: string): Stream<any> {
+  listPlaylistsPaginated(pageToken?: string, pageSize: number = 10): Stream<any> {
     const params: any = {
       part: 'snippet,status',
       mine: 'true',
-      maxResults: '10',
+      maxResults: pageSize.toString(),
+      order: 'alphabetical'
     };
     if (pageToken) {
       params.pageToken = pageToken;
@@ -57,11 +58,11 @@ export class Helper {
   }
 
   /** 📄 List user's subscriptions with pagination */
-  listSubscriptionsPaginated(pageToken?: string): Stream<any> {
+  listSubscriptionsPaginated(pageToken?: string, pageSize: number = 10): Stream<any> {
     const params: any = {
       part: 'snippet',
       mine: 'true',
-      maxResults: '10',
+      maxResults: pageSize.toString(),
       order: 'alphabetical'
     };
     if (pageToken) {

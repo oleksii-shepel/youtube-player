@@ -235,7 +235,7 @@
       <!-- Playlists Section -->
       <div *ngIf="selectedMainSection === 'playlists' && playlistsSettings" class="content-section">
         <app-grid *ngIf="isApiConnected"
-          [data]="playlistState.pages![playlistState.pageIndex]"
+          [data]="playlistTable"
           [columns]="[
             { key: 'name', label: 'Title', sortable: true, type: 'text', size: '5' },
             { key: 'videoCount', label: 'Videos', sortable: true, type: 'text', size: '5' }
@@ -257,7 +257,7 @@
       <!-- Subscriptions Section -->
       <div *ngIf="selectedMainSection === 'subscriptions' && subscriptionsSettings" class="content-section">
         <app-grid *ngIf="isApiConnected"
-          [data]="subscriptionState.pages![subscriptionState.pageIndex] || []"
+          [data]="subscriptionTable"
           [columns]="[
             { key: 'name', label: 'Channel', sortable: true, type: 'text', size: '5' },
             { key: 'subscriberCount', label: 'Subscribers', sortable: true, type: 'text', size: '5' }

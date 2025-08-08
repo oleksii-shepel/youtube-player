@@ -20,7 +20,8 @@
         <ion-select
           [value]="itemsPerPage"
           (ionChange)="onPageSizeChange($event)"
-          placeholder="Items per page" interface="popover">
+          placeholder="Items per page"
+          interface="popover">
           <ion-select-option [value]="5">5 per page</ion-select-option>
           <ion-select-option [value]="10">10 per page</ion-select-option>
           <ion-select-option [value]="25">25 per page</ion-select-option>
@@ -43,11 +44,11 @@
           *ngFor="let column of columns"
           [size]="column.size || 'auto'"
           [class.sortable]="column.sortable"
-          (click)="onSort(column.key)">
+          (click)="column.sortable ? onSort(column.key) : null">
           <div class="header-content">
             <span>{{ column.label }}</span>
             <ion-icon
-              *ngIf="getSortIcon(column.key)"
+              *ngIf="column.sortable && getSortIcon(column.key)"
               [name]="getSortIcon(column.key)"
               class="sort-icon">
             </ion-icon>
@@ -57,70 +58,89 @@
       </ion-row>
 
       <!-- Data Rows -->
-      <ion-row *ngFor="let item of paginatedData" class="table-row">
-        <ion-col *ngFor="let column of columns" [size]="column.size || 'auto'">
-          {{ item[column.key] }}
-        </ion-col>
-        <ion-col size="auto" *ngIf="showActions">
-          <ion-button
-            fill="clear"
-            size="small"
-            (click)="onEdit(item)">
-            <ion-icon name="create" slot="icon-only"></ion-icon>
-          </ion-button>
-          <ion-button
-            fill="clear"
-            color="danger"
-            size="small"
-            (click)="onDelete(item)">
-            <ion-icon name="trash" slot="icon-only"></ion-icon>
-          </ion-button>
-        </ion-col>
-      </ion-row>
-
-      <!-- No Data Row -->
-      <ion-row *ngIf="paginatedData.length === 0" class="no-data">
-        <ion-col>
-          <ion-text color="medium">
-            <p>No data found</p>
-          </ion-text>
-        </ion-col>
-      </ion-row>
+      @for (item of paginatedData; track item.id) {
+        <ion-row class="table-row">
+          @for (column of columns; track column.key) {
+            <ion-col [size]="column.size || 'auto'">
+              @switch (column.type) {
+                @case ('image') {
+                  <img [src]="item[column.key]" alt="" class="table-image">
+                }
+                @case ('date') {
+                  {{ item[column.key] | date }}
+                }
+                @default {
+                  {{ item[column.key] }}
+                }
+              }
+            </ion-col>
+          }
+          @if (showActions) {
+            <ion-col size="auto">
+              <ion-button
+                fill="clear"
+                size="small"
+                (click)="onEdit(item)">
+                <ion-icon name="create" slot="icon-only"></ion-icon>
+              </ion-button>
+              <ion-button
+                fill="clear"
+                color="danger"
+                size="small"
+                (click)="onDelete(item)">
+                <ion-icon name="trash" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-col>
+          }
+        </ion-row>
+      }
+      @empty {
+        <ion-row class="no-data">
+          <ion-col>
+            <ion-text color="medium">
+              <p>No data found</p>
+            </ion-text>
+          </ion-col>
+        </ion-row>
+      }
     </ion-grid>
 
     <!-- Pagination -->
-    <ion-row class="pagination" *ngIf="totalPages > 1">
-      <ion-col>
-        <div class="pagination-info">
-          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
-          {{ Math.min(currentPage * itemsPerPage, filteredData.length) }}
-          of {{ filteredData.length }} entries
-        </div>
-      </ion-col>
-      <ion-col size="auto">
-        <ion-button
-          fill="clear"
-          [disabled]="currentPage === 1"
-          (click)="goToPage(currentPage - 1)">
-          <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
-        </ion-button>
+    @if (totalPages > 1) {
+      <ion-row class="pagination">
+        <ion-col>
+          <div class="pagination-info">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+            {{ Math.min(currentPage * itemsPerPage, serverSidePagination ? data.total : filteredData.length) }}
+            of {{ serverSidePagination ? data.total : filteredData.length }} entries
+          </div>
+        </ion-col>
+        <ion-col size="auto">
+          <ion-button
+            fill="clear"
+            [disabled]="currentPage === 1"
+            (click)="goToPage(currentPage - 1)">
+            <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
+          </ion-button>
 
-        <ion-button
-          *ngFor="let page of getPageNumbers()"
-          [fill]="currentPage === page ? 'solid' : 'clear'"
-          [color]="currentPage === page ? 'primary' : 'medium'"
-          (click)="goToPage(page)">
-          {{ page }}
-        </ion-button>
+          @for (page of getPageNumbers(); track page) {
+            <ion-button
+              [fill]="currentPage === page ? 'solid' : 'clear'"
+              [color]="currentPage === page ? 'primary' : 'medium'"
+              (click)="goToPage(page)">
+              {{ page }}
+            </ion-button>
+          }
 
-        <ion-button
-          fill="clear"
-          [disabled]="currentPage === totalPages"
-          (click)="goToPage(currentPage + 1)">
-          <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
-        </ion-button>
-      </ion-col>
-    </ion-row>
+          <ion-button
+            fill="clear"
+            [disabled]="currentPage === totalPages"
+            (click)="goToPage(currentPage + 1)">
+            <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    }
   </ion-card-content>
 </ion-card>
 
@@ -138,29 +158,41 @@
 
     <ion-content class="ion-padding">
       <form>
-        <div *ngFor="let column of columns">
-          <ion-item *ngIf="column.type === 'text' || column.type === 'email'">
-            <ion-label position="stacked">{{ column.label }}</ion-label>
-            <ion-input
-              [type]="column.type || 'text'"
-              [value]="selectedItem[column.key]"
-              (ionInput)="onInputChange(column.key, $event.detail.value)">
-            </ion-input>
-          </ion-item>
-
-          <ion-item *ngIf="column.type === 'select'">
-            <ion-label position="stacked">{{ column.label }}</ion-label>
-            <ion-select
-              [value]="selectedItem[column.key]"
-              (ionChange)="onInputChange(column.key, $event.detail.value)">
-              <ion-select-option
-                *ngFor="let option of column.options"
-                [value]="option">
-                {{ option }}
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
-        </div>
+        @for (column of columns; track column.key) {
+          @if (column.type === 'text' || column.type === 'email' || column.type === 'number') {
+            <ion-item>
+              <ion-label position="stacked">{{ column.label }}</ion-label>
+              <ion-input
+                [type]="column.type"
+                [value]="selectedItem?.[column.key]"
+                (ionInput)="onInputChange(column.key, $event.detail.value)">
+              </ion-input>
+            </ion-item>
+          }
+          @if (column.type === 'select') {
+            <ion-item>
+              <ion-label position="stacked">{{ column.label }}</ion-label>
+              <ion-select
+                [value]="selectedItem?.[column.key]"
+                (ionChange)="onInputChange(column.key, $event.detail.value)">
+                @for (option of column.options || []; track option) {
+                  <ion-select-option [value]="option">
+                    {{ option }}
+                  </ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+          }
+          @if (column.type === 'checkbox') {
+            <ion-item>
+              <ion-checkbox
+                [checked]="selectedItem?.[column.key]"
+                (ionChange)="onInputChange(column.key, $event.detail.checked)">
+                {{ column.label }}
+              </ion-checkbox>
+            </ion-item>
+          }
+        }
 
         <ion-button
           expand="block"
