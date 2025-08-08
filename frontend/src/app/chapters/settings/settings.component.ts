@@ -357,15 +357,15 @@ export class SettingsChapter implements OnInit {
         category: '', // Not directly available
         thumbnail: item.snippet.thumbnails?.default?.url || 'assets/channel-default.jpg',
       }));
-      this.subscriptionsSettings = {
-        ...this.subscriptionsSettings,
+      this.subscriptionState = {
+        ...this.subscriptionState,
         items,
         pages: pageToken ? [...(this.subscriptionsSettings.pages || []), items] : [items],
         pageIndex: pageToken ? this.subscriptionsSettings.pageIndex + 1 : 0,
         nextPageToken: response.nextPageToken || null,
         prevPageToken: pageToken || null,
       };
-      this.settings.subscriptions.next(this.subscriptionsSettings);
+
       return { items, nextPageToken: response.nextPageToken };
     } catch (error) {
       console.error('Error loading subscriptions:', error);
