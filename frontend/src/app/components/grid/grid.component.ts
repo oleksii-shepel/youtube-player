@@ -39,7 +39,7 @@ export interface PaginationConfig {
 export class GridComponent implements OnInit, OnDestroy {
   @Input() data: TableData[] = [];
   @Input() columns: TableColumn[] = [];
-  @Input() title: string = 'Data Table';
+  @Input() title: string = '';
   @Input() pageSize: number = 10;
   @Input() showActions: boolean = true;
 
@@ -97,7 +97,7 @@ export class GridComponent implements OnInit, OnDestroy {
     this.pagination$.next({
       currentPage: 1,
       itemsPerPage: this.pageSize,
-      totalItems: this.data.length,
+      totalItems: this.data?.length || 0,
       totalPages: Math.ceil(this.data.length / this.pageSize)
     });
 

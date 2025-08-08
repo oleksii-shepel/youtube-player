@@ -402,27 +402,7 @@ export class SettingsChapter implements OnInit {
       content.scrollToTop(300);
     }
 
-    // Ensure API connection is checked
-    await this.checkApiConnection();
-    if (!this.isApiConnected) return;
-
-    // Load data conditionally
-    switch (section) {
-      case SettingsSection.UserInfo:
-      case 'channel-info': // in case string literal is used
-        await this.loadChannelData();
-        break;
-
-      case SettingsSection.Playlists:
-      case 'playlists':
-        await this.loadPlaylists();
-        break;
-
-      case SettingsSection.Subscriptions:
-      case 'subscriptions':
-        await this.loadSubscriptions();
-        break;
-    }
+    this.refreshData(section);
   }
 
   async saveAppearanceSettings() {
@@ -455,12 +435,26 @@ export class SettingsChapter implements OnInit {
     }
   }
 
-  refreshData() {
+  async refreshData(section: string) {
+
+    // Ensure API connection is checked
+    await this.checkApiConnection();
     if (!this.isApiConnected) return;
-    this.isLoading = true;
-    this.loadChannelData().finally(() => {
-      this.isLoading = false;
-    });
+
+    // Load data conditionally
+    switch (section) {
+      case 'channel-info': // in case string literal is used
+        await this.loadChannelData();
+        break;
+
+      case 'playlists':
+        await this.loadPlaylists();
+        break;
+
+      case 'subscriptions':
+        await this.loadSubscriptions();
+        break;
+    }
   }
 
   toggleApiKeyVisibility() {

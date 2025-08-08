@@ -1,7 +1,9 @@
 <ion-card>
-  <ion-card-header>
-    <ion-card-title>{{ title }}</ion-card-title>
-  </ion-card-header>
+  @if (title) {
+    <ion-card-header>
+      <ion-card-title>{{ title }}</ion-card-title>
+    </ion-card-header>
+  }
 
   <ion-card-content>
     <!-- Search and Controls -->

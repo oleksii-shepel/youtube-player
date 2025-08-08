@@ -60,7 +60,7 @@
       <div class="settings-header">
         <h1>{{ getSectionTitle() }}</h1>
         <div class="header-actions">
-          <ion-button fill="outline" size="small" (click)="refreshData()" [disabled]="!isApiConnected || isLoading">
+          <ion-button fill="outline" size="small" (click)="refreshData(selectedMainSection)" [disabled]="!isApiConnected || isLoading">
             <ion-icon name="refresh-outline" slot="start" [class.rotating]="isLoading"></ion-icon>
             Refresh
           </ion-button>
@@ -234,21 +234,18 @@
 
       <!-- Playlists Section -->
       <div *ngIf="selectedMainSection === 'playlists' && playlistsSettings" class="content-section">
-        <div class="section-card" *ngIf="isApiConnected">
-          <app-grid
-            [title]="'My Playlists'"
-            [data]="playlistState.pages![playlistState.pageIndex]"
-            [columns]="[
-              { key: 'name', label: 'Title', sortable: true, type: 'text', size: '5' },
-              { key: 'videoCount', label: 'Videos', sortable: true, type: 'text', size: '5' }
-            ]"
-            [pageSize]="10"
-            [showActions]="true"
-            (add)="createPlaylist($event)"
-            (edit)="onEditPlaylist($event)"
-            (delete)="onDeletePlaylist($event)">
-          </app-grid>
-        </div>
+        <app-grid *ngIf="isApiConnected"
+          [data]="playlistState.pages![playlistState.pageIndex]"
+          [columns]="[
+            { key: 'name', label: 'Title', sortable: true, type: 'text', size: '5' },
+            { key: 'videoCount', label: 'Videos', sortable: true, type: 'text', size: '5' }
+          ]"
+          [pageSize]="10"
+          [showActions]="true"
+          (add)="createPlaylist($event)"
+          (edit)="onEditPlaylist($event)"
+          (delete)="onDeletePlaylist($event)">
+        </app-grid>
         <div class="section-card" *ngIf="!isApiConnected">
           <div class="empty-state">
             <ion-icon name="list-outline" size="large"></ion-icon>
@@ -259,18 +256,15 @@
 
       <!-- Subscriptions Section -->
       <div *ngIf="selectedMainSection === 'subscriptions' && subscriptionsSettings" class="content-section">
-        <div class="section-card" *ngIf="isApiConnected">
-          <app-grid
-            [title]="'Your Subscriptions'"
-            [data]="subscriptionState.pages![subscriptionState.pageIndex] || []"
-            [columns]="[
-              { key: 'name', label: 'Channel', sortable: true, type: 'text', size: '5' },
-              { key: 'subscriberCount', label: 'Subscribers', sortable: true, type: 'text', size: '5' }
-            ]"
-            [pageSize]="10"
-            [showActions]="true">
-          </app-grid>
-        </div>
+        <app-grid *ngIf="!isApiConnected"
+          [data]="subscriptionState.pages![subscriptionState.pageIndex] || []"
+          [columns]="[
+            { key: 'name', label: 'Channel', sortable: true, type: 'text', size: '5' },
+            { key: 'subscriberCount', label: 'Subscribers', sortable: true, type: 'text', size: '5' }
+          ]"
+          [pageSize]="10"
+          [showActions]="true">
+        </app-grid>
         <div class="section-card" *ngIf="!isApiConnected">
           <div class="empty-state">
             <ion-icon name="people-outline" size="large"></ion-icon>
@@ -324,50 +318,45 @@
 
       <!-- About Section -->
       <div *ngIf="selectedMainSection === 'about' && aboutSettings" class="content-section about-info">
-        <div class="section-card">
-          <div class="card-header">
-            <h3>About This App</h3>
+        <div class="app-info">
+          <img src="assets/logo-no-bg.png" alt="App Logo" class="app-logo" />
+          <h4>YouTube API Manager</h4>
+          <p>Version {{ aboutSettings.appVersion }}</p>
+          <p>A powerful tool for managing your YouTube channel through the YouTube Data API.</p>
+        </div>
+        <div class="about-details">
+          <div class="description">
+            <div class="detail-row">
+              <ion-icon name="code-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Developed By</span>
+                <span class="value">{{ aboutSettings.developerInfo }}</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">Release Date</span>
+                <span class="value">{{ aboutSettings.releaseDate }}</span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <div class="detail-content">
+                <span class="label">License</span>
+                <span class="value">{{ aboutSettings.licenseInfo }}</span>
+              </div>
+            </div>
           </div>
-          <div class="about-content">
-            <div class="app-info">
-              <img src="assets/logo-no-bg.png" alt="App Logo" class="app-logo" />
-              <h4>YouTube API Manager</h4>
-              <p>Version {{ aboutSettings.appVersion }}</p>
-            </div>
-            <div class="about-details">
-              <p>A powerful tool for managing your YouTube channel through the YouTube Data API.</p>
-              <div class="detail-row">
-                <ion-icon name="code-outline"></ion-icon>
-                <div class="detail-content">
-                  <span class="label">Developed By</span>
-                  <span class="value">{{ aboutSettings.developerInfo }}</span>
-                </div>
-              </div>
-              <div class="detail-row">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <div class="detail-content">
-                  <span class="label">Release Date</span>
-                  <span class="value">{{ aboutSettings.releaseDate }}</span>
-                </div>
-              </div>
-              <div class="detail-row">
-                <ion-icon name="document-text-outline"></ion-icon>
-                <div class="detail-content">
-                  <span class="label">License</span>
-                  <span class="value">{{ aboutSettings.licenseInfo }}</span>
-                </div>
-              </div>
-              <div class="action-buttons">
-                <ion-button expand="block" fill="outline" (click)="openWebsite()">
-                  <ion-icon name="globe-outline" slot="start"></ion-icon>
-                  Visit Website
-                </ion-button>
-                <ion-button expand="block" fill="outline" (click)="openPrivacyPolicy()">
-                  <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
-                  Privacy Policy
-                </ion-button>
-              </div>
-            </div>
+          <div class="action-buttons">
+            <ion-button expand="block" fill="outline" size="small" (click)="openWebsite()">
+              <ion-icon name="globe-outline" slot="start"></ion-icon>
+              Visit Website
+            </ion-button>
+            <ion-button expand="block" fill="outline" size="small" (click)="openPrivacyPolicy()">
+              <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+              Privacy Policy
+            </ion-button>
           </div>
         </div>
       </div>
