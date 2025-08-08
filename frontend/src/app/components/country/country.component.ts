@@ -51,281 +51,276 @@ export interface CountryLanguageSelection {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div [appSheet]="appSheet" #sheetDirective="appSheetDirective">
-      <div class="modal-backdrop" (click)="onClose()"></div>
-      <div class="modal-container" [class.with-border]="showBorder" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <ion-toolbar>
-            <ion-title>
-              {{ showLanguageStep ? 'Select Country' : 'Select Language' }}
-            </ion-title>
-            <ion-buttons slot="end">
-              @if (!showLanguageStep) {
-              <ion-button (click)="backToCountrySelection()">
-                <ion-icon name="arrow-back"></ion-icon>
-              </ion-button>
-              }
-              <ion-button (click)="onClose()">
-                <ion-icon name="close"></ion-icon>
-              </ion-button>
-            </ion-buttons>
-          </ion-toolbar>
+      <div class="modal-header">
+        <ion-toolbar>
+          <ion-title>
+            {{ showLanguageStep ? 'Select Country' : 'Select Language' }}
+          </ion-title>
+          <ion-buttons slot="end">
+            @if (!showLanguageStep) {
+            <ion-button (click)="backToCountrySelection()">
+              <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+            }
+            <ion-button (click)="onClose()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
 
-          <div class="progress-indicator">
-            <div
-              class="step"
-              [class.active]="showLanguageStep"
-              [class.completed]="tempSelectedCountry"
-            >
-              <div class="step-number">1</div>
-              <span>{{ tempSelectedCountry?.nativeName || 'Country' }}</span>
-            </div>
-            <div class="step-connector" [class.active]="tempSelectedCountry"></div>
-            <div
-              class="step"
-              [class.active]="!showLanguageStep"
-              [class.completed]="tempSelectedLanguage"
-            >
-              <div class="step-number">2</div>
-              <span>{{ tempSelectedLanguage?.name || 'Language' }}</span>
-            </div>
+        <div class="progress-indicator">
+          <div
+            class="step"
+            [class.active]="showLanguageStep"
+            [class.completed]="tempSelectedCountry"
+          >
+            <div class="step-number">1</div>
+            <span>{{ tempSelectedCountry?.nativeName || 'Country' }}</span>
           </div>
-
-          @if (showLanguageStep && !enableAutoDetection) {
-            <ion-toolbar>
-              <div class="searchbar-wrapper">
-                <div class="search-container">
-                  <ion-icon name="search-outline"></ion-icon>
-                  <ion-input
-                    [(ngModel)]="searchTerm"
-                    (ionInput)="filterItems()"
-                    debounce="300"
-                    placeholder="Search country..."
-                    type="search"
-                    autocomplete="off"
-                    autocorrect="off"
-                    spellcheck="false"
-                  ></ion-input>
-                  <ion-button
-                    fill="clear"
-                    size="small"
-                    (click)="clearSearch()"
-                    *ngIf="searchTerm"
-                  >
-                    <ion-icon name="close-circle"></ion-icon>
-                  </ion-button>
-                </div>
-              </div>
-            </ion-toolbar>
-          }
+          <div class="step-connector" [class.active]="tempSelectedCountry"></div>
+          <div
+            class="step"
+            [class.active]="!showLanguageStep"
+            [class.completed]="tempSelectedLanguage"
+          >
+            <div class="step-number">2</div>
+            <span>{{ tempSelectedLanguage?.name || 'Language' }}</span>
+          </div>
         </div>
 
-        <!-- Auto-detection option -->
-        @if (showLanguageStep || !selectedCountry) {
-          <div class="auto-detection-section">
-            <ion-item
-              lines="none"
-              class="auto-detection-item"
-              button
-              (click)="toggleAutoDetection()"
-            >
-              <ion-checkbox
-                slot="start"
-                [(ngModel)]="enableAutoDetection"
-                (ionChange)="onAutoDetectionToggle()"
-                [disabled]="isDetectingLocation"
-                (click)="$event.stopPropagation()"
-              ></ion-checkbox>
+        @if (showLanguageStep && !enableAutoDetection) {
+          <ion-toolbar>
+            <div class="searchbar-wrapper">
+              <div class="search-container">
+                <ion-icon name="search-outline"></ion-icon>
+                <ion-input
+                  [(ngModel)]="searchTerm"
+                  (ionInput)="filterItems()"
+                  debounce="300"
+                  placeholder="Search country..."
+                  type="search"
+                  autocomplete="off"
+                  autocorrect="off"
+                  spellcheck="false"
+                ></ion-input>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  (click)="clearSearch()"
+                  *ngIf="searchTerm"
+                >
+                  <ion-icon name="close-circle"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </ion-toolbar>
+        }
+      </div>
 
-              <ion-label>
-                <h3>Auto-detect my country</h3>
-                <p class="subdued">Use your location to automatically select your country</p>
-              </ion-label>
+      <!-- Auto-detection option -->
+      @if (showLanguageStep || !selectedCountry) {
+        <div class="auto-detection-section">
+          <ion-item
+            lines="none"
+            class="auto-detection-item"
+            button
+            (click)="toggleAutoDetection()"
+          >
+            <ion-checkbox
+              slot="start"
+              [(ngModel)]="enableAutoDetection"
+              (ionChange)="onAutoDetectionToggle()"
+              [disabled]="isDetectingLocation"
+              (click)="$event.stopPropagation()"
+            ></ion-checkbox>
 
-              @if (isDetectingLocation) {
-                <ion-spinner name="crescent" slot="end"></ion-spinner>
-              }
-              @if (geolocationError) {
-                <ion-icon name="alert-circle" slot="end" color="warning"></ion-icon>
-              }
-            </ion-item>
+            <ion-label>
+              <h3>Auto-detect my country</h3>
+              <p class="subdued">Use your location to automatically select your country</p>
+            </ion-label>
 
+            @if (isDetectingLocation) {
+              <ion-spinner name="crescent" slot="end"></ion-spinner>
+            }
             @if (geolocationError) {
-              <div class="error-message ion-padding-start">
-                <ion-icon name="information-circle" color="warning"></ion-icon>
-                <span class="warning-text">{{ geolocationError }}</span>
+              <ion-icon name="alert-circle" slot="end" color="warning"></ion-icon>
+            }
+          </ion-item>
+
+          @if (geolocationError) {
+            <div class="error-message ion-padding-start">
+              <ion-icon name="information-circle" color="warning"></ion-icon>
+              <span class="warning-text">{{ geolocationError }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="modal-content scrollable">
+        @if (isLoading) {
+          <div class="status-message">
+            <ion-spinner name="crescent"></ion-spinner>
+            Loading {{ showLanguageStep ? 'countries' : 'languages' }}...
+          </div>
+        } @else {
+          @if (showLanguageStep) {
+            @if (enableAutoDetection && detectedCountry) {
+              <div class="detected-country-section">
+                <div class="detected-country-header">
+                  <ion-icon name="location" color="primary"></ion-icon>
+                  <h4>Detected Country</h4>
+                </div>
+
+                <ion-item
+                  button
+                  (click)="selectCountry(detectedCountry)"
+                  [class.selected]="tempSelectedCountry?.code === detectedCountry.code"
+                  class="detected-country-item"
+                >
+                  <ion-label>
+                    <h3>{{ detectedCountry.name }}</h3>
+                    <p>{{ detectedCountry.nativeName }}</p>
+                    <p class="country-code">{{ detectedCountry.code }}</p>
+                    <p class="language-count">{{ detectedCountry.languages.length }} language(s)</p>
+                  </ion-label>
+                  @if (tempSelectedCountry?.code === detectedCountry.code) {
+                    <ion-icon name="checkmark-circle" slot="end" color="primary"></ion-icon>
+                  }
+                </ion-item>
+
+                <div class="manual-selection-divider">
+                  <span>or choose manually</span>
+                </div>
               </div>
             }
-          </div>
-        }
 
-        <div class="modal-content scrollable">
-          @if (isLoading) {
-            <div class="status-message">
-              <ion-spinner name="crescent"></ion-spinner>
-              Loading {{ showLanguageStep ? 'countries' : 'languages' }}...
-            </div>
-          } @else {
-            @if (showLanguageStep) {
-              @if (enableAutoDetection && detectedCountry) {
-                <div class="detected-country-section">
-                  <div class="detected-country-header">
-                    <ion-icon name="location" color="primary"></ion-icon>
-                    <h4>Detected Country</h4>
-                  </div>
-
-                  <ion-item
-                    button
-                    (click)="selectCountry(detectedCountry)"
-                    [class.selected]="tempSelectedCountry?.code === detectedCountry.code"
-                    class="detected-country-item"
-                  >
-                    <ion-label>
-                      <h3>{{ detectedCountry.name }}</h3>
-                      <p>{{ detectedCountry.nativeName }}</p>
-                      <p class="country-code">{{ detectedCountry.code }}</p>
-                      <p class="language-count">{{ detectedCountry.languages.length }} language(s)</p>
-                    </ion-label>
-                    @if (tempSelectedCountry?.code === detectedCountry.code) {
-                      <ion-icon name="checkmark-circle" slot="end" color="primary"></ion-icon>
-                    }
-                  </ion-item>
-
-                  <div class="manual-selection-divider">
-                    <span>or choose manually</span>
-                  </div>
+            @if (!enableAutoDetection || detectedCountry) {
+              @if (filteredCountries.length === 0 && searchTerm) {
+                <div class="overlay">
+                  <ion-icon name="search-outline" size="large"></ion-icon>
+                  <p>No countries found</p>
+                  <p>Try adjusting your search terms</p>
                 </div>
-              }
+              } @else {
+                <div virtualScroll [virtualScrollItemTemplate]="countryItemTemplate" [virtualScrollOf]="filteredCountries" class="viewport country-list"></div>
 
-              @if (!enableAutoDetection || detectedCountry) {
-                @if (filteredCountries.length === 0 && searchTerm) {
-                  <div class="overlay">
-                    <ion-icon name="search-outline" size="large"></ion-icon>
-                    <p>No countries found</p>
-                    <p>Try adjusting your search terms</p>
+                @if (searchTerm && filteredCountries.length > 0) {
+                  <div class="status-message">
+                    {{ filteredCountries.length }} of {{ allCountries.length }} countries
                   </div>
-                } @else {
-                  <div virtualScroll [virtualScrollItemTemplate]="countryItemTemplate" [virtualScrollOf]="filteredCountries" class="viewport country-list"></div>
-
-                  @if (searchTerm && filteredCountries.length > 0) {
-                    <div class="status-message">
-                      {{ filteredCountries.length }} of {{ allCountries.length }} countries
-                    </div>
-                  }
                 }
               }
             }
-
-            @if (!showLanguageStep) {
-              <div class="selected-country-info">
-                <h4>{{ selectedCountry?.name }}</h4>
-                <p>Select a language spoken in this country:</p>
-              </div>
-
-              <div virtualScroll [virtualScrollItemTemplate]="languageItemTemplate" [virtualScrollOf]="filteredLanguages" class="viewport language-list"></div>
-            }
           }
-        </div>
 
-        <ng-template
-          #countryItemTemplate
-          let-country
-          let-index="index"
-          let-top="top"
-        >
-          <ion-item
-            button
-            (click)="selectCountry(country)"
-            [class.selected]="tempSelectedCountry?.code === country.code"
-            [class.detected]="detectedCountry?.code === country.code"
-          >
-            <ion-label>
-              <h3>{{ country.name }}</h3>
-              <p>{{ country.nativeName }}</p>
-              <p class="country-code">{{ country.code }}</p>
-              <p class="language-count">
-                {{ country.languages.length }} language(s)
-              </p>
-            </ion-label>
-
-            @if (tempSelectedCountry?.code === country.code) {
-            <ion-icon
-              name="checkmark-circle"
-              slot="end"
-              color="primary"
-            ></ion-icon>
-            } @if (detectedCountry?.code === country.code &&
-            tempSelectedCountry?.code !== country.code) {
-            <ion-icon name="location" slot="end" color="medium"></ion-icon>
-            }
-          </ion-item>
-        </ng-template>
-
-        <ng-template
-          #languageItemTemplate
-          let-language
-          let-index="index"
-          let-top="top"
-        >
-          <ion-item
-            button
-            (click)="selectLanguage(language)"
-            [class.selected]="tempSelectedLanguage?.code === language.code"
-          >
-            <ion-label>
-              <h3>{{ language.name }}</h3>
-              <p class="language-code">{{ language.code }}</p>
-            </ion-label>
-
-            @if (tempSelectedLanguage?.code === language.code) {
-            <ion-icon
-              name="checkmark-circle"
-              slot="end"
-              color="primary"
-            ></ion-icon>
-            }
-          </ion-item>
-        </ng-template>
-
-        <div class="controls">
           @if (!showLanguageStep) {
-            <ion-button
-              (click)="onCountryLanguageSelect()"
-              fill="solid"
-              color="primary"
-              size="small"
-              [disabled]="!tempSelectedLanguage"
-            >
-              <ion-icon name="checkmark" slot="start"></ion-icon>
-              Select {{ tempSelectedLanguage?.name ?? 'Language' }}
-            </ion-button>
-          } @else {
-            <ion-button
-              (click)="proceedToLanguageSelection()"
-              fill="solid"
-              color="primary"
-              size="small"
-              [disabled]="!tempSelectedCountry"
-            >
-              <ion-icon name="arrow-forward" slot="start"></ion-icon>
-              Next: Select Language
-            </ion-button>
-          }
+            <div class="selected-country-info">
+              <h4>{{ selectedCountry?.name }}</h4>
+              <p>Select a language spoken in this country:</p>
+            </div>
 
+            <div virtualScroll [virtualScrollItemTemplate]="languageItemTemplate" [virtualScrollOf]="filteredLanguages" class="viewport language-list"></div>
+          }
+        }
+      </div>
+
+      <ng-template
+        #countryItemTemplate
+        let-country
+        let-index="index"
+        let-top="top"
+      >
+        <ion-item
+          button
+          (click)="selectCountry(country)"
+          [class.selected]="tempSelectedCountry?.code === country.code"
+          [class.detected]="detectedCountry?.code === country.code"
+        >
+          <ion-label>
+            <h3>{{ country.name }}</h3>
+            <p>{{ country.nativeName }}</p>
+            <p class="country-code">{{ country.code }}</p>
+            <p class="language-count">
+              {{ country.languages.length }} language(s)
+            </p>
+          </ion-label>
+
+          @if (tempSelectedCountry?.code === country.code) {
+          <ion-icon
+            name="checkmark-circle"
+            slot="end"
+            color="primary"
+          ></ion-icon>
+          } @if (detectedCountry?.code === country.code &&
+          tempSelectedCountry?.code !== country.code) {
+          <ion-icon name="location" slot="end" color="medium"></ion-icon>
+          }
+        </ion-item>
+      </ng-template>
+
+      <ng-template
+        #languageItemTemplate
+        let-language
+        let-index="index"
+        let-top="top"
+      >
+        <ion-item
+          button
+          (click)="selectLanguage(language)"
+          [class.selected]="tempSelectedLanguage?.code === language.code"
+        >
+          <ion-label>
+            <h3>{{ language.name }}</h3>
+            <p class="language-code">{{ language.code }}</p>
+          </ion-label>
+
+          @if (tempSelectedLanguage?.code === language.code) {
+          <ion-icon
+            name="checkmark-circle"
+            slot="end"
+            color="primary"
+          ></ion-icon>
+          }
+        </ion-item>
+      </ng-template>
+
+      <div class="controls">
+        @if (!showLanguageStep) {
           <ion-button
-            (click)="onClose()"
-            fill="clear"
+            (click)="onCountryLanguageSelect()"
+            fill="solid"
             color="primary"
             size="small"
-            class="close-btn"
+            [disabled]="!tempSelectedLanguage"
           >
-            <ion-icon name="close" slot="start"></ion-icon>
-            Cancel
+            <ion-icon name="checkmark" slot="start"></ion-icon>
+            Select {{ tempSelectedLanguage?.name ?? 'Language' }}
           </ion-button>
-        </div>
+        } @else {
+          <ion-button
+            (click)="proceedToLanguageSelection()"
+            fill="solid"
+            color="primary"
+            size="small"
+            [disabled]="!tempSelectedCountry"
+          >
+            <ion-icon name="arrow-forward" slot="start"></ion-icon>
+            Next: Select Language
+          </ion-button>
+        }
+
+        <ion-button
+          (click)="onClose()"
+          fill="clear"
+          color="primary"
+          size="small"
+          class="close-btn"
+        >
+          <ion-icon name="close" slot="start"></ion-icon>
+          Cancel
+        </ion-button>
       </div>
-    </div>
-  `,
+    `,
   styleUrls: ['country.component.scss'],
 })
 export class CountrySelectModalComponent implements OnInit {

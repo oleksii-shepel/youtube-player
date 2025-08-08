@@ -1,44 +1,11 @@
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--ion-overlay-backdrop-background, rgba(0, 0, 0, 0.75));
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-  transition: opacity 0.3s ease;
-
-  &.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-}
-
-.modal-container {
-  background-color: var(--ion-overlay-background, var(--ion-background-color-light));
+:host {
+  background: var(--ion-toolbar-background);
   border-radius: 12px;
-  max-width: 90vw;
-  max-height: 90vh;
-  width: 500px;
-  height: 600px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 10px 25px var(--ion-box-shadow-color, rgba(0, 0, 0, 0.5));
   transform: scale(1);
   transition: all 0.3s ease;
-
-  &.hidden {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-
-  &.with-border {
-    border: 1px solid var(--ion-border-color, #3d2525);
-  }
 
   // Add subtle glow effect for better depth in dark theme
   box-shadow:

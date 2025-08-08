@@ -1,23 +1,24 @@
-import { ApplicationRef, ComponentRef, Injectable, Injector, Type, createComponent, EnvironmentInjector } from "@angular/core";
+import { ApplicationRef, ComponentRef, Injectable, Type, createComponent, EnvironmentInjector, Renderer2, RendererFactory2 } from "@angular/core";
 import { SheetConfig, SheetDirective } from "../directives/sheet/sheet.directive";
-
-// This interface now only describes the required properties for the service to function.
-export interface SheetComponentWithDirective {
-  sheetDirectiveInstance: SheetDirective;
-}
 
 @Injectable({ providedIn: 'root' })
 export class SheetService {
   private componentRef?: ComponentRef<any>;
-  private hostElement?: HTMLElement;
+  private directive?: SheetDirective;
+  private modalContainer?: HTMLElement;
+  private modalBackdrop?: HTMLElement;
+  private renderer: Renderer2;
 
   constructor(
     private appRef: ApplicationRef,
-    private environmentInjector: EnvironmentInjector
-  ) {}
+    private environmentInjector: EnvironmentInjector,
+    private rendererFactory: RendererFactory2
+  ) {
+    this.renderer = this.rendererFactory.createRenderer(null, null);
+  }
 
   async open<T>(
-    component: Type<T & SheetComponentWithDirective>, // The component must expose the directive
+    component: Type<T>,
     config: SheetConfig,
     componentInputs: Partial<T> = {}
   ): Promise<ComponentRef<T>> {
@@ -26,50 +27,108 @@ export class SheetService {
       await this.close();
     }
 
-    // 2. Create host element
-    this.hostElement = document.createElement('div');
-    document.querySelector('ion-app')?.appendChild(this.hostElement);
+    // 2. Create modal structure
+    this.createModalStructure(config);
 
-    // 3. Create the component
+    // 3. Create the component inside modal-container
     this.componentRef = createComponent(component, {
       environmentInjector: this.environmentInjector,
-      hostElement: this.hostElement
+      hostElement: this.modalContainer
     });
-    Object.assign(this.componentRef.instance, componentInputs);
-    this.componentRef.setInput('appSheet', config);
 
-    // 4. Attach to app
+    // Apply component inputs
+    Object.assign(this.componentRef.instance, componentInputs);
+
+    // 4. Create and manually instantiate the SheetDirective
+    const elementRef = { nativeElement: this.componentRef.location.nativeElement };
+
+    // Manually create directive instance
+    this.directive = new SheetDirective(
+      elementRef as any,
+      this.renderer,
+      document
+    );
+
+    // Set directive inputs
+    this.directive.appSheet = config;
+
+    // Initialize the directive manually
+    this.directive.ngOnInit();
+
+    // 5. Attach component to app
     this.appRef.attachView(this.componentRef.hostView);
 
-    // Wait for the directive to be ready and present the sheet
-    // The component's @ViewChild setter should populate the sheetDirectiveInstance
+    // 6. Wait for initialization and present
     await new Promise<void>(resolve => {
-        // We'll need a different way to await the directive, as the component has no ready output.
-        // For a simple fix, a small delay can work, but it's not ideal.
-        // A better approach is to use a Subject on the component to signal readiness.
-        setTimeout(() => resolve(), 50); // Small delay to allow Angular to process the view
+      setTimeout(() => resolve(), 50); // Allow Angular to process
     });
 
-    if (this.componentRef.instance.sheetDirectiveInstance) {
-        await this.componentRef.instance.sheetDirectiveInstance.present();
+    if (this.directive) {
+      await this.directive.present();
     } else {
-        console.error('SheetDirective instance not found on component after initialization.');
+      console.error('SheetDirective instance not found after initialization.');
     }
 
     return this.componentRef as ComponentRef<T>;
   }
 
   async close(): Promise<void> {
-    if (!this.componentRef) return;
+    if (!this.directive) return;
 
     // Dismiss the sheet and wait for the animation to finish
-    await this.componentRef.instance.sheetDirectiveInstance.dismiss();
+    await this.directive.dismiss();
 
-    // Clean up
-    this.appRef.detachView(this.componentRef.hostView);
-    this.componentRef.destroy();
-    this.hostElement?.remove();
-    this.componentRef = undefined;
-    this.hostElement = undefined;
+    // Clean up directive
+    if (this.directive) {
+      this.directive.ngOnDestroy();
+      this.directive = undefined;
+    }
+
+    // Clean up component
+    if (this.componentRef) {
+      this.appRef.detachView(this.componentRef.hostView);
+      this.componentRef.destroy();
+      this.componentRef = undefined;
+    }
+
+    // Clean up DOM elements
+    this.cleanupModalStructure();
+  }
+
+  private createModalStructure(config?: SheetConfig): void {
+    // Create modal-backdrop
+    this.modalBackdrop = document.createElement('div');
+    this.modalBackdrop.className = 'modal-backdrop';
+
+    // Create modal-container
+    this.modalContainer = document.createElement('div');
+    this.modalContainer.className = 'modal-container';
+
+    // Apply width/height/max constraints
+    if (config) {
+      if (config.width) this.modalContainer.style.width = config.width;
+      if (config.height) this.modalContainer.style.height = config.height;
+      if (config.maxWidth) this.modalContainer.style.maxWidth = config.maxWidth;
+      if (config.maxHeight) this.modalContainer.style.maxHeight = config.maxHeight;
+    }
+
+    // Append both as siblings to ion-app
+    const ionApp = document.querySelector('ion-app');
+    if (ionApp) {
+      ionApp.appendChild(this.modalBackdrop);
+      ionApp.appendChild(this.modalContainer);
+    }
+  }
+
+  private cleanupModalStructure(): void {
+    this.modalBackdrop?.remove();
+    this.modalContainer?.remove();
+    this.modalBackdrop = undefined;
+    this.modalContainer = undefined;
+  }
+
+  // Optional: Method to get direct access to the directive if needed
+  getDirectiveInstance(): SheetDirective | undefined {
+    return this.directive;
   }
 }

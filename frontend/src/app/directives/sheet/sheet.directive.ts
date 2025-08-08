@@ -24,6 +24,10 @@ export interface SheetConfig {
   backdropDismiss?: boolean;
   showBackdrop?: boolean;
   canDismiss?: boolean;
+  width?: string;
+  height?: string;
+  maxWidth?: string;
+  maxHeight?: string;
 }
 
 @Directive({
@@ -67,7 +71,6 @@ export class SheetDirective implements OnInit, OnDestroy {
   private mouseUpListener?: () => void;
   private backdropClickListener?: () => void;
 
-
   constructor(
     private elementRef: ElementRef<HTMLElement>,
     private renderer: Renderer2,
@@ -81,8 +84,6 @@ export class SheetDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.renderer.removeChild(this.rootElement, this.elementRef.nativeElement);
-
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
@@ -97,13 +98,19 @@ export class SheetDirective implements OnInit, OnDestroy {
 
   private initializeSheet() {
     const element = this.elementRef.nativeElement;
+    const parent = element.parentElement;
 
-    this.renderer.appendChild(this.rootElement, element);
-    this.modalBackdrop = element.querySelector('.modal-backdrop') as HTMLElement;
-    this.modalContainer = element.querySelector('.modal-container') as HTMLElement;
+    if (!parent) {
+      console.error('Sheet directive requires a parent element.');
+      return;
+    }
+
+    // Find modal-backdrop and modal-container as siblings to the directive's host element
+    this.modalBackdrop = parent.querySelector('.modal-backdrop') as HTMLElement;
+    this.modalContainer = parent.querySelector('.modal-container') as HTMLElement;
 
     if (!this.modalBackdrop || !this.modalContainer) {
-      console.error('Sheet directive requires .modal-backdrop and .modal-container elements within its host.');
+      console.error('Sheet directive requires .modal-backdrop and .modal-container elements as siblings.');
       return;
     }
 
@@ -290,7 +297,6 @@ export class SheetDirective implements OnInit, OnDestroy {
     // Ensure transform is reset to 0 when setting a breakpoint (bringing it into view)
     this.renderer.setStyle(this.modalContainer, 'transform', 'translateY(0)');
 
-
     if (!animate) {
       // Force reflow to apply 'none' before re-applying transition
       this.modalContainer.offsetHeight;
@@ -338,7 +344,6 @@ export class SheetDirective implements OnInit, OnDestroy {
       // Hide backdrop opacity by removing visible class
       this.renderer.removeClass(this.modalBackdrop, 'visible');
       this.renderer.addClass(this.modalBackdrop, 'hidden');
-
 
       setTimeout(() => {
         // After animation, ensure pointer-events are disabled for backdrop

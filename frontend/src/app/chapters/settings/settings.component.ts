@@ -204,7 +204,11 @@ export class SettingsChapter implements OnInit {
       initialBreakpoint: 'large',
       backdropDismiss: true,
       showBackdrop: true,
-      canDismiss: true
+      canDismiss: true,
+      width: '600px',
+      height: '70vh',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
     }, {
       selectedCountry: this.searchSettings.country,
       selectedLanguage: this.searchSettings.language
