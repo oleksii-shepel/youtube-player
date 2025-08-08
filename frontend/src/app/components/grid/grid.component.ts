@@ -1,6 +1,6 @@
 // custom-table.component.ts
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, SimpleChanges } from '@angular/core';
-import { AlertController, IonicModule, ModalController } from '@ionic/angular';
+import { AlertController, IonicModule } from '@ionic/angular';
 import { createBehaviorSubject, createSubject } from '@actioncrew/streamix';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -49,24 +49,24 @@ export interface PaginationConfig {
   selector: 'app-grid',
   templateUrl: 'grid.component.html',
   styleUrls: ['grid.component.scss'],
-  imports: [CommonModule, IonicModule, FormsModule]
+  imports: [CommonModule, IonicModule, FormsModule],
 })
 export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
   @Input() columns: TableColumn[] = [];
   @Input() title: string = '';
   @Input() pageSize: number = 10;
   @Input() showActions: boolean = true;
-  @Input() serverSidePagination: boolean = false;
+  @Input() serverSidePagination: boolean = true;
   @Input() data: Table<T> = {
     total: 0,
     pages: [],
-    pageSize: this.pageSize
+    pageSize: this.pageSize,
   };
 
   @Output() add = new EventEmitter<T>();
   @Output() edit = new EventEmitter<T>();
   @Output() delete = new EventEmitter<T>();
-  @Output() pageChange = new EventEmitter<{page: number, pageSize: number}>();
+  @Output() pageChange = new EventEmitter<{ page: number; pageSize: number }>();
 
   public Math = Math;
 
@@ -74,12 +74,15 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
   private destroy$ = createSubject<void>();
   private dataSource$ = createBehaviorSubject<Table<T>>(this.data);
   private searchText$ = createBehaviorSubject<string>('');
-  private sortConfig$ = createBehaviorSubject<SortConfig>({ column: '', direction: 'asc' });
+  private sortConfig$ = createBehaviorSubject<SortConfig>({
+    column: '',
+    direction: 'asc',
+  });
   private pagination$ = createBehaviorSubject<PaginationConfig>({
     currentPage: 1,
     itemsPerPage: this.pageSize,
     totalItems: this.data.total,
-    totalPages: Math.ceil(this.data.total / this.pageSize)
+    totalPages: Math.ceil(this.data.total / this.pageSize),
   });
   private modalState$ = createBehaviorSubject<{
     isOpen: boolean;
@@ -88,7 +91,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
   }>({
     isOpen: false,
     mode: 'add',
-    selectedItem: null
+    selectedItem: null,
   });
 
   // Current state values (for template binding)
@@ -107,35 +110,61 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
   paginatedData: T[] = [];
 
   constructor(
-    private alertController: AlertController,
-    private modalController: ModalController
+    private alertController: AlertController
   ) {}
 
   ngOnInit() {
     this.itemsPerPage = this.pageSize;
 
-    // Initialize subjects with current data
+    // Initialize with current data
     this.dataSource$.next(this.data);
-    this.updatePaginationFromTable();
 
-    // Subscribe to state changes
-    this.setupSubscriptions();
-
-    // Initial data processing
+    // Process initial data
     this.processData();
+
+    // Set up subscriptions
+    this.setupSubscriptions();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['data'] && !changes['data'].isFirstChange()) {
-      this.dataSource$.next(this.data);
-      this.updatePaginationFromTable();
-      this.processData();
+  ngOnChanges(changes: SimpleChanges): void {
+    // Update data source if @Input() data changed
+    if (changes['data']) {
+      const newData = changes['data'].currentValue as Table<T>;
+      this.dataSource$.next(newData);
+
+      // Update pagination config
+      this.pagination$.next({
+        currentPage: 1,
+        itemsPerPage: newData.pageSize || this.pageSize,
+        totalItems: newData.total,
+        totalPages: Math.ceil(
+          newData.total / (newData.pageSize || this.pageSize)
+        ),
+      });
+
+      // Update view bindings
+      this.currentPage = 1;
+      this.itemsPerPage = newData.pageSize || this.pageSize;
+      this.totalPages = Math.ceil(newData.total / this.itemsPerPage);
+
+      if (!this.serverSidePagination) {
+        const firstPage = newData.pages?.[0]?.items ?? [];
+        this.paginatedData = firstPage;
+        this.filteredData = firstPage;
+      }
     }
 
-    if (changes['pageSize'] && !changes['pageSize'].isFirstChange()) {
-      this.itemsPerPage = this.pageSize;
-      this.updatePaginationFromTable();
-      this.processData();
+    // Update pageSize if changed
+    if (changes['pageSize']) {
+      this.itemsPerPage = changes['pageSize'].currentValue;
+    }
+
+    // Optionally reset sort/filter on relevant changes
+    if (changes['columns']) {
+      this.sortColumn = '';
+      this.sortDirection = 'asc';
+      this.searchText = '';
+      this.searchText$.next('');
     }
   }
 
@@ -149,26 +178,26 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
       currentPage: this.currentPage,
       itemsPerPage: this.itemsPerPage,
       totalItems: this.data.total,
-      totalPages: Math.ceil(this.data.total / this.itemsPerPage)
+      totalPages: Math.ceil(this.data.total / this.itemsPerPage),
     });
   }
 
   private setupSubscriptions() {
     // Subscribe to search text changes
-    this.searchText$.subscribe(searchText => {
+    this.searchText$.subscribe((searchText) => {
       this.searchText = searchText;
       this.processData();
     });
 
     // Subscribe to sort configuration changes
-    this.sortConfig$.subscribe(config => {
+    this.sortConfig$.subscribe((config) => {
       this.sortColumn = config.column;
       this.sortDirection = config.direction;
       this.processData();
     });
 
     // Subscribe to pagination changes
-    this.pagination$.subscribe(pagination => {
+    this.pagination$.subscribe((pagination) => {
       this.currentPage = pagination.currentPage;
       this.itemsPerPage = pagination.itemsPerPage;
       this.totalPages = pagination.totalPages;
@@ -176,7 +205,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
       if (this.serverSidePagination) {
         this.pageChange.emit({
           page: this.currentPage,
-          pageSize: this.itemsPerPage
+          pageSize: this.itemsPerPage,
         });
       } else {
         this.updatePaginatedData();
@@ -184,13 +213,13 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
     });
 
     // Subscribe to data source changes
-    this.dataSource$.subscribe(tableData => {
+    this.dataSource$.subscribe((tableData) => {
       this.data = tableData;
       this.processData();
     });
 
     // Subscribe to modal state changes
-    this.modalState$.subscribe(state => {
+    this.modalState$.subscribe((state) => {
       this.isModalOpen = state.isOpen;
       this.modalMode = state.mode;
       this.selectedItem = state.selectedItem;
@@ -198,14 +227,17 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
   }
 
   private processData() {
-    // Get all items from pages
-    const allItems = this.data.pages.flatMap(page => page.items);
+    // Get all items from pages for client-side operations
+    const allItems = this.data.pages.flatMap((page) => page.items);
 
     // Filter data if not server-side
     if (!this.serverSidePagination) {
-      this.filteredData = allItems.filter(item =>
-        Object.values(item).some(value =>
-          value?.toString().toLowerCase().includes(this.searchText.toLowerCase())
+      this.filteredData = allItems.filter((item) =>
+        Object.values(item).some((value) =>
+          value
+            ?.toString()
+            .toLowerCase()
+            .includes(this.searchText.toLowerCase())
         )
       );
 
@@ -226,27 +258,53 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
         });
       }
     } else {
-      this.filteredData = allItems;
+      // For server-side, we'll use the current page's items
+      this.filteredData = allItems; // This is just for count/display purposes
     }
 
-    // Update pagination
-    const totalPages = this.serverSidePagination
-      ? Math.ceil(this.data.total / this.itemsPerPage)
-      : Math.ceil(this.filteredData.length / this.itemsPerPage);
+    // Calculate totals
+    const totalItems = this.serverSidePagination
+      ? this.data.total
+      : this.filteredData.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / this.itemsPerPage));
 
-    const currentPage = Math.min(this.currentPage, totalPages || 1);
+    // Ensure current page is valid
+    const currentPage = Math.min(Math.max(1, this.currentPage), totalPages);
 
+    // Update pagination state
     this.pagination$.next({
       currentPage,
       itemsPerPage: this.itemsPerPage,
-      totalItems: this.serverSidePagination ? this.data.total : this.filteredData.length,
-      totalPages
+      totalItems,
+      totalPages,
     });
+
+    // Update the visible data
+    this.updatePaginatedData();
   }
 
   private updatePaginatedData() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    this.paginatedData = this.filteredData.slice(startIndex, startIndex + this.itemsPerPage);
+    if (this.serverSidePagination) {
+      // For server-side pagination, we assume the current page's items are in data.pages
+      const currentPageData = this.data.pages.find(
+        (page) => page.pageIndex === this.currentPage - 1
+      );
+      this.paginatedData = currentPageData?.items || [];
+    } else {
+      // For client-side pagination, slice the filtered data
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+      const endIndex = startIndex + this.itemsPerPage;
+      this.paginatedData = this.filteredData.slice(startIndex, endIndex);
+
+      // Auto-correct current page if we have no items but data exists
+      if (
+        this.paginatedData.length === 0 &&
+        this.filteredData.length > 0 &&
+        this.currentPage > 1
+      ) {
+        this.goToPage(Math.ceil(this.filteredData.length / this.itemsPerPage));
+      }
+    }
   }
 
   // Public methods for template
@@ -258,12 +316,12 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
     const currentPagination = this.pagination$.snappy;
     this.pagination$.next({
       ...currentPagination,
-      currentPage: 1
+      currentPage: 1,
     });
   }
 
   onSort(columnKey: string) {
-    const column = this.columns.find(col => col.key === columnKey);
+    const column = this.columns.find((col) => col.key === columnKey);
     if (!column?.sortable) return;
 
     const currentSort = this.sortConfig$.snappy;
@@ -271,12 +329,12 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
     if (currentSort.column === columnKey) {
       this.sortConfig$.next({
         column: columnKey,
-        direction: currentSort.direction === 'asc' ? 'desc' : 'asc'
+        direction: currentSort.direction === 'asc' ? 'desc' : 'asc',
       });
     } else {
       this.sortConfig$.next({
         column: columnKey,
-        direction: 'asc'
+        direction: 'asc',
       });
     }
   }
@@ -295,39 +353,71 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
       ...currentPagination,
       itemsPerPage,
       currentPage: 1,
-      totalPages: Math.ceil(currentPagination.totalItems / itemsPerPage)
+      totalPages: Math.ceil(currentPagination.totalItems / itemsPerPage),
     });
   }
 
   goToPage(page: number) {
     const currentPagination = this.pagination$.snappy;
-    if (page >= 1 && page <= currentPagination.totalPages) {
+    if (
+      page >= 1 &&
+      page <= currentPagination.totalPages &&
+      page !== this.currentPage
+    ) {
+      this.currentPage = page;
       this.pagination$.next({
         ...currentPagination,
-        currentPage: page
+        currentPage: page,
       });
+
+      if (!this.serverSidePagination) {
+        this.updatePaginatedData();
+      }
     }
   }
 
   getPageNumbers(): number[] {
     const pages: number[] = [];
     const maxVisible = 5;
+    const currentPage = this.currentPage;
+    const totalPages = this.totalPages;
 
-    if (this.totalPages <= maxVisible) {
-      for (let i = 1; i <= this.totalPages; i++) {
+    if (totalPages <= maxVisible) {
+      // Show all pages if total pages is less than max visible
+      for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      const half = Math.floor(maxVisible / 2);
-      let start = Math.max(1, this.currentPage - half);
-      let end = Math.min(this.totalPages, start + maxVisible - 1);
+      // Calculate start and end pages
+      let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+      let end = start + maxVisible - 1;
 
-      if (end === this.totalPages) {
+      if (end > totalPages) {
+        end = totalPages;
         start = Math.max(1, end - maxVisible + 1);
       }
 
+      // Always show first page
+      if (start > 1) {
+        pages.push(1);
+        if (start > 2) {
+          pages.push(-1); // Use -1 to represent ellipsis
+        }
+      }
+
+      // Add visible pages
       for (let i = start; i <= end; i++) {
-        pages.push(i);
+        if (i >= 1 && i <= totalPages) {
+          pages.push(i);
+        }
+      }
+
+      // Always show last page
+      if (end < totalPages) {
+        if (end < totalPages - 1) {
+          pages.push(-1); // Use -1 to represent ellipsis
+        }
+        pages.push(totalPages);
       }
     }
 
@@ -338,7 +428,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
     this.modalState$.next({
       isOpen: true,
       mode: 'add',
-      selectedItem: null
+      selectedItem: null,
     });
   }
 
@@ -346,7 +436,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
     this.modalState$.next({
       isOpen: true,
       mode: 'edit',
-      selectedItem: { ...item }
+      selectedItem: { ...item },
     });
   }
 
@@ -357,7 +447,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
       buttons: [
         {
           text: 'Cancel',
-          role: 'cancel'
+          role: 'cancel',
         },
         {
           text: 'Delete',
@@ -369,9 +459,9 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
             if (this.delete.observers.length === 0) {
               this.removeItem(item.id);
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     await alert.present();
@@ -404,7 +494,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
     this.modalState$.next({
       isOpen: false,
       mode: 'add',
-      selectedItem: null
+      selectedItem: null,
     });
   }
 
@@ -413,7 +503,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
     if (!currentModal.selectedItem) {
       this.modalState$.next({
         ...currentModal,
-        selectedItem: { [key]: value } as T
+        selectedItem: { [key]: value } as T,
       });
       return;
     }
@@ -421,7 +511,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
     const updatedItem = { ...currentModal.selectedItem, [key]: value };
     this.modalState$.next({
       ...currentModal,
-      selectedItem: updatedItem
+      selectedItem: updatedItem,
     });
   }
 
@@ -432,11 +522,11 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
   }
 
   addItem(item: T) {
-    const newData = {...this.data};
+    const newData = { ...this.data };
     if (newData.pages.length === 0) {
       newData.pages.push({
         items: [item],
-        pageIndex: 0
+        pageIndex: 0,
       });
     } else {
       newData.pages[0].items.unshift(item);
@@ -446,19 +536,19 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy {
   }
 
   updateItem(item: T) {
-    const newData = {...this.data};
-    newData.pages = newData.pages.map(page => ({
+    const newData = { ...this.data };
+    newData.pages = newData.pages.map((page) => ({
       ...page,
-      items: page.items.map(i => i.id === item.id ? item : i)
+      items: page.items.map((i) => (i.id === item.id ? item : i)),
     }));
     this.updateData(newData);
   }
 
   removeItem(itemId: string) {
-    const newData = {...this.data};
-    newData.pages = newData.pages.map(page => ({
+    const newData = { ...this.data };
+    newData.pages = newData.pages.map((page) => ({
       ...page,
-      items: page.items.filter(i => i.id !== itemId)
+      items: page.items.filter((i) => i.id !== itemId),
     }));
     newData.total = Math.max(0, newData.total - 1);
     this.updateData(newData);

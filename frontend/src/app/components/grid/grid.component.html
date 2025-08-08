@@ -77,19 +77,7 @@
           }
           @if (showActions) {
             <ion-col size="auto">
-              <ion-button
-                fill="clear"
-                size="small"
-                (click)="onEdit(item)">
-                <ion-icon name="create" slot="icon-only"></ion-icon>
-              </ion-button>
-              <ion-button
-                fill="clear"
-                color="danger"
-                size="small"
-                (click)="onDelete(item)">
-                <ion-icon name="trash" slot="icon-only"></ion-icon>
-              </ion-button>
+              <!-- Action buttons -->
             </ion-col>
           }
         </ion-row>
@@ -119,17 +107,31 @@
           <ion-button
             fill="clear"
             [disabled]="currentPage === 1"
+            (click)="goToPage(1)">
+            <ion-icon name="chevron-back-outline" slot="start"></ion-icon>
+            First
+          </ion-button>
+
+          <ion-button
+            fill="clear"
+            [disabled]="currentPage === 1"
             (click)="goToPage(currentPage - 1)">
             <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
           </ion-button>
 
           @for (page of getPageNumbers(); track page) {
-            <ion-button
-              [fill]="currentPage === page ? 'solid' : 'clear'"
-              [color]="currentPage === page ? 'primary' : 'medium'"
-              (click)="goToPage(page)">
-              {{ page }}
-            </ion-button>
+            @if (page === -1) {
+              <ion-button fill="clear" disabled>
+                <ion-icon name="ellipsis-horizontal" slot="icon-only"></ion-icon>
+              </ion-button>
+            } @else {
+              <ion-button
+                [fill]="currentPage === page ? 'solid' : 'clear'"
+                [color]="currentPage === page ? 'primary' : 'medium'"
+                (click)="goToPage(page)">
+                {{ page }}
+              </ion-button>
+            }
           }
 
           <ion-button
@@ -137,6 +139,14 @@
             [disabled]="currentPage === totalPages"
             (click)="goToPage(currentPage + 1)">
             <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
+          </ion-button>
+
+          <ion-button
+            fill="clear"
+            [disabled]="currentPage === totalPages"
+            (click)="goToPage(totalPages)">
+            Last
+            <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
           </ion-button>
         </ion-col>
       </ion-row>
