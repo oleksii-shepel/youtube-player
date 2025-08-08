@@ -120,6 +120,45 @@ export interface CountryLanguageSelection {
           }
         </div>
 
+        <!-- Auto-detection option -->
+        @if (showLanguageStep || !selectedCountry) {
+          <div class="auto-detection-section">
+            <ion-item
+              lines="none"
+              class="auto-detection-item"
+              button
+              (click)="toggleAutoDetection()"
+            >
+              <ion-checkbox
+                slot="start"
+                [(ngModel)]="enableAutoDetection"
+                (ionChange)="onAutoDetectionToggle()"
+                [disabled]="isDetectingLocation"
+                (click)="$event.stopPropagation()"
+              ></ion-checkbox>
+
+              <ion-label>
+                <h3>Auto-detect my country</h3>
+                <p class="subdued">Use your location to automatically select your country</p>
+              </ion-label>
+
+              @if (isDetectingLocation) {
+                <ion-spinner name="crescent" slot="end"></ion-spinner>
+              }
+              @if (geolocationError) {
+                <ion-icon name="alert-circle" slot="end" color="warning"></ion-icon>
+              }
+            </ion-item>
+
+            @if (geolocationError) {
+              <div class="error-message ion-padding-start">
+                <ion-icon name="information-circle" color="warning"></ion-icon>
+                <span class="warning-text">{{ geolocationError }}</span>
+              </div>
+            }
+          </div>
+        }
+
         <div class="modal-content scrollable">
           @if (isLoading) {
             <div class="status-message">
@@ -410,6 +449,9 @@ export class CountrySelectModalComponent implements OnInit {
 
         if (this.detectedCountry) {
           this.tempSelectedCountry = this.detectedCountry;
+          if(this.tempSelectedCountry !== this.selectedCountry) {
+            this.tempSelectedLanguage = null;
+          }
         } else {
           this.geolocationError = 'Could not find country information';
         }
@@ -523,6 +565,9 @@ export class CountrySelectModalComponent implements OnInit {
 
   selectCountry(country: Country) {
     this.tempSelectedCountry = country;
+    if(this.tempSelectedCountry !== this.selectedCountry) {
+      this.tempSelectedLanguage = null;
+    }
   }
 
   selectLanguage(language: Language) {
