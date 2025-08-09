@@ -264,6 +264,7 @@
           ]"
           [pageSize]="10"
           [showActions]="true"
+          (pageChange)="loadSubscriptions($event.page - 1)"
         >
         </app-grid>
         <div class="section-card" *ngIf="!isApiConnected">

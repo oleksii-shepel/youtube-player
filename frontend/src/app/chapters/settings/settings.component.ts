@@ -373,7 +373,7 @@ export class SettingsChapter implements OnInit {
   }
 
   // Updated loadSubscriptions method
-  async loadSubscriptions(pageToken?: string): Promise<void> {
+  async loadSubscriptions(pageIndex: number = 0): Promise<void> {
     if (!this.isApiConnected) {
       this.subscriptionTable = {
         total: 0,
@@ -386,35 +386,39 @@ export class SettingsChapter implements OnInit {
     this.isLoading = true;
 
     try {
+      const pageToken = pageIndex === 0 ? undefined : this.subscriptionTable.pages[pageIndex].pageToken;
       const response = await firstValueFrom(this.helper.listSubscriptionsPaginated(pageToken));
-      const pageInfo = response.pageInfo || {};
+      const pageInfo = response.pageInfo;
+       if (pageToken === undefined) {
+        const total = pageInfo.totalResults;
+        const pageSize = pageInfo.resultsPerPage || 10;
+        const totalPages = Math.ceil(total / pageSize);
 
-      const items: SubscriptionEntity[] = (response.items || []).map((item: any) => ({
+        this.subscriptionTable = {
+          total,
+          pageSize,
+          pages: Array.from({ length: totalPages }, (_, i): Page<SubscriptionEntity> => ({
+            items: [],
+            pageIndex: i,
+            pageToken: undefined,
+            filter: '',
+            sort: { prop: 'name', dir: 'asc'}
+          }))
+        };
+      }
+
+      if(pageIndex + 1 < this.subscriptionTable.pages.length) {
+        this.subscriptionTable.pages[pageIndex + 1].pageToken = response.nextPageToken;
+      }
+
+      this.subscriptionTable = {...this.subscriptionTable, pages: [...this.subscriptionTable.pages]};
+      this.subscriptionTable.pages[pageIndex].items = (response.items || []).map((item: any) => ({
         id: item.snippet?.resourceId?.channelId || '',
         name: item.snippet?.title || 'Unknown Channel',
         subscriberCount: 0,
         category: '',
         thumbnail: item.snippet?.thumbnails?.default?.url || 'assets/channel-default.jpg'
       }));
-
-      const currentPageIndex = pageToken
-        ? this.subscriptionTable.pages.length
-        : 0;
-
-      const newPage: Page<SubscriptionEntity> = {
-        items,
-        pageIndex: currentPageIndex,
-        pageToken
-      };
-
-      this.subscriptionTable = {
-        total: pageInfo.totalResults || items.length,
-        pages: pageToken
-          ? [...this.subscriptionTable.pages, newPage]
-          : [newPage],
-        pageSize: pageInfo.resultsPerPage || this.subscriptionTable.pageSize
-      };
-
     } catch (error) {
       console.error('Failed to load subscriptions:', error);
     } finally {

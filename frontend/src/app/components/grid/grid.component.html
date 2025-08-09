@@ -99,8 +99,8 @@
         <ion-col>
           <div class="pagination-info">
             Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
-            {{ Math.min(currentPage * itemsPerPage, serverSidePagination ? data.total : filteredData.length) }}
-            of {{ serverSidePagination ? data.total : filteredData.length }} entries
+            {{ Math.min(currentPage * itemsPerPage, data.total) }}
+            of {{ data.total }} entries
           </div>
         </ion-col>
         <ion-col size="auto">
