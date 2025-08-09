@@ -77,7 +77,22 @@
           }
           @if (showActions) {
             <ion-col size="auto">
-              <!-- Action buttons -->
+              <div class="action-buttons">
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  (click)="onEdit(item)"
+                  color="primary">
+                  <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  (click)="onDelete(item)"
+                  color="danger">
+                  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
             </ion-col>
           }
         </ion-row>
@@ -93,61 +108,36 @@
       }
     </ion-grid>
 
-    <!-- Pagination -->
+    <!-- Simplified Pagination -->
     @if (totalPages > 1) {
       <ion-row class="pagination">
-        <ion-col>
+        <ion-col size="12" size-md="6">
           <div class="pagination-info">
+            Page {{ currentPage }} of {{ totalPages }} |
             Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
             {{ Math.min(currentPage * itemsPerPage, data.total) }}
             of {{ data.total }} entries
           </div>
         </ion-col>
-        <ion-col size="auto">
-          <ion-button
-            fill="clear"
-            [disabled]="currentPage === 1"
-            (click)="goToPage(1)">
-            <ion-icon name="chevron-back-outline" slot="start"></ion-icon>
-            First
-          </ion-button>
+        <ion-col size="12" size-md="6" class="ion-text-right">
+          <div class="pagination-controls">
+            <ion-button
+              fill="outline"
+              [disabled]="currentPage === 1"
+              (click)="goToPreviousPage()">
+              <ion-icon name="chevron-back" slot="start"></ion-icon>
+              Previous
+            </ion-button>
 
-          <ion-button
-            fill="clear"
-            [disabled]="currentPage === 1"
-            (click)="goToPage(currentPage - 1)">
-            <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
-          </ion-button>
-
-          @for (page of getPageNumbers(); track page) {
-            @if (page === -1) {
-              <ion-button fill="clear" disabled>
-                <ion-icon name="ellipsis-horizontal" slot="icon-only"></ion-icon>
-              </ion-button>
-            } @else {
-              <ion-button
-                [fill]="currentPage === page ? 'solid' : 'clear'"
-                [color]="currentPage === page ? 'primary' : 'medium'"
-                (click)="goToPage(page)">
-                {{ page }}
-              </ion-button>
-            }
-          }
-
-          <ion-button
-            fill="clear"
-            [disabled]="currentPage === totalPages"
-            (click)="goToPage(currentPage + 1)">
-            <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
-          </ion-button>
-
-          <ion-button
-            fill="clear"
-            [disabled]="currentPage === totalPages"
-            (click)="goToPage(totalPages)">
-            Last
-            <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
-          </ion-button>
+            <ion-button
+              fill="outline"
+              [disabled]="currentPage === totalPages"
+              (click)="goToNextPage()"
+              class="ion-margin-start">
+              Next
+              <ion-icon name="chevron-forward" slot="end"></ion-icon>
+            </ion-button>
+          </div>
         </ion-col>
       </ion-row>
     }

@@ -282,36 +282,17 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy, On
     });
   }
 
-  getPageNumbers(): number[] {
-    const pages: number[] = [];
-    const maxVisible = 5;
-    const currentPage = this.currentPage;
-    const totalPages = this.totalPages;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-      let end = start + maxVisible - 1;
-      if (end > totalPages) {
-        end = totalPages;
-        start = Math.max(1, end - maxVisible + 1);
-      }
-      if (start > 1) {
-        pages.push(1);
-        if (start > 2) pages.push(-1);
-      }
-      for (let i = start; i <= end; i++) {
-        if (i >= 1 && i <= totalPages) pages.push(i);
-      }
-      if (end < totalPages) {
-        if (end < totalPages - 1) pages.push(-1);
-        pages.push(totalPages);
-      }
+  // Simplified navigation methods
+  goToPreviousPage() {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
     }
-    return pages;
+  }
+
+  goToNextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
   }
 
   onAdd() { this.modalState$.next({ isOpen: true, mode: 'add', selectedItem: null }); }
