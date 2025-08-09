@@ -68,8 +68,8 @@
       </div>
 
       <!-- Channel Information Section -->
-      <div *ngIf="selectedMainSection === 'channel-info' && channelInfoSettings" class="content-section channel-info">
-        <div class="user-details" *ngIf="isApiConnected">
+      <div *ngIf="selectedMainSection === 'channel-info'" class="content-section channel-info">
+        <div class="user-details" *ngIf="isApiConnected && channelInfoSettings">
           <div class="detail-row">
             <ion-icon name="person-outline"></ion-icon>
             <div class="detail-content">
