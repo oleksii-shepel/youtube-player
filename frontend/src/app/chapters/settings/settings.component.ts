@@ -237,11 +237,7 @@ export class SettingsChapter implements OnInit {
   }
 
   async checkApiConnection() {
-    if (!this.authorization.isSignedIn()) {
-      this.isApiConnected = false;
-      return;
-    }
-    if (!this.apiConfigSettings.apiKey) {
+    if (!this.authorization.isSignedIn() || !this.apiConfigSettings.apiKey) {
       this.isApiConnected = false;
       return;
     }
