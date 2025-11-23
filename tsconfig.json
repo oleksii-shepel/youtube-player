@@ -8,7 +8,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
+    "outDir": "./dist/youtube-player"
   },
   "include": ["api/**/*.ts"],
   "exclude": ["node_modules"]
