@@ -16,7 +16,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/frontend",
+            "outputPath": "dist/youtube-player/frontend",
             "index": "frontend/src/index.html",
             "browser": "frontend/src/main.ts",
             "polyfills": [

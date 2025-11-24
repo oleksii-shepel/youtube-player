@@ -6,16 +6,11 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "source": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "function": "angularServeOrRedirect"
-      }
     ]
   },
   "functions": [
