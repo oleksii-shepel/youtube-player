@@ -75,6 +75,7 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "ng-packagr": "^20.1.0",
     "typescript": "~5.8.3",
-    "vercel": "^45.0.9"
+    "vercel": "^45.0.9",
+    "wrangler": "^4.50.0"
   }
 }
