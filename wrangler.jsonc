@@ -2,6 +2,7 @@
   "name": "echoes-player",
   "compatibility_date": "2025-11-25",
   "assets": {
-    "directory": "dist/youtube-player/frontend/browser"
+    "directory": "dist/youtube-player/frontend/browser",
+    "not_found_handling": "single-page-application"
   }
 }
