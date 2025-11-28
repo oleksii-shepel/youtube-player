@@ -323,9 +323,9 @@ import { GridItemComponent } from 'src/app/components/griditem/griditem.componen
       }
 
       <div class="adaptive-grid" [style.--thumbnail-max-width.px]="gridSize">
-        @for (item of searchResults[searchType]; track item) {
+        @for (item of searchResults[searchType]; track item.id) {
           <app-grid-item
-            [type]="gridType"
+            [type]="item.type"
             [data]="item"
             [displayDescription]="appearanceSettings.displayDescription"
             (addTrackToPlaylist)="addTrackToPlaylist($event)"
@@ -402,8 +402,6 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit(): void {
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
-    
     if (this.googleLogInButton?.nativeElement) {
       this.authorization.initializeGsiButton();
     }
@@ -475,6 +473,42 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     if (this.appearanceSettings?.displayResults === 'change') {
       this.performSearch();
     }
+  }
+
+  generateUniqueId(length = 11): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let id = '';
+    for (let i = 0; i < length; i++) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
+  }
+
+  mixAds<T>(
+    results: any[],
+    density = 5
+  ): any[] {
+    // Wrap original items
+    const mixed: any[] = results.map(item => ({
+      ...item,
+      type: this.gridType,
+    }));
+
+    // Number of ads to insert
+    const numberOfAds = Math.floor(results.length / density);
+
+    for (let i = 0; i < numberOfAds; i++) {
+      let idx: number;
+
+      // Avoid placing ads on top of each other
+      do {
+        idx = Math.floor(Math.random() * mixed.length);
+      } while (mixed[idx].type === 'advertisement');
+
+      mixed.splice(idx, 0, { type: 'advertisement', id: this.generateUniqueId() });
+    }
+
+    return mixed;
   }
 
   isSignedIn(): boolean {
@@ -570,7 +604,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe((finalResults: any[]) => {
-        this.searchResults[this.searchType] = finalResults;
+        this.searchResults[this.searchType] = this.mixAds(finalResults);
       });
   }
 
@@ -641,7 +675,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
             });
 
             this.updatePageToken(response);
-            return sortedItems;
+            return this.mixAds(sortedItems);
           })
         );
       })
@@ -715,7 +749,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
         next: (newItems: any[]) => {
           this.searchResults[this.searchType] = [
             ...(this.searchResults[this.searchType] || []),
-            ...newItems,
+            ...this.mixAds(newItems),
           ];
           (event.target as HTMLIonInfiniteScrollElement).complete();
           if (!this.pageTokenAvailable()) {

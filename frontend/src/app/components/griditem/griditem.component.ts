@@ -15,8 +15,10 @@ import { environment } from 'src/environments/environment';
     AdsenseComponent
   ],
   template: `
+  @if (type !== undefined) {
     @if (type === 'video') {
     <app-youtube-video
+        [attr.data-type]="type"
         [videoData]="data"
         [isCompact]="false"
         [displayDescription]="displayDescription"
@@ -26,6 +28,7 @@ import { environment } from 'src/environments/environment';
 
     @if (type === 'playlist') {
     <app-youtube-playlist
+        [attr.data-type]="type"
         [playlistData]="data"
         [displayDescription]="displayDescription"
     />
@@ -33,6 +36,7 @@ import { environment } from 'src/environments/environment';
 
     @if (type === 'channel') {
     <app-youtube-channel
+        [attr.data-type]="type"
         [channelData]="data"
         [displayDescription]="displayDescription"
     />
@@ -40,10 +44,10 @@ import { environment } from 'src/environments/environment';
 
     @if (type === 'advertisement') {
     <app-adsense
-        [slot]="data"
-        [client]="environment.adSense.clientId"
+        [attr.data-type]="type"
     />
     }
+  }
   `,
 })
 export class GridItemComponent {

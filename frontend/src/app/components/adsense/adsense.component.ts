@@ -10,19 +10,54 @@ declare global {
 @Component({
   selector: 'app-adsense',
   template: `
-    <ins class="adsbygoogle"
-         [attr.data-ad-client]="client"
-         [attr.data-ad-slot]="slot"
-         style="display:block"
-         data-ad-format="auto"
-         data-full-width-responsive="true">
-    </ins>
+    @if (slot) {
+      <ins class="adsbygoogle" 
+        [attr.data-ad-client]="client"
+        [attr.data-ad-slot]="slot"
+        data-ad-format="auto"
+        data-full-width-responsive="true">
+      </ins>
+    }
   `,
   standalone: true
 })
-export class AdsenseComponent {
-  @Input() client = environment.adSense.clientId;
-  @Input('data') slot!: string;
+export class AdsenseComponent implements AfterViewInit {
 
-  constructor(private el: ElementRef) {}
+  availableSlots = ['2273755219', '6000305283', '7777363337'];
+
+  client = environment.adSense.clientId;
+  slot: string | undefined;
+
+  private initialized = false;
+
+  constructor(private el: ElementRef) {
+    if (!this.slot) {
+      this.slot = this.availableSlots[
+        Math.floor(Math.random() * this.availableSlots.length)
+      ];
+    }
+  }
+
+  ngAfterViewInit() {
+    if (this.initialized) return;
+    this.initialized = true;
+
+    const tryInit = () => {
+      const ins: HTMLElement = this.el.nativeElement.querySelector('ins');
+      if (!ins || ins.offsetWidth === 0 || ins.offsetHeight === 0) {
+        // Element not sized yet, try next frame
+        requestAnimationFrame(tryInit);
+        return;
+      }
+
+      window.adsbygoogle = window.adsbygoogle || [];
+      try {
+        window.adsbygoogle.push({});
+      } catch (e) {
+        console.warn('Adsense error:', e);
+      }
+    };
+
+    requestAnimationFrame(tryInit);
+  }
 }
