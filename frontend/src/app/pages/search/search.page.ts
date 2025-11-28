@@ -1,13 +1,10 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController } from '@ionic/angular';
-import { createSubject, fork, of, Stream, Subscription } from '@actioncrew/streamix';
+import { createSubject, fork, of, Stream, Subscription, forkJoin } from '@actioncrew/streamix';
 import { map, switchMap, takeUntil } from '@actioncrew/streamix';
-import { YoutubeVideoComponent } from 'src/app/components/video/video.component';
-import { YoutubePlaylistComponent } from 'src/app/components/playlist/playlist.component';
-import { YoutubeChannelComponent } from 'src/app/components/channel/channel.component';
 import { FilterComponent } from 'src/app/components/filter/filter.component';
 import { SuggestionsComponent } from 'src/app/components/suggestions/suggestions.component';
 import { DirectiveModule } from 'src/app/directives';
@@ -18,6 +15,7 @@ import { PlayerService } from './../../services/player.service';
 import { RecorderService } from 'src/app/services/recorder.service';
 import { Settings } from 'src/app/services/settings.service';
 import { AppearanceSettings } from 'src/app/interfaces/settings';
+import { GridItemComponent } from 'src/app/components/griditem/griditem.component';
 
 @Component({
   selector: 'app-search-page',
@@ -325,30 +323,14 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
       }
 
       <div class="adaptive-grid" [style.--thumbnail-max-width.px]="gridSize">
-        @if (searchType === 'videos') { @for (video of searchResults['videos'];
-        track video) {
-          <app-youtube-video
-            [videoData]="video"
-            [isCompact]="false"
+        @for (item of searchResults[searchType]; track item) {
+          <app-grid-item
+            [type]="gridType"
+            [data]="item"
             [displayDescription]="appearanceSettings.displayDescription"
             (addTrackToPlaylist)="addTrackToPlaylist($event)"
-          >
-          </app-youtube-video>
-        } } @if (searchType === 'playlists') { @for (playlist of
-        searchResults['playlists']; track playlist) {
-          <app-youtube-playlist
-            [playlistData]="playlist"
-            [displayDescription]="appearanceSettings.displayDescription"
-          >
-          </app-youtube-playlist>
-        } } @if (searchType === 'channels') { @for (channel of
-        searchResults['channels']; track channel) {
-          <app-youtube-channel
-            [channelData]="channel"
-            [displayDescription]="appearanceSettings.displayDescription"
-          >
-          </app-youtube-channel>
-        } }
+          ></app-grid-item>
+        }
       </div>
       <ion-infinite-scroll (ionInfinite)="loadMore($event)">
         <ion-infinite-scroll-content
@@ -366,9 +348,7 @@ import { AppearanceSettings } from 'src/app/interfaces/settings';
     FormsModule,
     IonicModule,
     DirectiveModule,
-    YoutubeVideoComponent,
-    YoutubePlaylistComponent,
-    YoutubeChannelComponent,
+    GridItemComponent,
     FilterComponent,
     SuggestionsComponent
   ],
@@ -377,18 +357,21 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   public searchQuery: string = '';
   public queryInvalid: boolean = false;
   public suggestions: string[] = [];
-  public searchType: 'videos' | 'playlists' | 'channels' = 'videos';
+  public searchType: 'videos' | 'playlists' | 'channels' | 'mixed' = 'videos';
+  public gridType = this.searchType.slice(0, -1) as any;
   public searchResults: {
-    [key in 'videos' | 'playlists' | 'channels']: any[];
+    [key in 'videos' | 'playlists' | 'channels' | 'mixed']: any[];
   } = {
     videos: [],
     playlists: [],
     channels: [],
+    mixed: [],
   };
-  public pageTokens: { [key in 'videos' | 'playlists' | 'channels']: string } = {
+  public pageTokens: { [key in 'videos' | 'playlists' | 'channels' | 'mixed']: string } = {
     videos: '',
     playlists: '',
     channels: '',
+    mixed: '',
   };
   public sortOrder: string = '';
   public filters: any = {};
@@ -419,6 +402,8 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit(): void {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+    
     if (this.googleLogInButton?.nativeElement) {
       this.authorization.initializeGsiButton();
     }
@@ -535,9 +520,16 @@ export class SearchPage implements AfterViewInit, OnDestroy {
               this.dataService.fetchTrendingVideos().pipe(
                 map((response: any) => {
                   this.updatePageToken(response);
-                  return response.items;
+                  return response.items.map((item: any) => ({
+                    ...item,
+                    type: 'video'
+                  }));
                 })
               ),
+          },
+          {
+            on: () => this.searchType === 'mixed',
+            handler: () => this.performMixedSearch(params),
           },
           {
             on: () => true,
@@ -546,13 +538,17 @@ export class SearchPage implements AfterViewInit, OnDestroy {
                 switchMap((response: any) => {
                   const basic = this.mapResults(response);
                   let detailed$: Stream<any>;
+                  let itemType: string;
 
                   if (this.searchType === 'videos') {
                     detailed$ = this.dataService.fetchVideos(basic.map((i) => i.id));
+                    itemType = 'video';
                   } else if (this.searchType === 'playlists') {
                     detailed$ = this.dataService.fetchPlaylists(basic.map((i) => i.id));
+                    itemType = 'playlist';
                   } else if (this.searchType === 'channels') {
                     detailed$ = this.dataService.fetchChannels(basic.map((i) => i.id));
+                    itemType = 'channel';
                   } else {
                     throw new Error('Unknown search type.');
                   }
@@ -560,7 +556,10 @@ export class SearchPage implements AfterViewInit, OnDestroy {
                   return detailed$.pipe(
                     map((detailedItems: any) => {
                       this.updatePageToken(response);
-                      return detailedItems.items;
+                      return detailedItems.items.map((item: any) => ({
+                        ...item,
+                        type: itemType
+                      }));
                     })
                   );
                 })
@@ -573,6 +572,80 @@ export class SearchPage implements AfterViewInit, OnDestroy {
       .subscribe((finalResults: any[]) => {
         this.searchResults[this.searchType] = finalResults;
       });
+  }
+
+  private performMixedSearch(params: any): Stream<any[]> {
+    // Search for all types without type restriction
+    const mixedParams = { ...params };
+    delete mixedParams.type;
+
+    return this.dataService.search('search', mixedParams).pipe(
+      switchMap((response: any) => {
+        // Group items by type
+        const videoIds: string[] = [];
+        const playlistIds: string[] = [];
+        const channelIds: string[] = [];
+        const itemTypeMap: Map<string, { type: string; index: number }> = new Map();
+
+        response.items.forEach((item: any, index: number) => {
+          if (item.id.videoId) {
+            videoIds.push(item.id.videoId);
+            itemTypeMap.set(item.id.videoId, { type: 'video', index });
+          } else if (item.id.playlistId) {
+            playlistIds.push(item.id.playlistId);
+            itemTypeMap.set(item.id.playlistId, { type: 'playlist', index });
+          } else if (item.id.channelId) {
+            channelIds.push(item.id.channelId);
+            itemTypeMap.set(item.id.channelId, { type: 'channel', index });
+          }
+        });
+
+        // Fetch detailed info for each type
+        const fetches: Stream<any>[] = [];
+        
+        if (videoIds.length > 0) {
+          fetches.push(
+            this.dataService.fetchVideos(videoIds).pipe(
+              map((data: any) => data.items.map((item: any) => ({ ...item, type: 'video' })))
+            )
+          );
+        }
+        
+        if (playlistIds.length > 0) {
+          fetches.push(
+            this.dataService.fetchPlaylists(playlistIds).pipe(
+              map((data: any) => data.items.map((item: any) => ({ ...item, type: 'playlist' })))
+            )
+          );
+        }
+        
+        if (channelIds.length > 0) {
+          fetches.push(
+            this.dataService.fetchChannels(channelIds).pipe(
+              map((data: any) => data.items.map((item: any) => ({ ...item, type: 'channel' })))
+            )
+          );
+        }
+
+        // Combine all results
+        return forkJoin(fetches.length > 0 ? fetches : [of([])]).pipe(
+          map((results: any[][]) => {
+            // Flatten all results
+            const allItems = results.flat();
+            
+            // Sort items back to their original order
+            const sortedItems = allItems.sort((a, b) => {
+              const aInfo = itemTypeMap.get(a.id);
+              const bInfo = itemTypeMap.get(b.id);
+              return (aInfo?.index || 0) - (bInfo?.index || 0);
+            });
+
+            this.updatePageToken(response);
+            return sortedItems;
+          })
+        );
+      })
+    );
   }
 
   loadMore(event: any): void {
@@ -588,9 +661,16 @@ export class SearchPage implements AfterViewInit, OnDestroy {
               this.dataService.fetchTrendingVideos(params).pipe(
                 map((response: any) => {
                   this.updatePageToken(response);
-                  return response.items;
+                  return response.items.map((item: any) => ({
+                    ...item,
+                    type: 'video'
+                  }));
                 })
               ),
+          },
+          {
+            on: () => this.searchType === 'mixed',
+            handler: () => this.performMixedSearch(params),
           },
           {
             on: () => true,
@@ -599,13 +679,17 @@ export class SearchPage implements AfterViewInit, OnDestroy {
                 switchMap((response: any) => {
                   const basic = this.mapResults(response);
                   let detailed$: Stream<any>;
+                  let itemType: string;
 
                   if (this.searchType === 'videos') {
                     detailed$ = this.dataService.fetchVideos(basic.map((i) => i.id));
+                    itemType = 'video';
                   } else if (this.searchType === 'playlists') {
                     detailed$ = this.dataService.fetchPlaylists(basic.map((i) => i.id));
+                    itemType = 'playlist';
                   } else if (this.searchType === 'channels') {
                     detailed$ = this.dataService.fetchChannels(basic.map((i) => i.id));
+                    itemType = 'channel';
                   } else {
                     throw new Error('Unknown search type.');
                   }
@@ -613,7 +697,12 @@ export class SearchPage implements AfterViewInit, OnDestroy {
                   return detailed$.pipe(
                     map((detailedItems: any) => {
                       this.updatePageToken(response);
-                      return this.filterAndMerge(detailedItems.items);
+                      return this.filterAndMerge(
+                        detailedItems.items.map((item: any) => ({
+                          ...item,
+                          type: itemType
+                        }))
+                      );
                     })
                   );
                 })
@@ -650,16 +739,19 @@ export class SearchPage implements AfterViewInit, OnDestroy {
       params.pageToken = this.pageTokens[this.searchType];
     }
 
-    switch (this.searchType) {
-      case 'videos':
-        params.type = 'video';
-        break;
-      case 'channels':
-        params.type = 'channel';
-        break;
-      case 'playlists':
-        params.type = 'playlist';
-        break;
+    // Don't set type for mixed search
+    if (this.searchType !== 'mixed') {
+      switch (this.searchType) {
+        case 'videos':
+          params.type = 'video';
+          break;
+        case 'channels':
+          params.type = 'channel';
+          break;
+        case 'playlists':
+          params.type = 'playlist';
+          break;
+      }
     }
 
     if (this.sortOrder) {
@@ -676,6 +768,14 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   }
 
   private filterAndMerge(detailed: any[]): any[] {
+    if (this.searchType === 'mixed') {
+      // For mixed results, filter based on item's type property
+      return detailed.filter((item: any) => {
+        const requiredFields = this.getRequiredFieldsForType(item.type);
+        return requiredFields.every((field) => field in item);
+      });
+    }
+
     const requiredFields = {
       videos: ['snippet', 'contentDetails', 'statistics'],
       playlists: ['snippet', 'contentDetails'],
@@ -685,6 +785,19 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     return detailed.filter((item: any) =>
       requiredFields.every((field) => field in item)
     );
+  }
+
+  private getRequiredFieldsForType(type: string): string[] {
+    switch (type) {
+      case 'video':
+        return ['snippet', 'contentDetails', 'statistics'];
+      case 'playlist':
+        return ['snippet', 'contentDetails'];
+      case 'channel':
+        return ['snippet', 'contentDetails', 'statistics'];
+      default:
+        return ['snippet'];
+    }
   }
 
   updatePageToken(response: any = null): void {
@@ -801,5 +914,10 @@ export class SearchPage implements AfterViewInit, OnDestroy {
     this.recorderHidden$.snappy
       ? this.recorderService.show()
       : this.recorderService.hide();
+  }
+
+  // Helper method to determine item type for template rendering
+  getItemType(item: any): 'video' | 'playlist' | 'channel' | 'advertisement' {
+    return item.type || 'video';
   }
 }

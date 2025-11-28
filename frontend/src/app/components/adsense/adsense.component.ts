@@ -20,17 +20,9 @@ declare global {
   `,
   standalone: true
 })
-export class AdsenseComponent implements AfterViewInit {
+export class AdsenseComponent {
   @Input() client = environment.adSense.clientId;
   @Input('data') slot!: string;
 
   constructor(private el: ElementRef) {}
-
-  ngAfterViewInit() {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.warn("AdSense error", e);
-    }
-  }
 }
