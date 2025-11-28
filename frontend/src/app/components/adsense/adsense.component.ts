@@ -1,4 +1,5 @@
 import { Component, Input, AfterViewInit, ElementRef } from '@angular/core';
+import { environment } from 'src/environments/environment';
 
 declare global {
   interface Window {
@@ -10,8 +11,8 @@ declare global {
   selector: 'app-adsense',
   template: `
     <ins class="adsbygoogle"
-         [attr.data-ad-client]="adClient"
-         [attr.data-ad-slot]="adSlot"
+         [attr.data-ad-client]="client"
+         [attr.data-ad-slot]="slot"
          style="display:block"
          data-ad-format="auto"
          data-full-width-responsive="true">
@@ -20,8 +21,8 @@ declare global {
   standalone: true
 })
 export class AdsenseComponent implements AfterViewInit {
-  @Input() adClient!: string;
-  @Input() adSlot!: string;
+  @Input() client = environment.adSense.clientId;
+  @Input('data') slot!: string;
 
   constructor(private el: ElementRef) {}
 

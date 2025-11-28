@@ -1,5 +1,8 @@
 export const environment = {
   production: true,
+  adSense: {
+    clientId: 'ca-pub-1764996404515485'
+  },
   youtube: {
     apiKey: 'AIzaSyCphKwS_UEyA9HjFSKnfkN9DCa3nOiqyEc',
     clientId: '486768354725-rv3rbt4gdma0dv3ob6er4b3f4fhlkfoe.apps.googleusercontent.com',
