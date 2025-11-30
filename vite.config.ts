@@ -1,9 +1,16 @@
 import { defineConfig } from 'vite';
+import json from '@rollup/plugin-json';
 
 export default defineConfig({
-  optimizeDeps: {
-    exclude: ['i18n-iso-countries/langs/en.json']
+  build: {
+    rollupOptions: {
+      plugins: [
+        json({
+          compact: true,
+          preferConst: true
+        })
+      ]
+    }
   }
-})
-
+});
 
