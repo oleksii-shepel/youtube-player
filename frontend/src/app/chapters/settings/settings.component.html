@@ -4,7 +4,7 @@
       <div class="user-header">
         <div class="user-avatar">
           <!-- Use lazy loading for avatars to improve performance -->
-          <img [src]="userInfoSettings.profilePictureUrl" alt="User Avatar" loading="lazy" />
+          <img [src]="userInfoSettings.profilePictureUrl" alt="User Avatar"/>
           <div class="online-indicator" [class.connected]="isApiConnected"></div>
         </div>
         <div class="user-info">
@@ -324,7 +324,7 @@
       <div *ngIf="selectedMainSection === 'about' && aboutSettings" class="content-section about-info">
         <div class="app-info">
           <!-- Lazy load the logo to defer network request until needed -->
-          <img src="assets/logo-no-bg.png" alt="App Logo" class="app-logo" loading="lazy" />
+          <img src="assets/logo-no-bg.png" alt="App Logo" class="app-logo"/>
           <h4>YouTube API Manager</h4>
           <p>Version {{ aboutSettings.appVersion }}</p>
           <p>A powerful tool for managing your YouTube channel through the YouTube Data API.</p>

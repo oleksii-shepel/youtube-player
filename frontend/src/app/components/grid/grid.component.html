@@ -65,7 +65,7 @@
               @switch (column.type) {
                 @case ('image') {
                   <!-- Lazy load images and provide an alt description -->
-                  <img [src]="item[column.key]" alt="Thumbnail" class="table-image" loading="lazy">
+                  <img [src]="item[column.key]" alt="Thumbnail" class="table-image">
                 }
                 @case ('date') {
                   {{ item[column.key] | date }}
