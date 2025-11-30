@@ -64,7 +64,8 @@
             <ion-col [size]="column.size || 'auto'">
               @switch (column.type) {
                 @case ('image') {
-                  <img [src]="item[column.key]" alt="" class="table-image">
+                  <!-- Lazy load images and provide an alt description -->
+                  <img [src]="item[column.key]" alt="Thumbnail" class="table-image" loading="lazy">
                 }
                 @case ('date') {
                   {{ item[column.key] | date }}

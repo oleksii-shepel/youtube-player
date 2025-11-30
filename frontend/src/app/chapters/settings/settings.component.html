@@ -3,7 +3,8 @@
     @if(userInfoSettings) {
       <div class="user-header">
         <div class="user-avatar">
-          <img [src]="userInfoSettings.profilePictureUrl" alt="User Avatar" />
+          <!-- Use lazy loading for avatars to improve performance -->
+          <img [src]="userInfoSettings.profilePictureUrl" alt="User Avatar" loading="lazy" />
           <div class="online-indicator" [class.connected]="isApiConnected"></div>
         </div>
         <div class="user-info">
@@ -24,33 +25,34 @@
     }
 
     <div class="settings-nav scrollable">
-      <div class="nav-item" [class.active]="selectedMainSection === 'appearance'" (click)="selectMainSection('appearance')">
+      <!-- Add role and tabindex to enable keyboard navigation -->
+      <div class="nav-item" role="button" tabindex="0" [class.active]="selectedMainSection === 'appearance'" (click)="selectMainSection('appearance')">
         <ion-icon name="color-palette-outline"></ion-icon>
         <span>Appearance</span>
       </div>
-      <div class="nav-item" [class.active]="selectedMainSection === 'channel-info'" (click)="selectMainSection('channel-info')">
+      <div class="nav-item" role="button" tabindex="0" [class.active]="selectedMainSection === 'channel-info'" (click)="selectMainSection('channel-info')">
         <ion-icon name="person-circle-outline"></ion-icon>
         <span>Channel Info</span>
       </div>
-      <div class="nav-item" [class.active]="selectedMainSection === 'search'" (click)="selectMainSection('search')">
+      <div class="nav-item" role="button" tabindex="0" [class.active]="selectedMainSection === 'search'" (click)="selectMainSection('search')">
         <ion-icon name="globe-outline"></ion-icon>
         <span>Search Preferences</span>
       </div>
-      <div class="nav-item" [class.active]="selectedMainSection === 'playlists'" (click)="selectMainSection('playlists')">
+      <div class="nav-item" role="button" tabindex="0" [class.active]="selectedMainSection === 'playlists'" (click)="selectMainSection('playlists')">
         <ion-icon name="list-outline"></ion-icon>
         <span>Playlists</span>
         <ion-badge color="primary">{{ playlistCount }}</ion-badge>
       </div>
-      <div class="nav-item" [class.active]="selectedMainSection === 'subscriptions'" (click)="selectMainSection('subscriptions')">
+      <div class="nav-item" role="button" tabindex="0" [class.active]="selectedMainSection === 'subscriptions'" (click)="selectMainSection('subscriptions')">
         <ion-icon name="people-outline"></ion-icon>
         <span>Subscriptions</span>
         <ion-badge color="secondary">{{ subscriptionCount }}</ion-badge>
       </div>
-      <div class="nav-item" [class.active]="selectedMainSection === 'api-key'" (click)="selectMainSection('api-key')">
+      <div class="nav-item" role="button" tabindex="0" [class.active]="selectedMainSection === 'api-key'" (click)="selectMainSection('api-key')">
         <ion-icon name="key-outline"></ion-icon>
         <span>API Configuration</span>
       </div>
-      <div class="nav-item" [class.active]="selectedMainSection === 'about'" (click)="selectMainSection('about')">
+      <div class="nav-item" role="button" tabindex="0" [class.active]="selectedMainSection === 'about'" (click)="selectMainSection('about')">
         <ion-icon name="information-circle-outline"></ion-icon>
         <span>About</span>
       </div>
@@ -321,7 +323,8 @@
       <!-- About Section -->
       <div *ngIf="selectedMainSection === 'about' && aboutSettings" class="content-section about-info">
         <div class="app-info">
-          <img src="assets/logo-no-bg.png" alt="App Logo" class="app-logo" />
+          <!-- Lazy load the logo to defer network request until needed -->
+          <img src="assets/logo-no-bg.png" alt="App Logo" class="app-logo" loading="lazy" />
           <h4>YouTube API Manager</h4>
           <p>Version {{ aboutSettings.appVersion }}</p>
           <p>A powerful tool for managing your YouTube channel through the YouTube Data API.</p>
