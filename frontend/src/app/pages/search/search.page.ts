@@ -323,7 +323,7 @@ import { GridItemComponent } from 'src/app/components/griditem/griditem.componen
       }
 
       <div class="adaptive-grid" [style.--thumbnail-max-width.px]="gridSize">
-        @for (item of searchResults[searchType]; track item.id) {
+        @for (item of searchResults[searchType]; track item) {
           <app-grid-item
             [type]="item.type"
             [data]="item"

@@ -70,7 +70,7 @@ export class AdvertisementComponent implements OnInit {
       ? this.ads.getSequentialAd()
       : this.ads.getRandomAd();
 
-    this.imageUrl = `./assets/ads/amazon/${this.item.image}.jpg`;
+    this.item && (this.imageUrl = `./assets/ads/amazon/${this.item.image}.jpg`);
   }
 
   private setRandomBackground() {
