@@ -4,6 +4,7 @@ import { YoutubePlaylistComponent } from '../playlist/playlist.component';
 import { YoutubeChannelComponent } from '../channel/channel.component';
 import { AdsenseComponent } from '../adsense/adsense.component';
 import { environment } from 'src/environments/environment';
+import { AdvertisementComponent } from '../advertisement/advertisement.component';
 
 @Component({
   selector: 'app-grid-item',
@@ -12,7 +13,7 @@ import { environment } from 'src/environments/environment';
     YoutubeVideoComponent,
     YoutubePlaylistComponent,
     YoutubeChannelComponent,
-    AdsenseComponent
+    AdvertisementComponent
   ],
   template: `
   @if (type !== undefined) {
@@ -43,7 +44,7 @@ import { environment } from 'src/environments/environment';
     }
 
     @if (type === 'advertisement') {
-    <app-adsense
+    <app-advertisement
         [attr.data-type]="type"
     />
     }
