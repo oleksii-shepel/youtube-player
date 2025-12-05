@@ -12,24 +12,19 @@ export class AdvertisementService {
   private randomIndexes: number[] = [];
   private loaded = false;
 
-  /** Called only once globally */
-  async loadCsv(file: File): Promise<void> {
-    if (this.loaded) return; // <-- prevents multiple loads
+  // For sequential rotation
+  private sequentialPointer = 0;
 
-    const text = await file.text();
-    this.items = this.parseCsv(text);
-    this.randomIndexes = this.shuffleIndexes(this.items.length);
-    this.loaded = true;
-
-    console.log('ADS LOADED:', this.items.length);
-  }
-
-  /** For preloading from assets instead of file upload */
-  async loadCsvFromString(csv: string): Promise<void> {
+  /** Load CSV from a URL (public/assets) */
+  async loadCsvFromUrl(url: string): Promise<void> {
     if (this.loaded) return;
+
+    const csv = await fetch(url).then(r => r.text());
     this.items = this.parseCsv(csv);
     this.randomIndexes = this.shuffleIndexes(this.items.length);
     this.loaded = true;
+
+    console.log('Loaded ads:', this.items.length);
   }
 
   getItems(): ProductItem[] {
@@ -40,22 +35,39 @@ export class AdvertisementService {
     return this.randomIndexes;
   }
 
-  private parseCsv(csv: string): ProductItem[] {
-    const lines = csv.split('\n').filter(l => l.trim() !== '');
-    const items: ProductItem[] = [];
+  /** MODE 1: Pick a random ad every time */
+  getRandomAd(): ProductItem {
+    const randomOrder = this.randomIndexes;
+    const randomIndex = randomOrder[Math.floor(Math.random() * randomOrder.length)];
+    return this.items[randomIndex];
+  }
+
+  /** MODE 2: Sequential rotation (no repeats until cycle ends) */
+  getSequentialAd(): ProductItem {
+    if (!this.items.length) throw new Error('No ads loaded');
+
+    const index = this.randomIndexes[this.sequentialPointer];
+
+    // Move pointer
+    this.sequentialPointer++;
+    if (this.sequentialPointer >= this.randomIndexes.length) {
+      // reshuffle for next cycle
+      this.randomIndexes = this.shuffleIndexes(this.items.length);
+      this.sequentialPointer = 0;
+    }
+
+    return this.items[index];
+  }
+
+  private parseCsv(tsv: string): ProductItem[] {
+    const lines = tsv.split('\n').filter(l => l.trim() !== '');
+    const res: ProductItem[] = [];
 
     for (const line of lines) {
-      const regex = /("([^"]*)"|[^,]+)|,/g;
-      const cols: string[] = [];
-      let m;
-
-      while ((m = regex.exec(line)) !== null) {
-        if (m[2]) cols.push(m[2]);
-        else if (m[1] && m[1] !== ',') cols.push(m[1]);
-      }
-
+      const cols = line.split('\t');
+      
       if (cols.length >= 3) {
-        items.push({
+        res.push({
           description: cols[0],
           link: cols[1],
           image: cols[2],
@@ -63,18 +75,15 @@ export class AdvertisementService {
       }
     }
 
-    return items;
+    return res;
   }
 
   private shuffleIndexes(count: number): number[] {
     const arr = Array.from({ length: count }, (_, i) => i);
-
-    // Fisher-Yates
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-
     return arr;
   }
 }

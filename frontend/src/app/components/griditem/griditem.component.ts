@@ -45,6 +45,7 @@ import { AdvertisementComponent } from '../advertisement/advertisement.component
 
     @if (type === 'advertisement') {
     <app-advertisement
+        mode="random"
         [attr.data-type]="type"
     />
     }

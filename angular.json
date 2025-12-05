@@ -36,9 +36,14 @@
                 "output": "./svg"
               },
               {
-                "glob": "ads.txt",
-                "input": "frontend/src",
-                "output": "./"
+                "glob": "ads.tsv",
+                "input": "frontend/public/ads",
+                "output": "assets/ads"
+              },
+              {
+                "glob": "**/*",
+                "input": "frontend/public/ads/amazon",
+                "output": "assets/ads/amazon"
               }
             ],
             "styles": [
@@ -109,6 +114,16 @@
                 "glob": "**/*.svg",
                 "input": "node_modules/ionicons/dist/ionicons/svg",
                 "output": "./svg"
+              },
+              {
+                "glob": "ads.csv",
+                "input": "frontend/public/ads",
+                "output": "assets/ads"
+              },
+              {
+                "glob": "**/*",
+                "input": "frontend/public/ads/amazon",
+                "output": "assets/ads/amazon"
               }
             ],
             "styles": [

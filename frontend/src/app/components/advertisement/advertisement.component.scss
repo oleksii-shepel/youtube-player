@@ -1,8 +1,84 @@
 :host {
-    height: 100%;
-    width: 100%;
-    display: block;
-    padding: 16px;
-    border-radius: 12px;
-    transition: background-color 0.4s ease;
+  height: 100%;
+  width: 100%;
+  display: block;
+  border-radius: 0.5rem; 
+}
+
+.ad-card {
+  height: 100%;
+  width: 100%;
+  border: 1px solid var(--ion-border-color);
+  border-radius: 0.5rem;
+
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  transition: background-color 0.4s ease;
+}
+
+/* IMAGE AREA */
+
+.ad-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.ad-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* TOP OVERLAY */
+
+.ad-info-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--ion-color-primary-contrast);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent 60%);
+}
+
+.ad-badge-left,
+.ad-badge-right {
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  font-weight: 600;
+}
+
+/* INFO SECTION */
+
+.ad-info {
+  display: flex;
+  padding: 1rem;
+  flex-grow: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  background: transparent;
+}
+
+.ad-title {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.ad-action-buttons {
+  font-size: 0.85em;
+  display: flex;
+  gap: 0.5rem;
 }
