@@ -86,4 +86,31 @@ export class AdvertisementService {
     }
     return arr;
   }
+
+  /** Returns list of ads with missing or invalid images */
+  async findAdsWithoutValidImages(): Promise<ProductItem[]> {
+    const badAds: ProductItem[] = [];
+
+    for (const item of this.items) {
+      const img = item.image?.trim() + '.jpg';
+
+      // 1. Missing or empty
+      if (!img) {
+        badAds.push(item);
+        continue;
+      }
+
+      // 3. Try to check if image exists (HEAD request)
+      try {
+        const res = await fetch('./assets/ads/amazon/'+ img, { method: 'HEAD' });
+        if (!res.ok) {
+          badAds.push(item);
+        }
+      } catch {
+        badAds.push(item);
+      }
+    }
+
+    return badAds;
+  }
 }
