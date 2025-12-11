@@ -156,7 +156,7 @@ export class Authorization {
 
   // 🔹 Initialization
   initializeSettings() {
-    zip([this.settings.accessToken, this.settings.userInfo])
+    zip(this.settings.accessToken, this.settings.userInfo)
       .pipe(
         tap(([accessToken, profile]) =>
           this.handleStoredAuth(accessToken, profile)
@@ -374,7 +374,6 @@ export class Authorization {
         catchError((error) => {
           console.warn('Token refresh failed, signing out user', error);
           this.signOut().catch(console.error);
-          return [];
         }),
         takeUntil(this.destroy$)
       )
@@ -402,7 +401,6 @@ export class Authorization {
         catchError((error) => {
           console.warn('Token refresh failed, signing out', error);
           this.signOut().catch(console.error);
-          return [];
         }),
         takeUntil(this.destroy$)
       )

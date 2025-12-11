@@ -546,7 +546,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
 
     of(true)
       .pipe(
-        fork([
+        fork(
           { on: () => this.queryInvalid, handler: () => of([]) },
           {
             on: () => this.filters.trending && this.searchType === 'videos',
@@ -599,7 +599,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
                 })
               ),
           },
-        ]),
+        ),
         map((items) => this.filterAndMerge(items)),
         takeUntil(this.destroy$)
       )
@@ -662,7 +662,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
         }
 
         // Combine all results
-        return forkJoin(fetches.length > 0 ? fetches : [of([])]).pipe(
+        return forkJoin(...(fetches.length > 0 ? fetches : [of([])])).pipe(
           map((results: any[][]) => {
             // Flatten all results
             const allItems = results.flat();
@@ -687,7 +687,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
 
     of(true)
       .pipe(
-        fork([
+        fork(
           { on: () => this.queryInvalid, handler: () => of([]) },
           {
             on: () => this.filters.trending && this.searchType === 'videos',
@@ -742,7 +742,7 @@ export class SearchPage implements AfterViewInit, OnDestroy {
                 })
               ),
           },
-        ]),
+        ),
         takeUntil(this.destroy$)
       )
       .subscribe({
