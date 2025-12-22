@@ -1,6 +1,6 @@
 import { SearchSettings } from './../interfaces/settings';
 import { catchError, createSubject, fromPromise, Stream } from '@actioncrew/streamix';
-import { HttpClient, readJson } from '@actioncrew/streamix/http';
+import { HttpClient, readJson } from '@actioncrew/streamix/networking';
 
 import { IYoutubeQueryParams } from '../interfaces/search';
 import { inject, Injectable } from '@angular/core';

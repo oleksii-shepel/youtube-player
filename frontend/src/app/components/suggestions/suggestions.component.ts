@@ -11,10 +11,10 @@ import {
   createBehaviorSubject,
   createSubject,
   merge,
-  onResize,
   Stream,
   Subscription
 } from '@actioncrew/streamix';
+import { onResize } from '@actioncrew/streamix/dom';
 import { filter, map, switchMap, takeUntil } from '@actioncrew/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { AppearanceSettings } from 'src/app/interfaces/settings';

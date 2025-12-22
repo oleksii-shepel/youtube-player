@@ -1,7 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { IonicRouteStrategy } from '@ionic/angular';
-import { createHttpClient } from '@actioncrew/streamix/http';
+import { createHttpClient } from '@actioncrew/streamix/networking';
 import { InjectionToken } from '@angular/core';
 import { routes } from './app/app-routing.module';
 
