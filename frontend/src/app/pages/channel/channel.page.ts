@@ -4,7 +4,7 @@ import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { YoutubePlaylistComponent } from '../../components/playlist/playlist.component';
-import { Subscription } from '@actioncrew/streamix';
+import { Subscription } from '@epikodelabs/streamix';
 
 @Component({
   selector: 'app-channel-page',

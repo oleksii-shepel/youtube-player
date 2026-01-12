@@ -1,7 +1,7 @@
 // google-suggestions.service.ts
 import { Injectable } from '@angular/core';
-import { map, Stream } from '@actioncrew/streamix';
-import { jsonp } from '@actioncrew/streamix/networking';
+import { map, Stream } from '@epikodelabs/streamix';
+import { jsonp } from '@epikodelabs/streamix/networking';
 
 @Injectable({
   providedIn: 'root'

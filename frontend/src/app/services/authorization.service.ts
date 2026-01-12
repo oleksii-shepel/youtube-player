@@ -11,7 +11,7 @@ import {
   zip,
   tap,
   takeUntil,
-} from '@actioncrew/streamix';
+} from '@epikodelabs/streamix';
 import { environment } from 'src/environments/environment';
 import { defaultAccessToken, defaultUserInfoSettings, Settings } from './settings.service';
 import { AccessToken, UserInfoSettings } from '../interfaces/settings';
@@ -206,7 +206,7 @@ export class Authorization {
           client_id: environment.youtube.clientId,
           scope: 'https://www.googleapis.com/auth/youtube openid email profile',
           include_granted_scopes: true,
-          hint: this.settings.userInfo.snappy?.email,
+          hint: this.settings.userInfo.value?.email,
           callback: (response: TokenResponse) => {
             if (this.validateTokenResponse(response)) {
               this.handleOAuth2Response(response).then(resolve).catch(reject);
@@ -324,7 +324,7 @@ export class Authorization {
 
   private refreshAccessToken(): Promise<AccessToken> {
     return new Promise((resolve, reject) => {
-      const profile = this.settings.userInfo.snappy;
+      const profile = this.settings.userInfo.value;
 
       if (!profile?.email) {
         reject(new Error('No profile available for token refresh'));
@@ -378,7 +378,7 @@ export class Authorization {
         takeUntil(this.destroy$)
       )
       .subscribe((newToken) => {
-        const profile = this.settings.userInfo.snappy;
+        const profile = this.settings.userInfo.value;
         if (profile?.email && newToken) {
           // Set up next refresh timer
           const nextRefreshSeconds = Math.max(
@@ -406,7 +406,7 @@ export class Authorization {
       )
       .subscribe((newToken) => {
         if (newToken) {
-          const profile = this.settings.userInfo.snappy;
+          const profile = this.settings.userInfo.value;
           if (profile?.email) {
             this.setAuthTimer(
               newToken.expiresInSeconds - TOKEN_REFRESH_BUFFER_SECONDS
@@ -424,7 +424,7 @@ export class Authorization {
 
   // 🔹 Sign Out & Revocation
   async revokeProfile(): Promise<void> {
-    const profile = this.settings.userInfo.snappy;
+    const profile = this.settings.userInfo.value;
     if (!profile?.email || !this.isGsiInitialized) {
       console.warn('Cannot revoke profile: GSI not initialized or no profile');
       this.settings.userInfo.next(defaultUserInfoSettings);
@@ -448,7 +448,7 @@ export class Authorization {
   }
 
   async revokeAccessToken(): Promise<void> {
-    const token = this.settings.accessToken.snappy;
+    const token = this.settings.accessToken.value;
     if (!token?.accessToken) {
       console.warn('No access token to revoke');
       this.settings.accessToken.next(defaultAccessToken);
@@ -524,11 +524,11 @@ export class Authorization {
   }
 
   getAccessToken(): AccessToken | null {
-    return this.settings.accessToken.snappy ?? null;
+    return this.settings.accessToken.value ?? null;
   }
 
   getProfile(): UserInfoSettings | null {
-    return this.settings.userInfo.snappy ?? null;
+    return this.settings.userInfo.value ?? null;
   }
 
   getCurrentAuthState(): AuthState | null {
@@ -562,7 +562,7 @@ export class Authorization {
   }
 
   getDefaultAvatarUrl(): string {
-    const initials = this.settings.userInfo.snappy?.firstName
+    const initials = this.settings.userInfo.value?.firstName
       ?.split(' ')
       .map((n) => n[0])
       .join('')

@@ -4,9 +4,9 @@ import { YoutubeDataService } from '../../services/data.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { YoutubeVideoComponent } from '../../components/video/video.component';
-import { of, Subscription } from '@actioncrew/streamix';
+import { of, Subscription } from '@epikodelabs/streamix';
 import { PlaylistService } from 'src/app/services/playlist.service';
-import { map, switchMap } from '@actioncrew/streamix';
+import { map, switchMap } from '@epikodelabs/streamix';
 
 @Component({
   selector: 'app-playlist-page',

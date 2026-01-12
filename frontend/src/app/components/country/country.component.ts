@@ -18,7 +18,7 @@ import countryLanguages from './country-languages.json';
 import ISO6391 from 'iso-639-1';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { SheetConfig, SheetDirective } from 'src/app/directives/sheet/sheet.directive';
-import { createSubject } from '@actioncrew/streamix';
+import { createSubject } from '@epikodelabs/streamix';
 
 // Extended interfaces
 export interface Language {

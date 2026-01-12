@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { YoutubePlayerComponent } from "../components/player/player.component";
-import { createBehaviorSubject } from "@actioncrew/streamix";
+import { createBehaviorSubject } from "@epikodelabs/streamix";
 
 @Injectable({
   providedIn: 'root',
@@ -43,17 +43,17 @@ export class PlayerService {
   }
 
   getRepeatMode(): 'none' | 'all' | 'one' {
-    return this.repeatMode.snappy;
+    return this.repeatMode.value;
   }
 
   hide(): void {
-    if(this.isHidden$.snappy !== true) {
+    if(this.isHidden$.value !== true) {
       this.isHidden$.next(true);
     }
   }
 
   show(): void {
-    if(this.isHidden$.snappy !== false) {
+    if(this.isHidden$.value !== false) {
       this.isHidden$.next(false);
     }
   }

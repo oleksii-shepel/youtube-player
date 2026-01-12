@@ -16,8 +16,8 @@
     "deploy:vercel": "vercel deploy"
   },
   "dependencies": {
-    "@actioncrew/actionstack": "file:./dependencies/actioncrew-actionstack-3.0.15.tgz",
-    "@actioncrew/streamix": "file:dependencies/actioncrew-streamix-2.0.27.tgz",
+    "@epikodelabs/actionstack": "^3.0.15",
+    "@epikodelabs/streamix": "^2.0.29",
     "@angular/animations": "^20.1.7",
     "@angular/cdk": "^20.1.5",
     "@angular/common": "^20.1.7",

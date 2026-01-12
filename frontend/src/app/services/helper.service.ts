@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { Authorization } from './authorization.service';
-import { HttpClient, readJson } from '@actioncrew/streamix/networking';
+import { HttpClient, readJson } from '@epikodelabs/streamix/networking';
 import { HTTP_CLIENT } from 'src/main';
-import { Stream, firstValueFrom } from '@actioncrew/streamix';
+import { Stream, firstValueFrom } from '@epikodelabs/streamix';
 import ISO6391 from 'iso-639-1';
 import * as countries from 'i18n-iso-countries';
 import englishCountries from 'i18n-iso-countries/langs/en.json';

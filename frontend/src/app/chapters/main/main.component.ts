@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
 import { YoutubePlayerComponent } from '../../components/player/player.component';
-import { Subscription } from '@actioncrew/streamix';
+import { Subscription } from '@epikodelabs/streamix';
 import { PlayerService } from 'src/app/services/player.service';
 import { RecorderService } from 'src/app/services/recorder.service';
 import { PlaylistComponent } from '../../components/sidebar/playlist.component';

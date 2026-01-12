@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { createBehaviorSubject, createReplaySubject, Stream } from '@actioncrew/streamix';
+import { createBehaviorSubject, createReplaySubject, Stream } from '@epikodelabs/streamix';
 
 @Injectable({ providedIn: 'root' })
 export class RecorderService {

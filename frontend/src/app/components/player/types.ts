@@ -1,4 +1,4 @@
-import { Stream } from '@actioncrew/streamix';
+import { Stream } from '@epikodelabs/streamix';
 
 export interface IPlayerOutputs {
   ready?: Stream<YT.Player>;

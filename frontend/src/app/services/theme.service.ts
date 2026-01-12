@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { defaultAppearanceSettings, Settings } from './settings.service';
 import { AppearanceSettings, AppFontSize } from '../interfaces/settings';
-import { Subscription } from '@actioncrew/streamix';
+import { Subscription } from '@epikodelabs/streamix';
 
 
 

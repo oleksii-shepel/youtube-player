@@ -1,4 +1,4 @@
-import { filter, Subscription } from '@actioncrew/streamix';
+import { filter, Subscription } from '@epikodelabs/streamix';
 import {
   ChangeDetectionStrategy,
   Component,

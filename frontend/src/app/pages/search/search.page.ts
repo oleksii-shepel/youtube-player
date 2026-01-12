@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController } from '@ionic/angular';
-import { createSubject, fork, of, Stream, Subscription, forkJoin } from '@actioncrew/streamix';
-import { map, switchMap, takeUntil } from '@actioncrew/streamix';
+import { createSubject, fork, of, Stream, Subscription, forkJoin } from '@epikodelabs/streamix';
+import { map, switchMap, takeUntil } from '@epikodelabs/streamix';
 import { FilterComponent } from 'src/app/components/filter/filter.component';
 import { SuggestionsComponent } from 'src/app/components/suggestions/suggestions.component';
 import { DirectiveModule } from 'src/app/directives';
@@ -48,7 +48,7 @@ import { GridItemComponent } from 'src/app/components/griditem/griditem.componen
                   [(ngModel)]="searchQuery"
                   placeholder="Enter search query"
                   (ionInput)="onQueryChanged($event)"
-                  (click)="suggestionsDropdown.dropdownOpen$.next(!suggestionsDropdown.dropdownOpen$.snappy)"
+                  (click)="suggestionsDropdown.dropdownOpen$.next(!suggestionsDropdown.dropdownOpen$.value)"
                   (keydown)="suggestionsDropdown.onKeydown($event); onKeydown($event);"
                   [class.disabled]="filters.trending && searchType === 'videos'"
                   [class.invalid]="queryInvalid"
@@ -162,7 +162,7 @@ import { GridItemComponent } from 'src/app/components/griditem/griditem.componen
                 <ion-icon name="videocam-outline"></ion-icon>
               </ion-button>
               <ion-button fill="clear" size="small" (click)="togglePlayer()">
-                @if (!playerHidden$.snappy) {
+                @if (!playerHidden$.value) {
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="1em"
@@ -184,7 +184,7 @@ import { GridItemComponent } from 'src/app/components/griditem/griditem.componen
                     />
                     <path d="m2 2 20 20" />
                   </svg>
-                } @if (playerHidden$.snappy) {
+                } @if (playerHidden$.value) {
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="1em"
@@ -439,9 +439,9 @@ export class SearchPage implements AfterViewInit, OnDestroy {
       }
 
       if (this.appearanceSettings.autoComplete === "dropdown") {
-        this.suggestionsDropdown.dropdownOpen$.next(!this.suggestionsDropdown.dropdownOpen$.snappy);
+        this.suggestionsDropdown.dropdownOpen$.next(!this.suggestionsDropdown.dropdownOpen$.value);
 
-        if (!this.suggestionsDropdown.dropdownOpen$.snappy && this.searchQuery.trim().length > 2) {
+        if (!this.suggestionsDropdown.dropdownOpen$.value && this.searchQuery.trim().length > 2) {
           this.performSearch();
         }
       }
@@ -516,12 +516,12 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   }
 
   getAvatarUrl(): string {
-    const profile = this.settings.userInfo.snappy;
+    const profile = this.settings.userInfo.value;
     return profile?.profilePictureUrl || this.authorization.getDefaultAvatarUrl();
   }
 
   getDisplayName(): string {
-    const profile = this.settings.userInfo.snappy;
+    const profile = this.settings.userInfo.value;
     return profile?.fullName || profile?.email || 'User';
   }
 
@@ -939,13 +939,13 @@ export class SearchPage implements AfterViewInit, OnDestroy {
   }
 
   togglePlayer(): void {
-    this.playerHidden$.snappy
+    this.playerHidden$.value
       ? this.playerService.show()
       : this.playerService.hide();
   }
 
   toggleRecorder(): void {
-    this.recorderHidden$.snappy
+    this.recorderHidden$.value
       ? this.recorderService.show()
       : this.recorderService.hide();
   }

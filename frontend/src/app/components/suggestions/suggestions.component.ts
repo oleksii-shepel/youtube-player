@@ -13,9 +13,9 @@ import {
   merge,
   Stream,
   Subscription
-} from '@actioncrew/streamix';
-import { onResize } from '@actioncrew/streamix/dom';
-import { filter, map, switchMap, takeUntil } from '@actioncrew/streamix';
+} from '@epikodelabs/streamix';
+import { onResize } from '@epikodelabs/streamix/dom';
+import { filter, map, switchMap, takeUntil } from '@epikodelabs/streamix';
 import { GoogleSuggestionsService } from 'src/app/services/suggestions.service';
 import { AppearanceSettings } from 'src/app/interfaces/settings';
 import { DOCUMENT } from '@angular/common';
@@ -206,7 +206,7 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
 
   get shouldShowDropdown(): boolean {
     return this.appearanceSettings?.autoComplete === 'dropdown' &&
-           this.dropdownOpen$.snappy &&
+           this.dropdownOpen$.value &&
            this.suggestions.length > 0;
   }
 
@@ -228,7 +228,7 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (this.dropdownOpen$.snappy) {
+    if (this.dropdownOpen$.value) {
       switch (event.key) {
         case 'ArrowDown':
           event.preventDefault();
@@ -262,7 +262,7 @@ export class SuggestionsComponent implements AfterViewInit, OnDestroy {
     const searchContainer = this.searchContainer;
     const dropdownElement = this.dropdownElement;
 
-    if (searchContainer && dropdownElement && this.dropdownOpen$.snappy) {
+    if (searchContainer && dropdownElement && this.dropdownOpen$.value) {
       if (!searchContainer.contains(event.target as Node) &&
           !dropdownElement.contains(event.target as Node)) {
         this.dropdownOpen$.next(false);

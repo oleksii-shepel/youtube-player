@@ -11,7 +11,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { PlaylistService } from 'src/app/services/playlist.service';
-import { Subscription } from '@actioncrew/streamix';
+import { Subscription } from '@epikodelabs/streamix';
 import { Options } from 'sortablejs';
 import { TrackComponent } from '../track/track.component';
 import { DirectiveModule } from 'src/app/directives';
@@ -461,8 +461,8 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
     // Stop if current track deselected
     if (
-      this.playlistService.currentTrackIndex.snappy === index &&
-      !this.playlistService.selectedTrackIndexes.snappy.has(index)
+      this.playlistService.currentTrackIndex.value === index &&
+      !this.playlistService.selectedTrackIndexes.value.has(index)
     ) {
       this.playlistService.stop();
       this.playlistService.setCurrentTrackIndex(-1);
@@ -473,7 +473,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
    * Helper method to deselect a range from last selected to given index
    */
   private deselectRange(targetIndex: number): void {
-    const selected = new Set(this.playlistService.selectedTrackIndexes.snappy);
+    const selected = new Set(this.playlistService.selectedTrackIndexes.value);
     if (selected.size === 0) return;
 
     const lastSelected = Math.max(...selected);
@@ -526,7 +526,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
   playNext(): void {
     this.playlistService.next();
-    const newIndex = this.playlistService.currentTrackIndex.snappy;
+    const newIndex = this.playlistService.currentTrackIndex.value;
     if (newIndex !== -1) {
       this.playlistService.setCurrentTrackIndex(newIndex);
     }
@@ -534,7 +534,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
   playPrevious(): void {
     this.playlistService.previous();
-    const newIndex = this.playlistService.currentTrackIndex.snappy;
+    const newIndex = this.playlistService.currentTrackIndex.value;
     if (newIndex !== -1) {
       this.playlistService.setCurrentTrackIndex(newIndex);
     }

@@ -3,7 +3,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { firstValueFrom, Subscription } from '@actioncrew/streamix';
+import { firstValueFrom, Subscription } from '@epikodelabs/streamix';
 import { Helper } from 'src/app/services/helper.service';
 import { Authorization } from 'src/app/services/authorization.service';
 import { Theme, ThemeService } from 'src/app/services/theme.service';
@@ -224,7 +224,7 @@ export class SettingsChapter implements OnInit {
   }
 
   async handleSelection(event: CountryLanguageSelection) {
-    this.settings.updateSearchPreferences({...this.settings.search.snappy, country: event.country, language: event.language })
+    this.settings.updateSearchPreferences({...this.settings.search.value, country: event.country, language: event.language })
     await this.sheetService.close();
   }
 

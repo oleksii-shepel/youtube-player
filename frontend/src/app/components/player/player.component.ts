@@ -12,7 +12,7 @@ import {
   Renderer2,
   ViewChild
 } from '@angular/core';
-import { createReplaySubject, ReplaySubject, Subscription, take, filter } from '@actioncrew/streamix';
+import { createReplaySubject, ReplaySubject, Subscription, take, filter } from '@epikodelabs/streamix';
 
 import { IonicModule } from '@ionic/angular';
 import { DirectiveModule } from 'src/app/directives';

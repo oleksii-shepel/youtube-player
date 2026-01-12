@@ -1,10 +1,10 @@
 // grid.component.ts
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, SimpleChanges, OnChanges } from '@angular/core';
 import { AlertController, IonicModule } from '@ionic/angular';
-import { createBehaviorSubject, createSubject } from '@actioncrew/streamix';
+import { createBehaviorSubject, createSubject } from '@epikodelabs/streamix';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { takeUntil } from '@actioncrew/streamix';
+import { takeUntil } from '@epikodelabs/streamix';
 
 export interface TableColumn {
   key: string;
@@ -231,7 +231,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy, On
   onSearchChange(event: any) {
     const searchText = event.detail.value;
     this.searchText$.next(searchText);
-    const currentPagination = this.pagination$.snappy;
+    const currentPagination = this.pagination$.value;
     this.pagination$.next({
       ...currentPagination,
       currentPage: 1,
@@ -241,7 +241,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy, On
   onSort(columnKey: string) {
     const column = this.columns.find((col) => col.key === columnKey);
     if (!column?.sortable) return;
-    const currentSort = this.sortConfig$.snappy;
+    const currentSort = this.sortConfig$.value;
     if (currentSort.column === columnKey) {
       this.sortConfig$.next({
         column: columnKey,
@@ -262,7 +262,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy, On
 
   onPageSizeChange(event: any) {
     const itemsPerPage = parseInt(event.detail.value);
-    const currentPagination = this.pagination$.snappy;
+    const currentPagination = this.pagination$.value;
     this.pagination$.next({
       ...currentPagination,
       itemsPerPage,
@@ -272,7 +272,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy, On
   }
 
   goToPage(page: number) {
-    const currentPagination = this.pagination$.snappy;
+    const currentPagination = this.pagination$.value;
     if (page < 1 || page > currentPagination.totalPages || page === this.currentPage) {
       return;
     }
@@ -307,7 +307,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy, On
   }
 
   onSave() {
-    const currentModal = this.modalState$.snappy;
+    const currentModal = this.modalState$.value;
     if (!currentModal.selectedItem) return;
     if (currentModal.mode === 'add') {
       this.add.emit(currentModal.selectedItem);
@@ -319,7 +319,7 @@ export class GridComponent<T extends TableData> implements OnInit, OnDestroy, On
 
   closeModal() { this.modalState$.next({ isOpen: false, mode: 'add', selectedItem: null }); }
   onInputChange(key: string, value: any) {
-    const currentModal = this.modalState$.snappy;
+    const currentModal = this.modalState$.value;
     const updatedItem = currentModal.selectedItem ? { ...currentModal.selectedItem, [key]: value } : { [key]: value } as T;
     this.modalState$.next({ ...currentModal, selectedItem: updatedItem });
   }

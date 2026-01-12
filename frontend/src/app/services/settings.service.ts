@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Subject, createBehaviorSubject, Subscription } from '@actioncrew/streamix';
+import { Subject, createBehaviorSubject, Subscription } from '@epikodelabs/streamix';
 import { AboutSettings, AccessToken, ApiConfigSettings, AppearanceSettings, ChannelInfoSettings, PlaylistsSettings, SearchSettings, SubscriptionsSettings, UserInfoSettings } from '../interfaces/settings';
 import { Storage } from '@ionic/storage-angular';
 import { environment } from 'src/environments/environment';
@@ -218,47 +218,47 @@ export class Settings {
 
   // Helper method to update settings programmatically
   updateAccessToken(updates: Partial<AccessToken>): void {
-    const current = this.accessToken.snappy;
+    const current = this.accessToken.value;
     this.accessToken.next({ ...current!, ...updates });
   }
 
   updateUserInfo(updates: Partial<UserInfoSettings>): void {
-    const current = this.userInfo.snappy;
+    const current = this.userInfo.value;
     this.userInfo.next({ ...current!, ...updates });
   }
 
   updateAppearance(updates: Partial<AppearanceSettings>): void {
-    const current = this.appearance.snappy;
+    const current = this.appearance.value;
     this.appearance.next({ ...current!, ...updates });
   }
 
   updateChannelInfo(updates: Partial<ChannelInfoSettings>): void {
-    const current = this.channelInfo.snappy;
+    const current = this.channelInfo.value;
     this.channelInfo.next({ ...current!, ...updates });
   }
 
   updateSearchPreferences(updates: Partial<SearchSettings>): void {
-    const current = this.search.snappy;
+    const current = this.search.value;
     this.search.next({ ...current!, ...updates });
   }
 
   updatePlaylists(updates: Partial<PlaylistsSettings>): void {
-    const current = this.playlists.snappy;
+    const current = this.playlists.value;
     this.playlists.next({ ...current!, ...updates });
   }
 
   updateSubscriptions(updates: Partial<SubscriptionsSettings>): void {
-    const current = this.subscriptions.snappy;
+    const current = this.subscriptions.value;
     this.subscriptions.next({ ...current!, ...updates });
   }
 
   updateApiConfig(updates: Partial<ApiConfigSettings>): void {
-    const current = this.apiConfig.snappy;
+    const current = this.apiConfig.value;
     this.apiConfig.next({ ...current!, ...updates });
   }
 
   updateAbout(updates: Partial<AboutSettings>): void {
-    const current = this.about.snappy;
+    const current = this.about.value;
     this.about.next({ ...current!, ...updates });
   }
 

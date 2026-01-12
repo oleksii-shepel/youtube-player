@@ -1,10 +1,10 @@
 import { SearchSettings } from './../interfaces/settings';
-import { catchError, createSubject, fromPromise, Stream } from '@actioncrew/streamix';
-import { HttpClient, readJson } from '@actioncrew/streamix/networking';
+import { catchError, createSubject, fromPromise, Stream } from '@epikodelabs/streamix';
+import { HttpClient, readJson } from '@epikodelabs/streamix/networking';
 
 import { IYoutubeQueryParams } from '../interfaces/search';
 import { inject, Injectable } from '@angular/core';
-import { map, switchMap } from '@actioncrew/streamix';
+import { map, switchMap } from '@epikodelabs/streamix';
 import { environment } from 'src/environments/environment';
 import { HTTP_CLIENT } from 'src/main';
 import { Settings } from './settings.service';
@@ -386,7 +386,7 @@ export class YoutubeDataService {
    * Uses the `chart=mostPopular` parameter and API key authorization.
    */
   fetchTrendingVideos(params?: IYoutubeQueryParams): Stream<any> {
-    const regionSettings = this.settings.search.snappy;
+    const regionSettings = this.settings.search.value;
 
     const countryCode = regionSettings?.country?.code;
     const languageCode = regionSettings?.language?.code;
@@ -461,7 +461,7 @@ export class YoutubeDataService {
     });
 
     // Get settings dynamically
-    const searchSettings = this.settings.search.snappy;
+    const searchSettings = this.settings.search.value;
 
     // Inject maxResults if not provided
     if (!params['safeSearch'] && searchSettings?.safeSearch) {
